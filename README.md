@@ -9,7 +9,7 @@ products:
 - azure-app-service-plans
 - azure-function-apps
 - azure-app-insights
-description: "Bellhop allows a user to 'hop' between service tiers, like a traditional bellhop helps you move between floors."
+description: "Bellhop allows a customer to 'hop' between service tiers, like a traditional bellhop helps you move between floors."
 ---
 
 # Bellhop
