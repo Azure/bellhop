@@ -1,18 +1,4 @@
----
-page_type: sample
-languages:
-- powershell
-products:
-- azure
-- azure-powershell
-- azure-resource-manager-templates
-- azure-app-service-plans
-- azure-function-apps
-- azure-app-insights
-description: "Bellhop allows a user to 'hop' between service tiers, like a traditional bellhop helps you move between floors."
----
-
-# Bellhop
+# BELLHOP
 
 <!-- 
 Guidelines on README format: https://review.docs.microsoft.com/help/onboard/admin/samples/concepts/readme-template?branch=master
@@ -43,7 +29,7 @@ This project was born out of the customer need to save money, and a gap in Azure
 
 ## Bellhop Architecture and Workflow
 
-![Bellhop Architecture](./docs/images/bellhop.png)
+![Bellhop Architecture](./images/bellhop.png)
 
 
 ## Prerequisites
@@ -65,7 +51,6 @@ The list of services currently supported by Bellhop:
 - SQL Elastic Pools
 - Virtual Machine (COMING SOON!!!!)
 
-
 ## Deploying Bellhop
 
 ### Steps to deploy infrastructure:
@@ -85,7 +70,7 @@ Enter Azure Region to deploy to: westus
 ### Steps to tear down the deployment:
 - Run `teardown.ps1` from project root
     - Script will ask user for a Resource Group Name, and then delete that resource group and all associated resources
-    
+
 
 ## Running Bellhop
 Bellhop is currently configured to run in the context of a single subscription, and relies on the Graph API and certian Tags on resources to handle service tier scaling for you! The Engine will query Graph API every 5 min (by default) and perform a get on resources tagged with `resize-Enable = True`. If resize has been enabled, and times have been configured, the Engine will determine which direction the resource would like to scale and send a message to the storage queue. 
@@ -94,7 +79,7 @@ All you need to do to run Bellhop is deploy the solution and ensure you have the
 
 
 ## Required Tags for all services
-Bellhop operates based on service tags. Some of the required tags will be common between Azure services, and some tags will be specific to the resource you would like Bellhop to scale. Resource specific tags will be discussed in detail on that resources page: [Scaler Modules](./docs/scalers/modules/)
+Bellhop operates based on service tags. Some of the required tags will be common between Azure services, and some tags will be specific to the resource you would like Bellhop to scale. Resource specific tags will be discussed in detail on that resources page: [Scaler Modules](./scalers/modules/README.md) 
 
 Bellhop Common Tags:
 ```
@@ -102,6 +87,7 @@ resize-Enable = <bool> (True/False)
 resize-StartTime = <DateTime> (Friday 7PM)
 resize-EndTime = <DateTime> (Monday 7:30AM)
 ```
+
 _**NOTE: StartTime and EndTime are currently in UTC**_
 
 ## Bellhop Infrastructure
