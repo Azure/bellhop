@@ -83,7 +83,7 @@ function Update-Resource {
         }
 
 ##
-## Scaling DOWN is typically the harder operation and requires the most logic.
+## Scaling DOWN is typically the harder operation and requires the most logic. This also involves populating the ## $saveData variable which is used to remember what to scale the resource back to
 ##
 
         'down' {
