@@ -24,7 +24,6 @@ Taxonomies for products and languages: https://review.docs.microsoft.com/new-hop
 
 This project was born out of the customer need to save money, and a gap in Azure's ability to easily "turn down" Managed services in Dev/Test environments. Particularly when referring to scaling between service tiers. We put our heads together and came up with a serverless option to adress this issue built almost entirely around Azure Functions. Bellhop is comprised of 2 separate Azure Functions; one is the Engine written in C#, and the other is the Scaler-Trigger. Users will need to tag their resources with the required tags (covered below), and the Engine Function will then use those tags to determine which resources need to be scaled, to which tiers, and when. The Engine will then post a scale instruction message in the Storage Queue, at which time the Scaler-Trigger Function will pull the message from the queue and begin processing the scale request. The Scaler-Trigger function leverages custom scaler modules per resource type to fufill the scale request.
 
-
 ## Repo Contents
 
 | File/folder       | Description                                |
