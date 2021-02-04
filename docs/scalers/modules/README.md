@@ -16,7 +16,7 @@ You need to:
     - Developed to accept the message format sent to the `autoscale` storage queue.
         - Scale Direction + Resource Graph Query.
 
-**template.psm1 example:***
+***template.psm1 example:***
 ```
 ##
 ## All functions will accept the same parameters, parsed from the storage Queue message
