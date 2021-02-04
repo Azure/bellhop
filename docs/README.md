@@ -86,7 +86,7 @@ The teardown script will ask user for a Resource Group Name, and then delete tha
 
 Example:
 ```
-PS /Users/tpeterson/git_repos/github/Azure/bellhop> ./teardown.ps1
+PS /User/git_repos/github/Azure/bellhop> ./teardown.ps1
 Enter name of resource group to teardown: bellhopsvc-rg
 ``` 
 
