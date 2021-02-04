@@ -1,7 +1,11 @@
 # Bellhop Scaler-Trigger Function
-The main Scaler Function is the Trigger function, it is a very lightweight Powershell function that is triggered by a storage queue message. When invoked, the main function will then parse the queue message, import the service specific scaler module, and invoke the scaling module using the collected parameters. 
+The Scaler-Trigger is a very lightweight Powershell function that is triggered when a new message is posted to the defined storage queue. When this function is invoked it will parse the queue message item, import the necessary scaler module based on resource type, and finally invoke the scaling module using the parameters collected.
 
-Scalers modules are the most complicated part of this design, but this also affords the solution to be as flexible as possible. They are developed to be specific to the service they are going to scale, meaning that each service will need to have its own scaler function Powershell module. This is due to the fact that each Azure managed service approaches scaling in different ways. 
 
-Each Scaler Module has a dedicated information page in the [Scaler Modules](./modules/README.md) section
+## Scaler Modules?
+Scalers modules are used to allow the main Scaler-Trigger function code to not need to change, or be updated moving forward. This decision makes the scaler modules most complicated part of this solution, but this intentional design affords the solution much more flexibility. Each module is developed to be specific to the service they are going to scale, so each Azure service will have its own module. This is due to the fact that each Azure managed service approaches scaling in different ways, with varying metrics to adjust. 
+
+
+## Scaler Module Details
+Instructions for creating new modules, as well as detailed information around the each current supported Azure Resource can be found in the [Scaler Modules](./modules/README.md) section of this documentation.
 
