@@ -1,7 +1,7 @@
 #################################################################################
 #
 #
-# Bellhop
+# Bellhop Deploy Script
 # Created by CSA's: Matthew Garrett, Nills Franssens, and Tyler Peterson 
 #
 #
@@ -214,7 +214,6 @@ catch {
 }
 
 # Upload Azure Function contents via Zip-Deploy
-# Due to limitations in Powershell, we need to use the Azure CLI to Zip-Deploy this package
 # Bellhop Scaler Function Upload First
 Write-Host "INFO: Creating staging folder for function archives..." -ForegroundColor green
 Remove-Item .\staging\ -Recurse -Force -ErrorAction Ignore

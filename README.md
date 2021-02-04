@@ -22,22 +22,23 @@ Guidance on onboarding samples to docs.microsoft.com/samples: https://review.doc
 Taxonomies for products and languages: https://review.docs.microsoft.com/new-hope/information-architecture/metadata/taxonomies?branch=master
 -->
 
-This project was born out of the customer need to save money, and a gap in Azure's ability to easily "turn down" Managed services in Dev/Test environments. Particularly when referring to scaling between service tiers. We put our heads together and came up with a serverless option to adress this issue built almost entirely around Azure Functions. Bellhop is comprised of 2 separate Azure Functions; one is the Engine written in C#, and the other is the Scaler-Trigger. Users will need to tag their resources with the required tags (covered below), and the Engine Function will then use those tags to determine which resources need to be scaled, to which tiers, and when. The Engine will then post a scale instruction message in the Storage Queue, at which time the Scaler-Trigger Function will pull the message from the queue and begin processing the scale request. The Scaler-Trigger function leverages custom scaler modules per resource type to fufill the scale request.
+This project was born out of customer demand to fill a gap in Azure's ability to easily "turn down" Managed services in Dev/Test environments. Particularly when referring to scaling between the available service tiers. The Bellhop team put our heads together and came up with a serverless option to address this issue built almost entirely around Azure Functions. Bellhop is comprised of 2 separate Azure Functions; one is the Engine written in C#, and the other is the Scaler-Trigger written in Powershell. Users will need to tag their resources with the required tags (covered below), and the Engine Function will then use those tags to determine which resources need to be scaled, to which tiers, and when. The Engine will then post a scale instruction message in the Storage Queue, at which time the Scaler-Trigger Function will pull the message from the queue and begin processing the scale request. The Scaler-Trigger function leverages custom scaler modules per resource type to fufill the scale request.
 
 ## Repo Contents
 
 | File/folder       | Description                                |
 |-------------------|--------------------------------------------|
-| `arm-templates/`   | Bellhop Infrastructure ARM Template.      |
-| `azure-functions/` | Bellhop project Azure Functions. Includes Engine and Trigger.|
-| `docs/`            | Docsify repo for web documentation.|
+| `arm-templates/`  | Bellhop Infrastructure ARM Template.       |
+| `azure-functions/`| Bellhop project Azure Functions. Includes Engine and Trigger.|
+| `docs/`           | Docsify repo for web documentation.        |
 | `.gitignore`      | Define what to ignore at commit time.      |
+| `CODE_OF_CONDUCT.md` | Expected code of conduct for this repo  |
 | `deploy.ps1`      | PowerShell script to deploy tool.          |
+| `LICENSE`         | MIT license for the project                |
 | `README.md`       | This README file.                          |
 | `teardown.ps1`    | PowerShell script to decommission the tool. Makes testing and experimentation easy.|
-| `CHANGELOG.md`    | List of changes to the sample. COMING SOON!|
-| `CONTRIBUTING.md` | Guidelines for contributing to the sample. COMING SOON!|
-| `LICENSE`         | The license for the sample. COMING SOON!   |
+| `update-scaler.ps1`  | PowerShell script to easily update the Scaler Function. |
+
 
 
 ## Bellhop Architecture and Workflow
@@ -65,7 +66,7 @@ The list of services currently supported by Bellhop:
 - Virtual Machine (COMING SOON!!!!)
 
 
-## Deploying Bellhop
+## Deploying/Updating/Deleting Bellhop
 
 ### Steps to deploy infrastructure:
 
@@ -81,10 +82,29 @@ Enter a unique name for your deployment: tjptest
 Enter Azure Region to deploy to: westus
 ```
 
+### Steps to update the Scaler-Trigger Function when adding new scaler modules:
+
+- Run `update-scaler.ps1` from project root
+
+The update script will ask user for a Resource Group Name, and then zip deploy the new updates to the Scaler-Trigger function deployed in the given resource group.
+
+Example:
+```
+PS /User/git_repos/github/Azure/bellhop> ./update-scaler.ps1
+Enter resource group name where function is deployed: bellhopsvc-rg 
+```
+
 ### Steps to tear down the deployment:
 - Run `teardown.ps1` from project root
-    - Script will ask user for a Resource Group Name, and then delete that resource group and all associated resources
-    
+
+The teardown script will ask user for a Resource Group Name, and then delete that resource group and all associated resources. 
+
+Example:
+```
+PS /Users/tpeterson/git_repos/github/Azure/bellhop> ./teardown.ps1
+Enter name of resource group to teardown: bellhopsvc-rg
+``` 
+
 
 ## Running Bellhop
 Bellhop is currently configured to run in the context of a single subscription, and relies on the Graph API and certian Tags on resources to handle service tier scaling for you! The Engine will query Graph API every 5 min (by default) and perform a get on resources tagged with `resize-Enable = True`. If resize has been enabled, and times have been configured, the Engine will determine which direction the resource would like to scale and send a message to the storage queue. 
