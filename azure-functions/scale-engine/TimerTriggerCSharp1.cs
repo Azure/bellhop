@@ -23,6 +23,17 @@ using Microsoft.Extensions.Configuration;
 
 namespace Company.Function
 {
+  	public static class Debug
+    {
+        private static bool _enabled = false;
+        
+        public static bool Enabled
+        {
+            get => _enabled;
+            set => _enabled = value;
+        }
+    }
+
     public class TimerTriggerCSharp1
     {
         private readonly IConfiguration _configuration;
@@ -35,22 +46,33 @@ namespace Company.Function
         [FunctionName("TimerTriggerCSharp1")]
         public async void Run([TimerTrigger("0 */5 * * * *")] TimerInfo myTimer, ILogger log)
         {
+            log.LogInformation("Current UTC Time: " + DateTime.UtcNow.ToString("dddd hh:mm:ss tt"));
+
             string strQuery = "Resources | where tags['resize-Enable'] =~ 'True'";
 
             var resizeUpList = new List<JObject>();
             var resizeDownList = new List<JObject>();
 
-            string storageKeyName = "storageAccount";
-            string storageAppSetting = _configuration[storageKeyName];
-            log.LogInformation("Storage Account: " + storageAppSetting);
-
-            string queueKeyName = "storageQueue";
-            string queueAppSetting = _configuration[queueKeyName];
-            log.LogInformation("Storage Queue: " + queueAppSetting);
+            log.LogInformation("Fetching app configuration settings...");
 
             string debugKeyName = "debugMode";
             string debugAppSetting = _configuration[debugKeyName];
-            log.LogInformation("Debug: " + debugAppSetting);
+            log.LogInformation("Debug Flag: " + debugAppSetting);
+
+            try {
+			    Debug.Enabled = Boolean.Parse(debugAppSetting);
+		    }
+            catch {
+			    Debug.Enabled = false;
+		    }
+
+            string storageKeyName = "storageAccount";
+            string storageAppSetting = _configuration[storageKeyName];
+            if (Debug.Enabled) log.LogInformation("Storage Account: " + storageAppSetting);
+
+            string queueKeyName = "storageQueue";
+            string queueAppSetting = _configuration[queueKeyName];
+            if (Debug.Enabled) log.LogInformation("Storage Queue: " + queueAppSetting);
 
             bool debugFlag = bool.Parse(debugAppSetting);
 
@@ -70,6 +92,13 @@ namespace Company.Function
                 .Select(s => s.SubscriptionId)
                 .ToList();
 
+            if (Debug.Enabled) {
+                string subscriptionJson = JsonConvert.SerializeObject(subscriptionIds);
+
+                log.LogInformation("Target Subscriptions:");
+                log.LogInformation(subscriptionJson);
+            }
+
             QueryRequest request = new QueryRequest
             {
                 Subscriptions = subscriptionIds,
@@ -77,58 +106,68 @@ namespace Company.Function
                 Options = new QueryRequestOptions(resultFormat: ResultFormat.ObjectArray)
             };
 
+            log.LogInformation("Querying for enabled resources...");
+
             var response = await rgClient.ResourcesAsync(request);
             JArray resources = JArray.Parse(response.Data.ToString());
 
-            log.LogInformation("Current Time: " + DateTime.UtcNow.ToString("dddd htt"));
+            log.LogInformation("Processing resources...");
 
             foreach (JObject resource in resources)
             {
-                log.LogInformation("Target: " + resource["name"].ToString());
+                if (Debug.Enabled) log.LogInformation("Resource: " + resource["name"].ToString());
 
                 Hashtable times = new Hashtable() {
                     {"StartTime", resource["tags"]["resize-StartTime"].ToString()},
                     {"EndTime", resource["tags"]["resize-EndTime"].ToString()}
                 };
 
-                foreach (string key in times.Keys)
-                {
-                    log.LogInformation(string.Format("{0}: {1}", key, times[key]));
+                if (Debug.Enabled){
+                    log.LogInformation("Scale Down: " + times["StartTime"]);
+                    log.LogInformation("Scale Up: " + times["EndTime"]);
                 }
 
                 Regex rg = new Regex("saveState-.*");
 
                 if (resizeTime(times))
                 {
-                    // log.LogInformation("Resize Time: YES");
+                    string scaleMessage = "=> Currently within 'scale down' period ";
+
                     if (resource["tags"].Children<JProperty>().Any(prop => rg.IsMatch(prop.Name.ToString())))
                     {
-                        log.LogInformation(resource["name"].ToString() + " Already Scaled Down...");
+                        scaleMessage += "(Already Scaled)";
                     }
                     else
                     {
-                        log.LogInformation(resource["name"].ToString() + " Needs to be Scaled Down...");
+                        scaleMessage += "(Scale Scheduled)";
                         resizeDownList.Add(resource);
                     }
+
+                    if (Debug.Enabled) log.LogInformation(scaleMessage);
                 }
                 else
                 {
-                    // log.LogInformation("Resize Time: NO");
+                    string scaleMessage = "=> Currently within 'scale up' period ";
+
                     if (resource["tags"].Children<JProperty>().Any(prop => rg.IsMatch(prop.Name.ToString())))
                     {
-                        log.LogInformation(resource["name"].ToString() + " Needs to be Scaled Up...");
+                        scaleMessage += "(Scale Scheduled)";
                         resizeUpList.Add(resource);
                     }
                     else
                     {
-                        log.LogInformation(resource["name"].ToString() + " Already Scaled Up...");
+                        scaleMessage += "(Already Scaled)";
                     }
+
+                    if (Debug.Enabled) log.LogInformation(scaleMessage);
                 }
             }
 
+            log.LogInformation("Processing scale up queue...");
+
             foreach (var item in resizeUpList)
             {
-                log.LogInformation(item["name"].ToString() + " => up");
+                if (Debug.Enabled) log.LogInformation(item["name"].ToString() + " => up");
                 
                 var messageData = new JObject();
                 messageData.Add(new JProperty("debug", debugFlag));
@@ -138,9 +177,11 @@ namespace Company.Function
                 writeQueueMessage(messageData, messageQueue);
             };
 
+            log.LogInformation("Processing scale down queue...");
+
             foreach (var item in resizeDownList)
             {
-                log.LogInformation(item["name"].ToString() + " => down");
+                if (Debug.Enabled) log.LogInformation(item["name"].ToString() + " => down");
 
                 var messageData = new JObject();
                 messageData.Add(new JProperty("debug", debugFlag));
