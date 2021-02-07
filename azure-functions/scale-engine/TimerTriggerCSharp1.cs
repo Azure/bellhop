@@ -20,6 +20,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 
 namespace Company.Function
 {
@@ -37,15 +38,18 @@ namespace Company.Function
     public class TimerTriggerCSharp1
     {
         private readonly IConfiguration _configuration;
+        private static IConfigurationRefresher _refresher;
 
-        public TimerTriggerCSharp1(IConfiguration configuration)
+        public TimerTriggerCSharp1(IConfiguration configuration, IConfigurationRefresher refresher)
         {
             _configuration = configuration;
+            _refresher = refresher;
         }
 
         [FunctionName("TimerTriggerCSharp1")]
         public async void Run([TimerTrigger("0 */5 * * * *")] TimerInfo myTimer, ILogger log)
         {
+            log.LogInformation("Bellhop engine starting up...");
             log.LogInformation("Current UTC Time: " + DateTime.UtcNow.ToString("dddd hh:mm:ss tt"));
 
             string strQuery = "Resources | where tags['resize-Enable'] =~ 'True'";
@@ -54,6 +58,8 @@ namespace Company.Function
             var resizeDownList = new List<JObject>();
 
             log.LogInformation("Fetching app configuration settings...");
+
+            await _refresher.RefreshAsync();
 
             string debugKeyName = "debugMode";
             string debugAppSetting = _configuration[debugKeyName];
@@ -111,10 +117,11 @@ namespace Company.Function
             var response = await rgClient.ResourcesAsync(request);
             JArray resources = JArray.Parse(response.Data.ToString());
 
-            log.LogInformation("Processing resources...");
+            log.LogInformation("Examining resources...");
 
             foreach (JObject resource in resources)
             {
+                if (Debug.Enabled) log.LogInformation("=========================");
                 if (Debug.Enabled) log.LogInformation("Resource: " + resource["name"].ToString());
 
                 Hashtable times = new Hashtable() {
@@ -131,7 +138,7 @@ namespace Company.Function
 
                 if (resizeTime(times))
                 {
-                    string scaleMessage = "=> Currently within 'scale down' period ";
+                    string scaleMessage = "Currently within 'scale down' period ";
 
                     if (resource["tags"].Children<JProperty>().Any(prop => rg.IsMatch(prop.Name.ToString())))
                     {
@@ -163,16 +170,22 @@ namespace Company.Function
                 }
             }
 
+            if (Debug.Enabled) log.LogInformation("=========================");
             log.LogInformation("Processing scale up queue...");
 
             foreach (var item in resizeUpList)
             {
+                if (Debug.Enabled) log.LogInformation("=========================");
                 if (Debug.Enabled) log.LogInformation(item["name"].ToString() + " => up");
                 
                 var messageData = new JObject();
                 messageData.Add(new JProperty("debug", debugFlag));
                 messageData.Add(new JProperty("direction", "up"));
                 messageData.Add(new JProperty("graphResults", item));
+
+                if (Debug.Enabled) log.LogInformation("Queue Message:");
+                if (Debug.Enabled) log.LogInformation(messageData.ToString(Formatting.None));
+                if (Debug.Enabled) log.LogInformation("=========================");
 
                 writeQueueMessage(messageData, messageQueue);
             };
@@ -181,6 +194,7 @@ namespace Company.Function
 
             foreach (var item in resizeDownList)
             {
+                if (Debug.Enabled) log.LogInformation("=========================");
                 if (Debug.Enabled) log.LogInformation(item["name"].ToString() + " => down");
 
                 var messageData = new JObject();
@@ -188,8 +202,14 @@ namespace Company.Function
                 messageData.Add(new JProperty("direction", "down"));
                 messageData.Add(new JProperty("graphResults", item));
 
+                if (Debug.Enabled) log.LogInformation("Queue Message:");
+                if (Debug.Enabled) log.LogInformation(messageData.ToString(Formatting.None));
+                if (Debug.Enabled) log.LogInformation("=========================");
+
                 writeQueueMessage(messageData, messageQueue);
             };
+
+            log.LogInformation("Bellhop engine execution complete!");
         }
 
         public static QueueClient getQueueClient(string storName, string queueName)
