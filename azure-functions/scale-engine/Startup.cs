@@ -5,9 +5,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 using Microsoft.Extensions.DependencyInjection;
 
-[assembly: FunctionsStartup(typeof(azure_autoscale_func.Startup))]
+[assembly: FunctionsStartup(typeof(Bellhop.Startup))]
 
-namespace azure_autoscale_func
+namespace Bellhop
 {
     class Startup : FunctionsStartup
     {
