@@ -1,0 +1,19 @@
+{
+    "type": "microsoft.web/serverfarms",
+    "direction": "down",
+    "subId": "a69f1b4e-9d3c-4b34-a175-07e66323a698",
+    "get": "Get-AzAppServicePlan",
+    "set": "Set-AzAppServicePlan",
+    "target": {
+        "ResourceGroupName": "autoscale-webapp-rg",
+        "Name": "autoscale-test-app"
+    },
+    "resizeDown": {
+        "WorkerSize": "Small",
+        "Tier": "Basic"
+    },
+    "resizeUp": {
+        "WorkerSize": "Large",
+        "Tier": "Standard"
+    }
+}

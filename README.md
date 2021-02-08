@@ -28,17 +28,16 @@ This project was born out of customer demand to fill a gap in Azure's ability to
 
 | File/folder       | Description                                |
 |-------------------|--------------------------------------------|
-| `arm-templates/`  | Bellhop Infrastructure ARM Template.       |
-| `azure-functions/`| Bellhop project Azure Functions. Includes Engine and Trigger.|
 | `docs/`           | Docsify repo for web documentation.        |
-| `.gitignore`      | Define what to ignore at commit time.      |
-| `CODE_OF_CONDUCT.md` | Expected code of conduct for this repo  |
-| `deploy.ps1`      | PowerShell script to deploy tool.          |
-| `LICENSE`         | MIT license for the project                |
+| `functions/`      | Bellhop project Azure Functions. Includes Engine and Trigger.|
+| `templates/`      | Bellhop Infrastructure ARM Template.       |
+| `deployBellhop.ps1` | PowerShell script to deploy tool.        |
+| `removeBellhop.ps1` | PowerShell script to decommission the tool. Makes testing and experimentation easy.|
+| `updateScaler.ps1` | PowerShell script to easily update the Scaler Function. |
 | `README.md`       | This README file.                          |
-| `teardown.ps1`    | PowerShell script to decommission the tool. Makes testing and experimentation easy.|
-| `update-scaler.ps1`  | PowerShell script to easily update the Scaler Function. |
-
+| `LICENSE`         | MIT license for the project                |
+| `CODE_OF_CONDUCT.md` | Expected code of conduct for this repo  |
+| `.gitignore`      | Define what to ignore at commit time.      |
 
 
 ## Bellhop Architecture and Workflow
@@ -71,38 +70,38 @@ The list of services currently supported by Bellhop:
 ### Steps to deploy infrastructure:
 
 - Clone the GitHub repo down to your local machine
-- Run `deploy.ps1` from project root
+- Run `deployBellhop.ps1` from project root
 
 The deployment script will ask the user to input a unique name for their deployment, as well as their desired Azure region. These will be passed to the script as parameters. 
 
 Example:
 ```
-PS /User/git_repos/github/azure-autoscale> ./deploy.ps1
-Enter a unique name for your deployment: tjptest
+PS /User/git_repos/github/azure-autoscale> ./deployBellhop.ps1
+Enter a unique name for your deployment: bellhop
 Enter Azure Region to deploy to: westus
 ```
 
 ### Steps to update the Scaler-Trigger Function when adding new scaler modules:
 
-- Run `update-scaler.ps1` from project root
+- Run `updateScaler.ps1` from project root
 
 The update script will ask user for a Resource Group Name, and then zip deploy the new updates to the Scaler-Trigger function deployed in the given resource group.
 
 Example:
 ```
-PS /User/git_repos/github/Azure/bellhop> ./update-scaler.ps1
-Enter resource group name where function is deployed: bellhopsvc-rg 
+PS /User/git_repos/github/Azure/bellhop> ./updateScaler.ps1
+Enter resource group name where function is deployed: bellhop-rg 
 ```
 
 ### Steps to tear down the deployment:
-- Run `teardown.ps1` from project root
+- Run `removeBellhop.ps1` from project root
 
 The teardown script will ask user for a Resource Group Name, and then delete that resource group and all associated resources. 
 
 Example:
 ```
-PS /User/git_repos/github/Azure/bellhop> ./teardown.ps1
-Enter name of resource group to teardown: bellhopsvc-rg
+PS /User/git_repos/github/Azure/bellhop> ./removeBellhop.ps1
+Enter name of resource group to teardown: bellhop-rg
 ``` 
 
 
@@ -127,7 +126,7 @@ _**NOTE: StartTime and EndTime are currently in UTC**_
 
 ### So, what does this solution actually deploy?
 
-The included deploy script, `deploy.ps1`, will build the following infrastructure:
+The included deploy script, `deployBellhop.ps1`, will build the following infrastructure:
 - **Resource Group** 
     - You _can_ bring an existing resource group
     - Deployment will create a new resource group if one does not already exist
