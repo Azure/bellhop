@@ -9,9 +9,13 @@
 
 $rgName = Read-Host "Enter resource group name where function is deployed"
 $logFile = "./update_$(get-date -format `"yyyyMMddhhmmsstt`").log"
-$rg = Get-AzResourceGroup -Name $rgName
 
-if ($rg) {
+$funcName = $($rgName.Trim("-rg") + "-scaler-function")
+
+$resourceGroup = Get-AzResourceGroup -Name $rgName
+$functionApp = Get-AzFunctionApp -ResourceGroupName $rgName -Name $funcName
+
+if ($resourceGroup -and $functionApp) {
     # Upload Azure Function contents via Zip-Deploy
     # Bellhop Scaler Function Upload First
     Write-Host "INFO: Creating staging folder for updated function archives..." -ForegroundColor green
@@ -22,7 +26,6 @@ if ($rg) {
         Write-Host "INFO: Zipping up scaler function content updates" -ForegroundColor Green
         Write-Verbose -Message "Zipping up scaler function..."
 
-        $name = $rgName.trim("-rg")
         $scalerFolder = ".\azure-functions\scale-trigger"
         $scalerZipFile = ".\staging\scaler.zip"
         $scalerExcludeDir = @(".vscode")
@@ -34,7 +37,7 @@ if ($rg) {
 
         Write-Host "INFO: Updating scaler function via Zip-Deploy" -ForegroundColor Green
         Write-Verbose -Message "Updating scaler function via Azure CLI Zip-Deploy"
-        Publish-AzWebapp -ResourceGroupName "$name-rg" -Name "$name-function-scaler" -ArchivePath $(Resolve-Path $scalerZipFile) -Force | Out-Null
+        Publish-AzWebapp -ResourceGroupName $rgName -Name $funcName -ArchivePath $(Resolve-Path $scalerZipFile) -Force | Out-Null
     }
     catch {
         $_ | Out-File -FilePath $logFile -Append
@@ -49,4 +52,3 @@ else {
     Write-Host "ERROR: Cannot find Resource Group - $rgName. Please check AzContext and try again"
     exit
 }
-
