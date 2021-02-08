@@ -270,4 +270,4 @@ catch {
 Write-Host "INFO: Cleaning up..." -ForegroundColor green
 Remove-Item .\staging\ -Recurse -Force -ErrorAction Ignore
 
-Write-Host "INFO: Bellhop has deployed successfully!" -ForegroundColor Green
+Write-Host "INFO: Azure Autoscale Function has deployed successfully!" -ForegroundColor Green
