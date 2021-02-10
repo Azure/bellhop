@@ -3,7 +3,7 @@ The Scaler-Trigger is a very lightweight Powershell function that is triggered w
 
 
 ## Scaler Modules?
-Scalers modules are used to allow the main Scaler-Trigger function code to not need to change, or be updated moving forward. This decision makes the scaler modules most complicated part of this solution, but this intentional design affords the solution much more flexibility. Each module is developed to be specific to the service they are going to scale, so each Azure service will have its own module. This is due to the fact that each Azure managed service approaches scaling in different ways, with varying metrics to adjust. 
+Scaler modules are used to allow the main Scaler-Trigger function code to not need to change, or be updated moving forward. This decision makes the scaler modules most complicated part of this solution, but this intentional design affords the solution much more flexibility. Each module is developed to be specific to the service they are going to scale, so each Azure service will have its own module. This is due to the fact that each Azure managed service approaches scaling in different ways, with varying metrics to adjust. 
 
 
 ## Scaler Module Details

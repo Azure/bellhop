@@ -1,10 +1,10 @@
 # Bellhop Scaler Modules
-Each Azure Service that you wish to scale using Bellhop, will require it's own Powershell Module in the form of a `psm1`. These modules are created in the `./azure-functions/scale-trigger/scalers` directory. The sub folders in that directory need to follow the Microsoft.TYPE format in order for the Scaler-Trigger Function to import the correct module. 
+Each Azure Service that you wish to scale using Bellhop, will require it's own Powershell Module in the form of a `psm1`. These modules will be named `function.psm1` and are created under the `./azure-functions/scale-trigger/scalers` directory. The sub folders in that directory **must** follow the Microsoft.TYPE format in order for the Scaler-Trigger Function to import the correct module. 
 
 You can reference these resource types when creating new scalers: [Azure Resource Graph Type Reference](https://docs.microsoft.com/en-us/azure/governance/resource-graph/reference/supported-tables-resources)
 
 **For example**
-When creating the `App Servide Plan` scaler module, the folder structure looks like this:
+When creating the `App Service Plan` scaler module, the folder structure looks like this:
 ```
 ./azure-functions/scale-trigger/scalers/microsoft.web/serverfarms/function.psm1
 ```
@@ -86,7 +86,7 @@ function Update-Resource {
 ###################################################################################
 ##  
 ## You will need to switch off of the direction sent from the Engine function.
-## Scaling UP is typically easier, and involves parsing the values of "savedState-" tags.
+## Scaling UP is typically easier, and involves parsing the values of "saveState-" tags.
 ##  
 ###################################################################################
 
@@ -167,8 +167,13 @@ Export-ModuleMember -Function Update-Resource
 
 ```
 
-3) Run `update.ps1` script to Zip-Deploy new Scaler-Trigger version
-- **UPDATE SCRIPT IS COMING SOON**
+3) Run `updateScaler.ps1` script from project root to Zip-Deploy new Scaler-Trigger version.
+
+Example:
+```
+PS /User/git_repos/github/Azure/bellhop> ./updateScaler.ps1
+Enter resource group name where function is deployed: bellhop-rg 
+```
 
 4) Create new `servicename.md` page to document how to use the new scaler.
     - Created in the `./docs/scalers/modules/` folder
