@@ -10,7 +10,7 @@ setState-WorkerSize = <String>
 setState-Tier = <String>
 ```
 
-For more information on tag values for Azure SQL Databases please see the Microsoft documentaion: [Set-AzAppServicePlan](https://docs.microsoft.com/en-us/powershell/module/az.websites/set-azappserviceplan?view=azps-5.4.0)
+For more information on tag values for Azure App Service please see the Microsoft documentaion: [Set-AzAppServicePlan](https://docs.microsoft.com/en-us/powershell/module/az.websites/set-azappserviceplan?view=azps-5.4.0)
 
 ## Sample scale message
 An example of the message sent to the queue by the engine function 
