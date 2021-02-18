@@ -1,28 +1,106 @@
 #
 # AZURE VIRTUAL MACHINE SCALE FUNCTION
-# DOES NOT CURRENTLY WORK
 #
-function update-resource {
+
+function Update-Resource {
     param (
-        [Object[]]$inputParams    
+        [Parameter(Mandatory = $true)]
+        [Object]
+        $graphData,
+
+        [Parameter(Mandatory = $true)]
+        [Hashtable]
+        $tagData,
+
+        [Parameter(Mandatory = $true)]
+        [String]
+        $direction
     )
 
-    # Gather parameters from the input object
-    Write-Host "Pulling required parameters from param object"
-    $ResourceGroup = $inputParams.ResourceGroup
-    $Name = $inputParams.Name
-    $TargetSize = $inputParams.TargetSize
+    # Set preference variables
+    $ErrorActionPreference = "Stop"
 
-    # Scale VM
+    $baseData = @{
+        ResourceGroupName = $graphData.resourceGroup
+    }
+
+    $config = @{ }
+    $tags = $tagData.tags
+
+    switch ($direction) {
+        'up' {
+            Write-Host "Scaling VM Size: '$($graphData.properties.hardwareProfile.vmSize)' to Size: '$($tagData.saveData.VMSize)'"
+
+            $vmName = $graphData.name
+            $vmLocation = $graphData.location
+            $vmSize = $tagData.saveData.VMSize
+
+            $vmData = @{
+                VM = Get-VMObject $vmName $vmLocation $vmSize
+            }
+            
+            $config = $baseData + $vmData
+        }
+
+        'down' {
+            Write-Host "Scaling VM Size: '$($graphData.properties.hardwareProfile.vmSize)' to Tier: '$($tagData.setData.VMSize)'"
+
+            $vmName = $graphData.name
+            $vmLocation = $graphData.location
+            $vmSize = $tagData.setData.VMSize
+
+            $config = @{
+                VM = Get-VMObject $vmName $vmLocation $vmSize
+            }
+
+            $saveData = @{
+                VMSize = $graphData.properties.hardwareProfile.vmSize
+            }
+
+            $config += $baseData
+            $tags += Set-SaveTags $saveData
+        }
+    }
+
+    # Scale the Virtual Machine Size
     try {
-        Write-Host "INFO: Scaling VM: '$Name' to Size: '$TargetSize'" -ForegroundColor Green
-        $vm = Get-AzVM -ResourceGroupName $resourceGroup -Name $Name
-        $vm.HardwareProfile.VmSize = $TargetSize
-        update-azvm -VM $vm 
+        Update-AzVM @config -Tag $tags
     }
     catch {
-        Write-Host "ERROR: Could not scale VM: $VM"
+        Write-Host "Error scaling Virtual Machine Size: $($graphData.name)"
+        Write-Host "($($Error.exception.GetType().fullname)) - $($PSItem.ToString())"
+        # throw $PSItem
         Exit
     }
-    Write-Host "INFO: Scaling operation has completed" -ForegroundColor Green
+    
+    Write-Host "Scaler function has completed successfully!"
 }
+
+function Get-VMObject {
+    param(
+        $vmName,
+        $vmLocation,
+        $vmSize
+    )
+
+    $newVMObj = New-Object -TypeName Microsoft.Azure.Commands.Compute.Models.PSVirtualMachine
+    $newVMObj.HardwareProfile = New-Object -TypeName Microsoft.Azure.Management.Compute.Models.HardwareProfile
+    $newVMObj.Name = $vmName
+    $newVMObj.Location = $vmLocation
+    $newVMObj.HardwareProfile.VmSize = $vmSize
+
+    return $newVMObj
+}
+
+function Set-SaveTags {
+    param (
+        $inTags
+    )
+
+    $outTags = @{ }
+    $inTags.keys | ForEach-Object { $outTags += @{("saveState-" + $_) = $inTags[$_] } }
+    
+    return $outTags
+}
+
+Export-ModuleMember -Function Update-Resource
