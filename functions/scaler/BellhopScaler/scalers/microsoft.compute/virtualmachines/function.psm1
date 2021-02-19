@@ -17,6 +17,9 @@ function Update-Resource {
         $direction
     )
 
+    # Import required supporting modules
+    Import-Module Az.Compute
+
     # Set preference variables
     $ErrorActionPreference = "Stop"
 
@@ -31,26 +34,18 @@ function Update-Resource {
         'up' {
             Write-Host "Scaling VM Size: '$($graphData.properties.hardwareProfile.vmSize)' to Size: '$($tagData.saveData.VMSize)'"
 
-            $vmName = $graphData.name
-            $vmLocation = $graphData.location
-            $vmSize = $tagData.saveData.VMSize
-
             $vmData = @{
-                VM = Get-VMObject $vmName $vmLocation $vmSize
+                VM = Get-VMObject $graphData.name $graphData.location $tagData.saveData.VMSize
             }
             
             $config = $baseData + $vmData
         }
 
         'down' {
-            Write-Host "Scaling VM Size: '$($graphData.properties.hardwareProfile.vmSize)' to Tier: '$($tagData.setData.VMSize)'"
-
-            $vmName = $graphData.name
-            $vmLocation = $graphData.location
-            $vmSize = $tagData.setData.VMSize
+            Write-Host "Scaling VM Size: '$($graphData.properties.hardwareProfile.vmSize)' to Size: '$($tagData.setData.VMSize)'"
 
             $config = @{
-                VM = Get-VMObject $vmName $vmLocation $vmSize
+                VM = Get-VMObject $graphData.name $graphData.location $tagData.setData.VMSize
             }
 
             $saveData = @{
