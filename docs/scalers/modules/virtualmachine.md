@@ -9,7 +9,7 @@ This README will describe how to use Bellhop to help scale your Azure Virtual Ma
 setState-VmSize = <String> (VirtualMachineSizeType)
 ```
 
-For more information on tag values for Azure App Service please see the Microsoft documentaion: [Update-AzVM](https://docs.microsoft.com/en-us/powershell/module/az.compute/update-azvm?view=azps-5.6.0).
+For more information on tag values for Azure Virtual Machines please see the Microsoft documentaion: [Update-AzVM](https://docs.microsoft.com/en-us/powershell/module/az.compute/update-azvm?view=azps-5.6.0).
 
 For a list of VM size definitions, please reference the **VirtualMachineSizeTypes** section of the [VM Update API](https://docs.microsoft.com/en-us/rest/api/compute/virtualmachines/update#definitions) documentation.
 
