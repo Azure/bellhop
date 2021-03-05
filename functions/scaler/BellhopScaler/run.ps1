@@ -45,12 +45,23 @@ Write-Host "Queue item insertion time: $($TriggerMetadata.InsertionTime)"
 Write-Host "Importing scaler for: $($QueueItem.graphResults.type)"
 
 try {
-    Import-Module -Name "./scalers/$($QueueItem.graphResults.type)/function.psm1" #-ErrorAction Stop #SilentlyContinue -ErrorVariable abc
+    $modulePath = Join-Path $PSScriptRoot -ChildPath "scalers\$($QueueItem.graphResults.type)\function.psm1"
+    Import-Module -Name $modulePath #-ErrorAction Stop #SilentlyContinue -ErrorVariable abc
 }
 catch {
     Write-Host "Error loading the target scaler!"
+
+    if ( $QueueItem.debug ) {
+        Write-Host "Content of Scalers Folder"
+        Write-Host "========================="
+        $dirs = Get-ChildItem $PSScriptRoot -Recurse | Where-Object FullName -Like "*function.psm1" | Select-Object FullName
+        foreach ($dir in $dirs) { Write-Host $dir.FullName }
+        Write-Host "========================="
+    }
+
     Write-Host "($($Error.exception.GetType().fullname)) - $($PSItem.ToString())"
     # throw $PSItem
+
     Exit
 }
 

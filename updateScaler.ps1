@@ -45,6 +45,9 @@ if ($resourceGroup -and $functionApp) {
         exit
     }
 
+    Write-Host "INFO: Cleaning up..." -ForegroundColor green
+    Remove-Item .\staging\ -Recurse -Force -ErrorAction Ignore
+
     Write-Host "INFO: Scaler Function has been updated!" -ForegroundColor Green
 }
 else {
