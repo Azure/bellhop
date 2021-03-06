@@ -196,8 +196,7 @@
                             ],
                             "properties": {
                                 "cors": {
-                                    "corsRules": [
-                                    ]
+                                    "corsRules": []
                                 }
                             }
                         },
@@ -210,8 +209,7 @@
                                 "[resourceId('Microsoft.Storage/storageAccounts/queueServices', variables('storAcctName'), 'default')]"
                             ],
                             "properties": {
-                                "metadata": {
-                                }
+                                "metadata": {}
                             }
                         },
                         {
@@ -223,12 +221,14 @@
                                 "name": "EP1",
                                 "tier": "ElasticPremium"
                             },
+                            "kind": "linux",
                             "properties": {
                                 "name": "[variables('hostingPlanName')]",
                                 "workerSize": 3,
                                 "workerSizeId": 3,
                                 "numberOfWorkers": 1,
-                                "maximumElasticWorkerCount": "20"
+                                "maximumElasticWorkerCount": "20",
+                                "reserved": true
                             }
                         },
                         {
@@ -248,6 +248,15 @@
                             "properties": {
                                 "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
                                 "clientAffinityEnabled": true,
+                                "siteProperties": {
+                                    "metadata": null,
+                                    "properties": [
+                                        {
+                                            "name": "LinuxFxVersion",
+                                            "value": "DOCKER|azurebellhop/engine:v0.2"
+                                        }
+                                    ]
+                                },
                                 "siteConfig": {
                                     "appSettings": [
                                         {
@@ -286,8 +295,7 @@
                                             "name": "AppConfigEndpoint",
                                             "value": "[reference(resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))).endpoint]"
                                         }
-                                    ],
-                                    "use32BitWorkerProcess": true
+                                    ]
                                 }
                             }
                         },
@@ -306,6 +314,15 @@
                             },
                             "properties": {
                                 "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+                                "siteProperties": {
+                                    "metadata": null,
+                                    "properties": [
+                                        {
+                                            "name": "LinuxFxVersion",
+                                            "value": "DOCKER|azurebellhop/scaler:v0.1"
+                                        }
+                                    ]
+                                },
                                 "siteConfig": {
                                     "appSettings": [
                                         {
@@ -340,9 +357,7 @@
                                             "name": "WEBSITE_RUN_FROM_PACKAGE",
                                             "value": "1"
                                         }
-                                    ],
-                                    "use32BitWorkerProcess": true,
-                                    "powerShellVersion": "~7"
+                                    ]
                                 }
                             }
                         },
