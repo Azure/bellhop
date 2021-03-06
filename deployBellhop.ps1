@@ -49,7 +49,6 @@ Function Test-Location {
 # Intake and set script parameters
 $name = Read-Host "Enter a unique name for your deployment"
 $location = Read-Host "Which Azure Region to deploy to?"
-$subId = (Get-AzContext).Subscription.Id
 $logFile = "./logs/deploy_$(get-date -format `"yyyyMMddhhmmsstt`").log"
 
 Test-Name $name
@@ -58,18 +57,6 @@ Test-Location $location
 # Create log folder
 Write-Host "INFO: Creating log folder..." -ForegroundColor green
 New-Item -Name "logs" -ItemType "directory" -ErrorAction Ignore | Out-Null
-
-# Create resource group if it doesn't already exist
-$rgCheck = Get-AzResourceGroup -Name "$name-rg" -ErrorAction SilentlyContinue
-
-if (!$rgCheck) {
-    Write-Host "INFO: Creating new resource group: $name-rg" -ForegroundColor green
-    Write-Verbose -Message "Creating new resource group: $name-rg"
-    New-AzResourceGroup -Name "$name-rg" -Location $location | Out-Null
-}
-else {
-    Write-Warning -Message "Resource Group: '$name-rg' already exists. Continuing with deployment..."
-}
 
 # Verify PowerShell Core v7 or higher is installed
 Write-Host "INFO: Checking for PowerShell v7 or higher..." -ForegroundColor Green
@@ -148,12 +135,11 @@ Write-Verbose -Message "Deploying ARM template to create Bellhop infrastructure"
 try {
     $autoscaleParams = @{
         appName     = $name
-        functName   = "$name-function"
-        stgacctName = "$($name)stgacct"
+        location    = $location
     }
 
-    $res = New-AzResourceGroupDeployment `
-        -ResourceGroupName "$name-rg" `
+    $res = New-AzDeployment `
+        -Location $location `
         -TemplateFile ./templates/infra.json `
         -TemplateParameterObject $autoscaleParams
 }
@@ -161,63 +147,6 @@ catch {
     $_ | Out-File -FilePath $logFile -Append
     Write-Host "ERROR: Unable to deploy Bellhop infrastructure ARM template due to an exception, see $logFile for detailed information!" -ForegroundColor red
     exit
-}
-
-# Verify that managed identities have been created, and assign proper permissions
-Write-Host "INFO: Verifying managed identity has been created for the Scaler Function" -ForegroundColor Green
-Write-Verbose -Message "Verifying managed identity for the scaler function exists"
-
-try {
-    $scalerResourceId = $res.Outputs.scalerResourceId.value
-    $engineResourceId = $res.Outputs.engineResourceId.value
-    $scalerIdentity = (Get-AzResource -ResourceId $scalerResourceId).Identity.PrincipalId
-    $engineIdentity = (Get-AzResource -ResourceId $engineResourceId).Identity.PrincipalId
-    if (!$scalerIdentity -or !$engineIdentity) {
-        Write-Host "ERROR: Unable to find managed identities, exiting script!"
-        $_ | Out-File -FilePath $logFile -Append
-        Exit
-    }
-    else {
-        if ($scalerIdentity) {
-            Write-Host "INFO: Assigning 'Contributor' role at subscription scope to scaler function managed identity" -ForegroundColor Green
-            New-AzRoleAssignment `
-                -RoleDefinitionName "Contributor" `
-                -ObjectId $scalerIdentity `
-                -Scope "/subscriptions/$subId" `
-                -ErrorAction SilentlyContinue | `
-                Out-Null
-        }
-        if ($engineIdentity) {
-            Write-Host "INFO: Assigning 'Contributor' role at subscription scope to engine function managed identity" -ForegroundColor Green
-            New-AzRoleAssignment `
-                -RoleDefinitionName "Contributor" `
-                -ObjectId $engineIdentity `
-                -Scope "/subscriptions/$subId" `
-                -ErrorAction SilentlyContinue | `
-                Out-Null
-
-            Write-Host "INFO: Assigning 'App Configuration Reader' to the engine function managed identity" -ForegroundColor Green
-            New-AzRoleAssignment `
-                -RoleDefinitionName "App Configuration Data Reader" `
-                -ObjectId $engineIdentity `
-                -Scope $res.Outputs.appConfigResourceId.value `
-                -ErrorAction SilentlyContinue | `
-                Out-Null
-            
-            Write-Host "INFO: Assigning 'Storage Queue Data Contributor' to the engine function managed identity" -ForegroundColor Green
-            New-AzRoleAssignment `
-                -RoleDefinitionName "Storage Queue Data Contributor" `
-                -ObjectId $engineIdentity `
-                -Scope $res.Outputs.stgAcctResourceId.value `
-                -ErrorAction SilentlyContinue | `
-                Out-Null
-        }
-    }
-}
-catch {
-    $_ | Out-File -FilePath $logFile -Append
-    Write-Host "ERROR: Managed Identity role assignments failed due to an exception, please check $logfile for details."
-    Exit
 }
 
 # Upload Azure Function contents via Zip-Deploy
