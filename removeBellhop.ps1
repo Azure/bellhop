@@ -1,11 +1,9 @@
 #####################################################################
 ##
-## Azure Custom Autoscaler Teardown Script
+## Azure Bellhop Teardown Script
 ##
 #####################################################################
 
-# $parameters = Get-Content ./deployParams.json | ConvertFrom-Json
-# $Name = $parameters.Name.ToLower()
 $rgName = Read-Host "Enter name of resource group to teardown"
 $logFile = "./logs/remove_$(get-date -format `"yyyyMMddhhmmsstt`").log"
 

@@ -168,6 +168,8 @@ Matt, Nills, and Tyler are Cloud Solutions Architects at Microsoft, and are alwa
 
 **Want to know more about Bellhop??**
 
+Please feel free to reach out to bellhop@microsoft.com with any questions or feedback! 
+
 ## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
