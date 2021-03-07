@@ -247,7 +247,7 @@
                             },
                             "properties": {
                                 "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
-                                "clientAffinityEnabled": true,
+                                "clientAffinityEnabled": false,
                                 "siteConfig": {
                                     "appSettings": [
                                         {
