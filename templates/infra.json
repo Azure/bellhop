@@ -1,5 +1,5 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
         "appName": {
@@ -8,340 +8,426 @@
                 "description": "The name of the function app that you wish to create."
             }
         },
-        "functName": {
+        "engineContributorGUID": {
             "type": "string",
+            "defaultValue": "[newGuid()]",
             "metadata": {
-                "description": "The name of the function app that you wish to create."
+                "description": "GUID for engine contributor role on subscription."
             }
         },
-        "stgacctName": {
+        "scalerContributorGUID": {
             "type": "string",
+            "defaultValue": "[newGuid()]",
             "metadata": {
-                "description": "The name of the function app that you wish to create."
-            }
-        },
-        "storageAccountType": {
-            "type": "string",
-            "defaultValue": "Standard_LRS",
-            "allowedValues": [
-                "Standard_LRS",
-                "Standard_GRS",
-                "Standard_RAGRS"
-            ],
-            "metadata": {
-                "description": "Storage Account type"
-            }
-        },
-        "queueName": {
-            "type": "string",
-            "defaultValue": "autoscale",
-            "metadata": {
-                "description": "The name of the function app that you wish to create."
-            }
-        },
-        "location": {
-            "type": "string",
-            "defaultValue": "[resourceGroup().location]",
-            "metadata": {
-                "description": "Location for all resources."
-            }
-        },
-        "appInsightsLocation": {
-            "type": "string",
-            "defaultValue": "[resourceGroup().location]",
-            "metadata": {
-                "description": "Location for Application Insights"
-            }
-        },
-        "scalerRuntime": {
-            "type": "string",
-            "defaultValue": "powershell",
-            "allowedValues": [
-                "node",
-                "dotnet",
-                "java",
-                "powershell"
-            ],
-            "metadata": {
-                "description": "The language worker runtime to load in the scaler function app."
-            }
-        },
-        "engineRuntime": {
-            "type": "string",
-            "defaultValue": "dotnet",
-            "allowedValues": [
-                "node",
-                "dotnet",
-                "java",
-                "powershell"
-            ],
-            "metadata": {
-                "description": "The language worker runtime to load in the engine function app."
+                "description": "GUID for scaler contributor role on subscription."
             }
         }
     },
     "variables": {
-        "functionAppName-scaler": "[concat(parameters('functName'), '-scaler')]",
-        "functionAppName-engine": "[concat(parameters('functName'), '-engine')]",
-        "hostingPlanName": "[concat(parameters('appName'), '-asp')]",
-        "applicationInsightsName": "[concat(parameters('appName'), '-appinsights')]",
-        "appConfigName": "[concat(parameters('appName'), '-appconfig')]",
-        "scalerFuncWorkerRuntime": "[parameters('scalerRuntime')]",
-        "engineFuncWorkerRuntime": "[parameters('engineRuntime')]",
-        "stgQueueName": "[concat(parameters('stgacctName'), '/default/', parameters('queueName'))]"
+        "contributorRole": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]"
     },
     "resources": [
         {
-            "type": "Microsoft.Storage/storageAccounts",
-            "apiVersion": "2019-06-01",
-            "name": "[parameters('stgacctName')]",
-            "location": "[parameters('location')]",
-            "sku": {
-                "name": "[parameters('storageAccountType')]"
-            },
-            "kind": "Storage",
-            "resources": [
-            ]
-        },
-        {
-            "type": "Microsoft.Storage/storageAccounts/queueServices",
-            "apiVersion": "2020-08-01-preview",
-            "name": "[concat(parameters('stgacctName'), '/default')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Storage/storageAccounts', parameters('stgacctName'))]"
-            ],
-            "properties": {
-                "cors": {
-                    "corsRules": [
-                    ]
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Storage/storageAccounts/queueServices/queues",
-            "apiVersion": "2019-06-01",
-            "name": "[variables('stgQueueName')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Storage/storageAccounts', parameters('stgacctName'))]",
-                "[resourceId('Microsoft.Storage/storageAccounts/queueServices', parameters('stgacctName'), 'default')]"
-            ],
-            "properties": {
-                "metadata": {
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Web/serverfarms",
+            "type": "Microsoft.Resources/resourceGroups",
             "apiVersion": "2020-06-01",
-            "name": "[variables('hostingPlanName')]",
-            "location": "[parameters('location')]",
-            "sku": {
-                "name": "EP1",
-                "tier": "ElasticPremium"
-            },
+            "name": "[concat(parameters('appName'), '-rg')]",
+            "location": "[deployment().location]",
+            "properties": {}
+        },
+        {
+            "type": "Microsoft.Authorization/roleAssignments",
+            "apiVersion": "2020-04-01-preview",
+            "name": "[parameters('engineContributorGUID')]",
+            "dependsOn": [
+                "bellhopDeploy"
+            ],
             "properties": {
-                "name": "[variables('hostingPlanName')]",
-                "workerSize": 3,
-                "workerSizeId": 3,
-                "numberOfWorkers": 1,
-                "maximumElasticWorkerCount": "20"
+                "scope": "[subscription().id]",
+                "roleDefinitionId": "[variables('contributorRole')]",
+                "principalId": "[reference('bellhopDeploy').outputs.enginePrincipalId.value]"
             }
         },
         {
-            "type": "Microsoft.Web/sites",
-            "apiVersion": "2020-06-01",
-            "name": "[variables('functionAppName-scaler')]",
-            "location": "[parameters('location')]",
-            "kind": "functionapp",
+            "type": "Microsoft.Authorization/roleAssignments",
+            "apiVersion": "2020-04-01-preview",
+            "name": "[parameters('scalerContributorGUID')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
-                "[resourceId('Microsoft.Storage/storageAccounts', parameters('stgacctName'))]",
-                "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))]"
+                "bellhopDeploy"
             ],
-            "identity": {
-                "type": "SystemAssigned"
-            },
             "properties": {
-                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
-                "siteConfig": {
-                    "appSettings": [
+                "scope": "[subscription().id]",
+                "roleDefinitionId": "[variables('contributorRole')]",
+                "principalId": "[reference('bellhopDeploy').outputs.scalerPrincipalId.value]"
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2020-06-01",
+            "name": "bellhopDeploy",
+            "resourceGroup": "[concat(parameters('appName'), '-rg')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Resources/resourceGroups', concat(parameters('appName'), '-rg'))]"
+            ],
+            "properties": {
+                "expressionEvaluationOptions": {
+                    "scope": "Inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                    "appName": {
+                        "value": "[parameters('appName')]"
+                    }
+                },
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "appName": {
+                            "type": "string",
+                            "metadata": {
+                                "description": "The name of the function app that you wish to create."
+                            }
+                        },
+                        "storageAccountType": {
+                            "type": "string",
+                            "defaultValue": "Standard_LRS",
+                            "allowedValues": [
+                                "Standard_LRS",
+                                "Standard_GRS",
+                                "Standard_RAGRS"
+                            ],
+                            "metadata": {
+                                "description": "Storage Account type"
+                            }
+                        },
+                        "queueName": {
+                            "type": "string",
+                            "defaultValue": "autoscale",
+                            "metadata": {
+                                "description": "The name of the function app that you wish to create."
+                            }
+                        },
+                        "scalerRuntime": {
+                            "type": "string",
+                            "defaultValue": "powershell",
+                            "allowedValues": [
+                                "node",
+                                "dotnet",
+                                "java",
+                                "powershell"
+                            ],
+                            "metadata": {
+                                "description": "The language worker runtime to load in the scaler function app."
+                            }
+                        },
+                        "engineRuntime": {
+                            "type": "string",
+                            "defaultValue": "dotnet",
+                            "allowedValues": [
+                                "node",
+                                "dotnet",
+                                "java",
+                                "powershell"
+                            ],
+                            "metadata": {
+                                "description": "The language worker runtime to load in the engine function app."
+                            }
+                        },
+                        "appConfigReaderGUID": {
+                            "type": "string",
+                            "defaultValue": "[newGuid()]",
+                            "metadata": {
+                                "description": "GUID for engine reader role on the app config service."
+                            }
+                        },
+                        "storageQueueContributorGUID": {
+                            "type": "string",
+                            "defaultValue": "[newGuid()]",
+                            "metadata": {
+                                "description": "GUID for engine storage queue contributor role on the storage account."
+                            }
+                        }
+                    },
+                    "variables": {
+                        "funcAppName": "[concat(parameters('appName'), '-function')]",
+                        "scalerFuncName": "[concat(variables('funcAppName'), '-scaler')]",
+                        "engineFuncName": "[concat(variables('funcAppName'), '-engine')]",
+                        "storAcctName": "[concat(parameters('appName'), 'stgacct')]",
+                        "storQueueName": "[concat(variables('storAcctName'), '/default/', parameters('queueName'))]",
+                        "hostingPlanName": "[concat(parameters('appName'), '-asp')]",
+                        "appInsightsName": "[concat(parameters('appName'), '-appinsights')]",
+                        "appConfigName": "[concat(parameters('appName'), '-appconfig')]",
+                        "appConfigReaderRole": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '516239f1-63e1-4d78-a4de-a74fb236a071')]",
+                        "storageQueueContributorRole": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '974c5e8b-45b9-4653-ba55-5f855dd0fb88')]"
+                    },
+                    "resources": [
                         {
-                            "name": "AzureWebJobsStorage",
-                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('stgacctName'), ';EndpointSuffix=', environment().suffixes.storage, ';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('stgacctName')), '2019-06-01').keys[0].value)]"
+                            "type": "Microsoft.Storage/storageAccounts",
+                            "apiVersion": "2019-06-01",
+                            "name": "[variables('storAcctName')]",
+                            "location": "[resourceGroup().location]",
+                            "sku": {
+                                "name": "[parameters('storageAccountType')]"
+                            },
+                            "kind": "Storage"
                         },
                         {
-                            "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
-                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('stgacctName'), ';EndpointSuffix=', environment().suffixes.storage, ';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('stgacctName')), '2019-06-01').keys[0].value)]"
+                            "type": "Microsoft.Storage/storageAccounts/queueServices",
+                            "apiVersion": "2020-08-01-preview",
+                            "name": "[concat(variables('storAcctName'), '/default')]",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.Storage/storageAccounts', variables('storAcctName'))]"
+                            ],
+                            "properties": {
+                                "cors": {
+                                    "corsRules": [
+                                    ]
+                                }
+                            }
                         },
                         {
-                            "name": "WEBSITE_CONTENTSHARE",
-                            "value": "[toLower(variables('functionAppName-scaler'))]"
+                            "type": "Microsoft.Storage/storageAccounts/queueServices/queues",
+                            "apiVersion": "2019-06-01",
+                            "name": "[variables('storQueueName')]",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.Storage/storageAccounts', variables('storAcctName'))]",
+                                "[resourceId('Microsoft.Storage/storageAccounts/queueServices', variables('storAcctName'), 'default')]"
+                            ],
+                            "properties": {
+                                "metadata": {
+                                }
+                            }
                         },
                         {
-                            "name": "FUNCTIONS_EXTENSION_VERSION",
-                            "value": "~3"
+                            "type": "Microsoft.Web/serverfarms",
+                            "apiVersion": "2020-06-01",
+                            "name": "[variables('hostingPlanName')]",
+                            "location": "[resourceGroup().location]",
+                            "sku": {
+                                "name": "EP1",
+                                "tier": "ElasticPremium"
+                            },
+                            "properties": {
+                                "name": "[variables('hostingPlanName')]",
+                                "workerSize": 3,
+                                "workerSizeId": 3,
+                                "numberOfWorkers": 1,
+                                "maximumElasticWorkerCount": "20"
+                            }
                         },
                         {
-                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
-                            "value": "[reference(resourceId('microsoft.insights/components', variables('applicationInsightsName')), '2020-02-02-preview').InstrumentationKey]"
+                            "type": "Microsoft.Web/sites",
+                            "apiVersion": "2020-06-01",
+                            "name": "[variables('engineFuncName')]",
+                            "location": "[resourceGroup().location]",
+                            "kind": "functionapp",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+                                "[resourceId('Microsoft.Storage/storageAccounts', variables('storAcctName'))]",
+                                "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))]"
+                            ],
+                            "identity": {
+                                "type": "SystemAssigned"
+                            },
+                            "properties": {
+                                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+                                "clientAffinityEnabled": false,
+                                "siteConfig": {
+                                    "appSettings": [
+                                        {
+                                            "name": "AzureWebJobsStorage",
+                                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storAcctName'), ';EndpointSuffix=', environment().suffixes.storage, ';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storAcctName')), '2019-06-01').keys[0].value)]"
+                                        },
+                                        {
+                                            "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+                                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storAcctName'), ';EndpointSuffix=', environment().suffixes.storage, ';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storAcctName')), '2019-06-01').keys[0].value)]"
+                                        },
+                                        {
+                                            "name": "WEBSITE_CONTENTSHARE",
+                                            "value": "[toLower(variables('engineFuncName'))]"
+                                        },
+                                        {
+                                            "name": "FUNCTIONS_EXTENSION_VERSION",
+                                            "value": "~3"
+                                        },
+                                        {
+                                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                                            "value": "[reference(resourceId('microsoft.insights/components', variables('appInsightsName')), '2020-02-02-preview').InstrumentationKey]"
+                                        },
+                                        {
+                                            "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+                                            "value": "[reference(resourceId('microsoft.insights/components', variables('appInsightsName')), '2020-02-02-preview').ConnectionString]"
+                                        },
+                                        {
+                                            "name": "FUNCTIONS_WORKER_RUNTIME",
+                                            "value": "[parameters('engineRuntime')]"
+                                        },
+                                        {
+                                            "name": "WEBSITE_RUN_FROM_PACKAGE",
+                                            "value": "1"
+                                        },
+                                        {
+                                            "name": "AppConfigEndpoint",
+                                            "value": "[reference(resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))).endpoint]"
+                                        }
+                                    ],
+                                    "use32BitWorkerProcess": true
+                                }
+                            }
                         },
                         {
-                            "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
-                            "value": "[reference(resourceId('microsoft.insights/components', variables('applicationInsightsName')), '2020-02-02-preview').ConnectionString]"
+                            "type": "Microsoft.Web/sites",
+                            "apiVersion": "2020-06-01",
+                            "name": "[variables('scalerFuncName')]",
+                            "location": "[resourceGroup().location]",
+                            "kind": "functionapp",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+                                "[resourceId('Microsoft.Storage/storageAccounts', variables('storAcctName'))]"
+                            ],
+                            "identity": {
+                                "type": "SystemAssigned"
+                            },
+                            "properties": {
+                                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+                                "siteConfig": {
+                                    "appSettings": [
+                                        {
+                                            "name": "AzureWebJobsStorage",
+                                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storAcctName'), ';EndpointSuffix=', environment().suffixes.storage, ';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storAcctName')), '2019-06-01').keys[0].value)]"
+                                        },
+                                        {
+                                            "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+                                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storAcctName'), ';EndpointSuffix=', environment().suffixes.storage, ';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storAcctName')), '2019-06-01').keys[0].value)]"
+                                        },
+                                        {
+                                            "name": "WEBSITE_CONTENTSHARE",
+                                            "value": "[toLower(variables('scalerFuncName'))]"
+                                        },
+                                        {
+                                            "name": "FUNCTIONS_EXTENSION_VERSION",
+                                            "value": "~3"
+                                        },
+                                        {
+                                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                                            "value": "[reference(resourceId('microsoft.insights/components', variables('appInsightsName')), '2020-02-02-preview').InstrumentationKey]"
+                                        },
+                                        {
+                                            "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+                                            "value": "[reference(resourceId('microsoft.insights/components', variables('appInsightsName')), '2020-02-02-preview').ConnectionString]"
+                                        },
+                                        {
+                                            "name": "FUNCTIONS_WORKER_RUNTIME",
+                                            "value": "[parameters('scalerRuntime')]"
+                                        },
+                                        {
+                                            "name": "WEBSITE_RUN_FROM_PACKAGE",
+                                            "value": "1"
+                                        }
+                                    ],
+                                    "use32BitWorkerProcess": true,
+                                    "powerShellVersion": "~7"
+                                }
+                            }
                         },
                         {
-                            "name": "FUNCTIONS_WORKER_RUNTIME",
-                            "value": "[variables('scalerFuncWorkerRuntime')]"
+                            "type": "Microsoft.Insights/components",
+                            "apiVersion": "2020-02-02-preview",
+                            "name": "[variables('appInsightsName')]",
+                            "location": "[resourceGroup().location]",
+                            "tags": {
+                                "[concat('hidden-link:', resourceId('Microsoft.Web/sites', variables('appInsightsName')))]": "Resource"
+                            },
+                            "properties": {
+                                "ApplicationId": "[variables('appInsightsName')]",
+                                "Request_Source": "IbizaWebAppExtensionCreate"
+                            }
                         },
                         {
-                            "name": "WEBSITE_RUN_FROM_PACKAGE",
-                            "value": "1"
+                            "type": "Microsoft.AppConfiguration/configurationStores",
+                            "apiVersion": "2020-06-01",
+                            "name": "[variables('appConfigName')]",
+                            "location": "[resourceGroup().location]",
+                            "sku": {
+                                "name": "standard"
+                            }
                         },
                         {
-                            "name": "AppConfigEndpoint",
-                            "value": "[reference(variables('appConfigName')).endpoint]"
+                            "type": "Microsoft.AppConfiguration/configurationStores/keyValues",
+                            "apiVersion": "2020-07-01-preview",
+                            "name": "[concat(variables('appConfigName'), '/storageAccount')]",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))]"
+                            ],
+                            "properties": {
+                                "value": "[variables('storAcctName')]",
+                                "contentType": "string"
+                            }
+                        },
+                        {
+                            "type": "Microsoft.AppConfiguration/configurationStores/keyValues",
+                            "apiVersion": "2020-07-01-preview",
+                            "name": "[concat(variables('appConfigName'), '/storageQueue')]",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))]"
+                            ],
+                            "properties": {
+                                "value": "[parameters('queueName')]",
+                                "contentType": "string"
+                            }
+                        },
+                        {
+                            "type": "Microsoft.AppConfiguration/configurationStores/keyValues",
+                            "apiVersion": "2020-07-01-preview",
+                            "name": "[concat(variables('appConfigName'), '/debugMode')]",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))]"
+                            ],
+                            "properties": {
+                                "value": "false",
+                                "contentType": "string"
+                            }
+                        },
+                        {
+                            "type": "Microsoft.AppConfiguration/configurationStores/providers/roleAssignments",
+                            "apiVersion": "2020-04-01-preview",
+                            "name": "[concat(variables('appConfigName'), '/Microsoft.Authorization/', parameters('appConfigReaderGUID'))]",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))]"
+                            ],
+                            "properties": {
+                                "scope": "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))]",
+                                "roleDefinitionId": "[variables('appConfigReaderRole')]",
+                                "principalId": "[reference(resourceId('Microsoft.Web/Sites', variables('engineFuncName')), '2019-08-01', 'full').identity.principalId]"
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Storage/storageAccounts/providers/roleAssignments",
+                            "apiVersion": "2020-04-01-preview",
+                            "name": "[concat(variables('storAcctName'), '/Microsoft.Authorization/', parameters('storageQueueContributorGUID'))]",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.Storage/storageAccounts', variables('storAcctName'))]"
+                            ],
+                            "properties": {
+                                "scope": "[resourceId('Microsoft.Storage/storageAccounts', variables('storAcctName'))]",
+                                "roleDefinitionId": "[variables('storageQueueContributorRole')]",
+                                "principalId": "[reference(resourceId('Microsoft.Web/Sites', variables('engineFuncName')), '2019-08-01', 'full').identity.principalId]"
+                            }
                         }
                     ],
-                    "use32BitWorkerProcess": true,
-                    "powerShellVersion": "~7"
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Web/sites",
-            "apiVersion": "2020-06-01",
-            "name": "[variables('functionAppName-engine')]",
-            "location": "[parameters('location')]",
-            "kind": "functionapp",
-            "dependsOn": [
-                "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
-                "[resourceId('Microsoft.Storage/storageAccounts', parameters('stgacctName'))]",
-                "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))]"
-            ],
-            "identity": {
-                "type": "SystemAssigned"
-            },
-            "properties": {
-                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
-                "clientAffinityEnabled": true,
-                "siteConfig": {
-                    "appSettings": [
-                        {
-                            "name": "AzureWebJobsStorage",
-                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('stgacctName'), ';EndpointSuffix=', environment().suffixes.storage, ';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('stgacctName')), '2019-06-01').keys[0].value)]"
+                    "outputs": {
+                        "enginePrincipalId": {
+                            "type": "string",
+                            "value": "[reference(resourceId('Microsoft.Web/Sites', variables('engineFuncName')), '2019-08-01', 'full').identity.principalId]"
                         },
-                        {
-                            "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
-                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('stgacctName'), ';EndpointSuffix=', environment().suffixes.storage, ';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('stgacctName')), '2019-06-01').keys[0].value)]"
-                        },
-                        {
-                            "name": "WEBSITE_CONTENTSHARE",
-                            "value": "[toLower(variables('functionAppName-engine'))]"
-                        },
-                        {
-                            "name": "FUNCTIONS_EXTENSION_VERSION",
-                            "value": "~3"
-                        },
-                        {
-                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
-                            "value": "[reference(resourceId('microsoft.insights/components', variables('applicationInsightsName')), '2020-02-02-preview').InstrumentationKey]"
-                        },
-                        {
-                            "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
-                            "value": "[reference(resourceId('microsoft.insights/components', variables('applicationInsightsName')), '2020-02-02-preview').ConnectionString]"
-                        },
-                        {
-                            "name": "FUNCTIONS_WORKER_RUNTIME",
-                            "value": "[variables('engineFuncWorkerRuntime')]"
-                        },
-                        {
-                            "name": "WEBSITE_RUN_FROM_PACKAGE",
-                            "value": "1"
-                        },
-                        {
-                            "name": "AppConfigEndpoint",
-                            "value": "[reference(variables('appConfigName')).endpoint]"
+                        "scalerPrincipalId": {
+                            "type": "string",
+                            "value": "[reference(resourceId('Microsoft.Web/Sites', variables('scalerFuncName')), '2019-08-01', 'full').identity.principalId]"
                         }
-                    ],
-                    "use32BitWorkerProcess": true
+                    }
                 }
-            }
-        },
-        {
-            "type": "microsoft.insights/components",
-            "apiVersion": "2020-02-02-preview",
-            "name": "[variables('applicationInsightsName')]",
-            "location": "[parameters('appInsightsLocation')]",
-            "tags": {
-                "[concat('hidden-link:', resourceId('Microsoft.Web/sites', variables('applicationInsightsName')))]": "Resource"
-            },
-            "properties": {
-                "ApplicationId": "[variables('applicationInsightsName')]",
-                "Request_Source": "IbizaWebAppExtensionCreate"
-            }
-        },
-        {
-            "type": "Microsoft.AppConfiguration/configurationStores",
-            "apiVersion": "2020-07-01-preview",
-            "name": "[variables('appConfigName')]",
-            "location": "[parameters('location')]",
-            "sku": {
-                "name": "standard"
-            }
-        },
-        {
-            "type": "Microsoft.AppConfiguration/configurationStores/keyValues",
-            "apiVersion": "2020-07-01-preview",
-            "name": "[concat(variables('appConfigName'), '/storageAccount')]",
-            "dependsOn": [
-                "[variables('appConfigName')]"
-            ],
-            "properties": {
-                "value": "[parameters('stgacctName')]",
-                "contentType": "string"
-            }
-        },
-        {
-            "type": "Microsoft.AppConfiguration/configurationStores/keyValues",
-            "apiVersion": "2020-07-01-preview",
-            "name": "[concat(variables('appConfigName'), '/storageQueue')]",
-            "dependsOn": [
-                "[variables('appConfigName')]"
-            ],
-            "properties": {
-                "value": "[parameters('queueName')]",
-                "contentType": "string"
-            }
-        },
-        {
-            "type": "Microsoft.AppConfiguration/configurationStores/keyValues",
-            "apiVersion": "2020-07-01-preview",
-            "name": "[concat(variables('appConfigName'), '/debugMode')]",
-            "dependsOn": [
-                "[variables('appConfigName')]"
-            ],
-            "properties": {
-                "value": "false",
-                "contentType": "string"
             }
         }
     ],
-    "outputs": {
-        "scalerResourceId": {
-            "type": "string",
-            "value": "[resourceId('Microsoft.Web/Sites', variables('functionAppName-scaler'))]"
-        },
-        "engineResourceId": {
-            "type": "string",
-            "value": "[resourceId('Microsoft.Web/Sites', variables('functionAppName-engine'))]"
-        },
-        "appConfigResourceId": {
-            "type": "string",
-            "value": "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))]"
-        },
-        "stgAcctResourceId": {
-            "type": "string",
-            "value": "[resourceId('Microsoft.Storage/storageAccounts', parameters('stgacctName'))]"
-        }
-    }
+    "outputs": {}
 }
