@@ -135,7 +135,6 @@ Write-Verbose -Message "Deploying ARM template to create Bellhop infrastructure"
 try {
     $autoscaleParams = @{
         appName     = $name
-        location    = $location
     }
 
     $res = New-AzDeployment `
