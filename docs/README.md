@@ -152,11 +152,11 @@ We would like this to become a SaaS/PaaS product that will help to keep our cust
 
 **Who are the awesome people that built this solution??**
 
-Matt, Nills, and Tyler are Cloud Solutions Architects at Microsoft, and are always looking for interesting ways to help our customers solve problems!
+Matt, Nills, and Tyler are Cloud Solutions Architects at Microsoft, and are always looking for interesting ways to help our customers solve problems.
 
 **Want to know more about Bellhop??**
 
-Email us HERE
+Please feel free to reach out to <bellhop@microsoft.com> with any questions or feedback.
 
 ## Contributing
 
