@@ -1,29 +1,29 @@
 # Bellhop Scaler Modules
-Each Azure Service that you wish to scale using Bellhop, will require it's own Powershell Module in the form of a `psm1`. These modules will be named `function.psm1` and are created under the `./azure-functions/scale-trigger/scalers` directory. The sub folders in that directory **must** follow the Microsoft.TYPE format in order for the Scaler-Trigger Function to import the correct module. 
+Each Azure resource that you wish to scale using Bellhop, will require its own Powershell Module in the form of a `.psm1`. These modules will be named `function.psm1` and are created under the `./functions/scaler/BellhopScaler/scalers` directory. The sub folders in that directory **must** follow the Microsoft.TYPE format in order for the Scaler Function to import the correct module. 
 
 You can reference these resource types when creating new scalers: [Azure Resource Graph Type Reference](https://docs.microsoft.com/en-us/azure/governance/resource-graph/reference/supported-tables-resources)
 
 **For example**
 When creating the `App Service Plan` scaler module, the folder structure looks like this:
 ```
-./azure-functions/scale-trigger/scalers/microsoft.web/serverfarms/function.psm1
+./functions/scaler/BellhopScaler/scalers/microsoft.web/serverfarms/function.psm1
 ```
 
 
-## Creating a new Scaler Module
+## Creating a New Scaler Module
 How can I extend this myself for a new Azure Resource Type?
 
-This solution was designed to be extensible from the beginning, with the idea being that to scale a new resource you only need to write a new module! In reality there are a few more steps, those being:
+This solution was designed to be extensible from the beginning, with the idea being that to scale a new resource you only need to write a new module. There are a few steps to this process:
 
-1) Create new folder in the `/azure-functions/scale-trigger/scalers` folder that follows the pattern based on [Azure Resource Type](https://docs.microsoft.com/en-us/azure/governance/resource-graph/reference/supported-tables-resources)
-    - **the format of these folders is important because the main Scaler-Trigger function uses the resource type returned from the Graph API query to determine the path to the correct Powershell Module to import**
+1) Create new folder in the `/functions/scaler/BellhopScaler/scalers` folder that follows the pattern based on [Azure Resource Type](https://docs.microsoft.com/en-us/azure/governance/resource-graph/reference/supported-tables-resources)
+    - **The format of these folders is important because the main Scaler-Trigger function uses the resource type returned from the Graph API query to determine the path to the correct Powershell Module to import**
     - **SEE EXAMPLE ABOVE**
 
-2) Create new psm1 powershell module
+2) Create new .psm1 PowerShell Module
     - Named: `function.psm1`
-    - This module will contain all of the logic to scale the new resource type, as well as be where the API call to the Azure resource will be made.
+    - This module will contain all of the logic to scale the new resource type, including the Azure PowerShell call to resize the rarget resource.
     - Developed to accept the message format sent to the `autoscale` storage queue.
-        - Scale Direction + Resource Graph Query.
+        - Scale Direction + Azure Resource Graph Query.
 
 ***template.psm1 example:***
 ```
@@ -167,15 +167,15 @@ Export-ModuleMember -Function Update-Resource
 
 ```
 
-3) Run `updateScaler.ps1` script from project root to Zip-Deploy new Scaler-Trigger version.
+3) Run `updateScaler.ps1` script from project root to Zip-Deploy new Scaler code.
 
 Example:
 ```
-PS /User/git_repos/github/Azure/bellhop> ./updateScaler.ps1
+PS /User/github/Azure/bellhop> ./updateScaler.ps1
 Enter resource group name where function is deployed: bellhop-rg 
 ```
 
 4) Create new `servicename.md` page to document how to use the new scaler.
-    - Created in the `./docs/scalers/modules/` folder
-    - Also need to update the `./docs/scalers/modules/_sidebar.md` with path to new service document
-    - New page will be displayed on the documentation site! 
+    - Create this file in the `./docs/scaler/modules/` folder
+    - Update the `./docs/_sidebar.md` with path to new scaler document
+    - New page will be displayed on the documentation site

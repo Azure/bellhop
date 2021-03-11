@@ -8,7 +8,7 @@ Guidance on onboarding samples to docs.microsoft.com/samples: https://review.doc
 Taxonomies for products and languages: https://review.docs.microsoft.com/new-hope/information-architecture/metadata/taxonomies?branch=master
 -->
 
-This project was born out of the customer need to save money, and a gap in Azure's ability to easily "turn down" Managed services in Dev/Test environments. Particularly when referring to scaling between service tiers. We put our heads together and came up with a serverless option to adress this issue built almost entirely around Azure Functions. Bellhop is comprised of 2 separate Azure Functions; one is the Engine written in C#, and the other is the Scaler-Trigger. Users will need to tag their resources with the required tags (covered below), and the Engine Function will then use those tags to determine which resources need to be scaled, to which tiers, and when. The Engine will then post a scale instruction message in the Storage Queue, at which time the Scaler-Trigger Function will pull the message from the queue and begin processing the scale request. The Scaler-Trigger function leverages custom scaler modules per resource type to fufill the scale request.
+This project was born out of the customer need to save money, and a gap in Azure's ability to easily "turn down" Managed services in Dev/Test environments. Particularly when referring to scaling between service tiers. We put our heads together and came up with a serverless option to adress this issue built almost entirely around Azure Functions. Bellhop is comprised of 2 separate Azure Functions; one is the Engine (.NET), and the other is the Scaler (PowerShell). Users will need to tag their resources with the required tags (covered below), and the Engine Function will then use those tags to determine which resources need to be scaled, to which tiers, and when. The Engine will then post a scale message in the Storage Queue, at which time the Scaler-Trigger Function will pull the message from the queue and begin processing the scale request. The Scaler function leverages custom scaler modules per resource type to fufill the scale request.
 
 
 ## Repo Contents
@@ -37,56 +37,58 @@ This project was born out of the customer need to save money, and a gap in Azure
 To successfully deploy this project, it requires the Azure user have the following:
 
 - Azure AD Role allowing user to assign roles (Global Admin, App Admin, Cloud App Admin)
-    - *necessary to assign proper scope to managed identity*
+    - *Necessary to assign proper scope to managed identity*
 - Azure RBAC role of Owner or Contributor at the Subscription scope
 - Azure Subscription
-- Powershell installed
+- Powershell 7.0+
+- Azure PowerShell 5.6+
+- .NET 3.1 SDK
 
 
 ## Current Supported Azure Services
 
-The list of services currently supported by Bellhop:
-- App Service Plans
+The list of scalers currently supported by Bellhop:
+- App Service Plan
 - SQL Database
-- SQL Elastic Pools
-- Virtual Machine (COMING SOON!!!!)
+- SQL Elastic Pool
+- Virtual Machine
 
 ## Deploying/Updating/Deleting Bellhop
 
 ### Steps to deploy infrastructure:
 
-- Clone the GitHub repo down to your local machine
+- Clone the [GitHub repo](https://github.com/Azure/Bellhop) down to your local machine
 - Run `deployBellhop.ps1` from project root
 
 The deployment script will ask the user to input a unique name for their deployment, as well as their desired Azure region. These will be passed to the script as parameters. 
 
 Example:
 ```
-PS /User/git_repos/github/azure-autoscale> ./deployBellhop.ps1
+PS /User/github/azure-autoscale> ./deployBellhop.ps1
 Enter a unique name for your deployment: bellhop
 Enter Azure Region to deploy to: westus2
 ```
 
-### Steps to update the Scaler-Trigger Function when adding new scaler modules:
+### Steps to update the Scaler Function when adding custom scaler modules:
 
 - Run `updateScaler.ps1` from project root
 
-The update script will ask user for a Resource Group Name, and then zip deploy the new updates to the Scaler-Trigger function deployed in the given resource group.
+The update script will ask user for a Resource Group name, and then zip deploy the updates to the Scaler function deployed in the given resource group.
 
 Example:
 ```
-PS /User/git_repos/github/Azure/bellhop> ./updateScaler.ps1
+PS /User/github/Azure/bellhop> ./updateScaler.ps1
 Enter resource group name where function is deployed: bellhop-rg 
 ```
 
 ### Steps to tear down the deployment:
 - Run `removeBellhop.ps1` from project root
 
-The teardown script will ask user for a Resource Group Name, and then delete that resource group and all associated resources. 
+The teardown script will ask user for a Resource Group name, and then delete that Resource Group and all associated resources. 
 
 Example:
 ```
-PS /User/git_repos/github/Azure/bellhop> ./removeBellhop.ps1
+PS /User/github/Azure/bellhop> ./removeBellhop.ps1
 Enter name of resource group to teardown: bellhop-rg
 ``` 
 
@@ -97,7 +99,7 @@ All you need to do to run Bellhop is deploy the solution and ensure you have the
 
 
 ## Required Tags for all services
-Bellhop operates based on service tags. Some of the required tags will be common between Azure services, and some tags will be specific to the resource you would like Bellhop to scale. Resource specific tags will be discussed in detail on that resources page: [Scaler Modules](./scalers/modules/README.md) 
+Bellhop operates based on resource tags. Some of the required tags will be common between Azure services, and some tags will be specific to the resource you would like Bellhop to scale. Resource specific tags will be discussed in detail in the [Scaler Modules](/scaler/modules/README.md) section.
 
 Bellhop Common Tags:
 ```
@@ -122,18 +124,18 @@ The included deploy script, `deployBellhop.ps1`, will build the following infras
     - Storage for Azure Function App Files
     - Storage Queue for Function Trigger
 - **Azure App Service Plan**
-    - Windows App Service Plan to host Powershell Function Apps
-        - Scaler Function App
+    - Windows App Service Plan to host Function Apps
+        - Scaler Function App (PowerShell)
             - Scaler modules
-        - Engine Function App
+        - Engine Function App (.NET)
 - **Zip Deploy Function Package** 
-    - Deploy Function Zip packages to the Function App
+    - Deploy Function Zip packages to the Function Apps
 - **Azure Application Insights**
     - App Insights for App Service Plan
 
 
 ### Security considerations
-For the purpose of this proof of concept we have not integrated security features into Bellhop as is being deployed through this workflow. This solution is a Proof Of Concept and is not secure, it is only recommended for testing. To use this service in a production deployment it is recommended to review the following documentation from Azure. It walks though best practices on securing Azure Functions: 
+For the purpose of this project we have not integrated security features into Bellhop as is being deployed through this workflow. This solution is a Proof Of Concept and is not secure, it is only recommended for testing. To use this service in a production deployment it is recommended to review the following documentation from Azure. It walks though best practices on securing Azure Functions: 
 [Securing Azure Functions](https://docs.microsoft.com/en-us/azure/azure-functions/security-concepts)
 
 **_IT IS RECOMMENDED TO USE AVAILABLE SECURITY CONTROLS IN A PRODUCTION DEPLOYMENT_**
@@ -153,6 +155,8 @@ We would like this to become a SaaS/PaaS product that will help to keep our cust
 Matt, Nills, and Tyler are Cloud Solutions Architects at Microsoft, and are always looking for interesting ways to help our customers solve problems!
 
 **Want to know more about Bellhop??**
+
+Email us HERE
 
 ## Contributing
 

@@ -2,12 +2,12 @@
 
 * [Getting Started](/README.md)
 * [Engine Function](/engine/README.md)
-* [Scaler Function](/scalers/README.md)
-* [Scaler Modules](/scalers/modules/README.md)
+* [Scaler Function](/scaler/README.md)
+* [Scaler Modules](/scaler/modules/README.md)
 
 * Supported Scalers
 
-* [Virtual Machine](/scalers/modules/virtualmachine.md)
-* [App Service Plans](/scalers/modules/appservice.md)
-* [Azure SQL Database](/scalers/modules/sqldb.md)
-* [Azure SQL Elastic Pools](/scalers/modules/sqlelastic.md)
+* [Virtual Machine](/scaler/modules/virtualmachine.md)
+* [App Service Plans](/scaler/modules/appservice.md)
+* [Azure SQL Database](/scaler/modules/sqldb.md)
+* [Azure SQL Elastic Pools](/scaler/modules/sqlelastic.md)

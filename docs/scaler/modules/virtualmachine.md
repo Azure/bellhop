@@ -16,7 +16,6 @@ For a list of VM size definitions, please reference the **VirtualMachineSizeType
 ## Sample scale message
 An example of the message sent to the queue by the engine function 
 
-- virtualmachine.json
 ```
 {
     "direction": "down",
@@ -89,9 +88,9 @@ An example of the message sent to the queue by the engine function
             "vmId": "cb742c65-ce84-4a1f-86e7-5a9ddfdc7a5a"
         },
         "tags": {
+            "resize-Enable": "True",
             "resize-StartTime": "Friday 7PM",
             "resize-EndTime": "Monday 6AM",
-            "resize-Enable": "False",
             "setState-VMSize": "Standard_B1ms"
         },
         "identity": null,
