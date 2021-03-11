@@ -13,11 +13,14 @@ For more information on tag values for Azure Virtual Machines please see the Mic
 
 For a list of VM size definitions, please reference the **VirtualMachineSizeTypes** section of the [VM Update API](https://docs.microsoft.com/en-us/rest/api/compute/virtualmachines/update#definitions) documentation.
 
-## Sample scale message
+
+## Sample Message Sent to Queue by Engine Function
 An example of the message sent to the queue by the engine function 
 
+**Virtual Machine Message**
 ```
 {
+    "debug": false,
     "direction": "down",
     "graphResults": {
         "id": "/subscriptions/<SUBSCRIPTION-ID>/resourceGroups/<RESOURCE-GROUP-NAME>/providers/Microsoft.Compute/virtualMachines/vm-test",

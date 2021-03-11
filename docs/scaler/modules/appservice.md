@@ -25,11 +25,13 @@ Tier Options:
 For more information on tag values for Azure App Service please see the Microsoft documentaion: [Set-AzAppServicePlan](https://docs.microsoft.com/en-us/powershell/module/az.websites/set-azappserviceplan?view=azps-5.4.0)
 
 
-## Sample scale message
+## Sample Message Sent to Queue by Engine Function
 An example of the message sent to the queue by the engine function 
 
+**App Service Plan Message**
 ```
 {
+    "debug": false,
     "direction": "down",
     "graphResults": {
         "id": "/subscriptions/<SUBSCRIPTION-ID>/resourceGroups/<RESOURCE-GROUP-NAME>/providers/Microsoft.Web/serverFarms/autoscale-test-app",

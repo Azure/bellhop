@@ -23,11 +23,13 @@ setState-MaxSizeBytes = <Int32>
 For more information on tag values for Azure SQL Databases please see the Microsoft documentaion: [Set-AzSqlDatabase](https://docs.microsoft.com/en-us/powershell/module/az.sql/set-azsqldatabase?view=azps-5.4.0)
 
 
-## Sample message sent to Queue by Engine function
+## Sample Message Sent to Queue by Engine Function
 An example of the message sent to the queue by the engine function 
 
+**SQL Database Message**
 ```
 {
+    "debug": false,
     "direction": "up",
     "graphResults": {
         "id": "/subscriptions/<SUBSCRIPTION-ID>/resourceGroups/<RESOURCE-GROUP-NAME>/providers/Microsoft.Sql/servers/elastic-test/databases/sql-db",

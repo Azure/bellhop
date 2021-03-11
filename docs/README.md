@@ -9,9 +9,10 @@ Taxonomies for products and languages: https://review.docs.microsoft.com/new-hop
 -->
 
 ## Bellhop Overview and Architecture
-This project was born out of the desire to be resource conscious and to fill a gap in Azure's native ability to easily scale managed services between service tiers. Bellhop provides a highly extensible framework, that is completely serverless in design leveraging Azure Functions, Storage Queues, and resource tags. Users just need to tag their resources with the required tags (covered below) and the Engine function will then query the Graph API, use those tag values to determine which resources need to be scaled, to which tier, and when. The Engine then posts a scale message in a predefined Storage Queue triggering the Scaler function to pull the message from the queue and begin processing the scale request. The Scaler function itself is very lightweight and it is only used to import, and pass parameter values to, the correct Scaler-Module to handle each scaling operation. Every Azure service that will be scaled will need a dedicated Scaler-Module. This is how Bellhop achieves its flexibility and extensibility! All a customer needs to do to extend this solution to any new Azure services is write a new Scaler-Module for that service! The Engine and Scaler Function code should never change!
+This project was born out of the desire to be resource conscious and to fill a gap in Azure's native ability to easily scale managed services between service tiers. Bellhop provides a highly extensible framework, that is completely serverless in design leveraging Azure Functions, Storage Queues, and resource tags. Users just need to tag their resources with the required tags (covered below) and the Engine function will then query the Graph API, use those tag values to determine which resources need to be scaled, to which tier, and when. The Engine then posts a scale message in a predefined Storage Queue, triggering the Scaler function to pull the message from the queue and begin processing the scale request. The Scaler function itself is very lightweight and it is only used to import and pass parameter values to the correct Scaler Module, which handles each scaling operation. Every Azure resource that will be scaled will need a dedicated Scaler Module. All that users needs to do to extend this solution to any new Azure resources is write a new Scaler Module for that service, the Engine and Scaler Function code should rarely change.
 
 ![Bellhop Architecture](./images/bellhop_new.png)
+
 
 ## Prerequisites
 To successfully deploy this project, it requires the Azure user have the following:
@@ -74,7 +75,7 @@ Bellhop is currently configured to run in the context of a single subscription, 
 All you need to do to run Bellhop is deploy the solution and ensure you have the proper tags set on your resources, and Bellhop will take care of the rest! 
 
 
-## Required Tags for all services
+## Required Tags for All Services
 Bellhop operates based on resource tags. Some of the required tags will be common between Azure services, and some tags will be specific to the resource you would like Bellhop to scale. Resource specific tags will be discussed in detail in the [Scaler Modules](/scaler/modules/README.md) section.
 
 Bellhop Common Tags:
