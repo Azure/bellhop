@@ -2,7 +2,8 @@
 This README will describe how to use Bellhop to help scale your Azure App service Plan Resources.
 
 ## Scaling Considerations
-**MORE INFORMATION NEEDED AROUND SCALING THIS SERVICE SPECIFICALLY, THIS IS JUST A PLACE HOLDER**
+
+- Please refer to [this](https://docs.microsoft.com/en-us/azure/app-service/manage-scale-up) document for considerations when scaling an Azure App Service resource between service tiers.
 
 ## Required Tags for Azure App Service Plans
 ```

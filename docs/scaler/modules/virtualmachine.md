@@ -2,7 +2,9 @@
 This README will describe how to use Bellhop to help scale your Azure Virtual Machine Resources.
 
 ## Scaling Considerations
-**MORE INFORMATION NEEDED AROUND SCALING THIS SERVICE SPECIFICALLY, THIS IS JUST A PLACE HOLDER**
+- Virtual Machine will restart during the resize operation, any running processes will be stopped
+- This scaler currently does **not** validate if the target VM size is available within the subscrption and/or Azure region
+- Please ensure the target VM size is available on the current hardware cluster that the VM is running on ([More Information](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/resize-vm))
 
 ## Required Tags for Azure Virtual Machines
 ```

@@ -36,13 +36,19 @@ The list of scalers currently supported by Bellhop:
 ## Deploying/Updating/Deleting Bellhop
 ### Steps to deploy infrastructure:
 - Clone the [GitHub repo](https://github.com/Azure/Bellhop) down to your local machine
+
+Example:
+```
+PS /User/github/> git clone https://github.com/Azure/bellhop.git
+```
+
 - Run `deployBellhop.ps1` from project root
 
 The deployment script will ask the user to input a unique name for their deployment, as well as their desired Azure region. These will be passed to the script as parameters. 
 
 Example:
 ```
-PS /User/github/azure-autoscale> ./deployBellhop.ps1
+PS /User/github/bellhop> ./deployBellhop.ps1
 Enter a unique name for your deployment: bellhop
 Enter Azure Region to deploy to: westus2
 ```
@@ -111,7 +117,7 @@ The included deploy script, `deployBellhop.ps1`, will build out the following Az
     - App Insights for App Service Plan
 
 ### Security considerations
-For the purpose of this project we have not integrated security features into Bellhop as is being deployed through this workflow. This solution is a Proof Of Concept and is not secure, it is only recommended for testing. To use this service in a production deployment it is recommended to review the following documentation from Azure. It walks though best practices on securing Azure Functions: 
+For the purpose of this project we have not integrated a complete set of security features into Bellhop. This solution is currently in an alpha phase and is not hardened from a security aspect. To use this service in a production deployment it is recommended to review the following documentation from Azure. It walks though best practices on securing Azure Functions: 
 [Securing Azure Functions](https://docs.microsoft.com/en-us/azure/azure-functions/security-concepts)
 
 **_IT IS RECOMMENDED TO USE AVAILABLE SECURITY CONTROLS IN A PRODUCTION DEPLOYMENT_**

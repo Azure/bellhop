@@ -22,7 +22,7 @@ Guidance on onboarding samples to docs.microsoft.com/samples: https://review.doc
 Taxonomies for products and languages: https://review.docs.microsoft.com/new-hope/information-architecture/metadata/taxonomies?branch=master
 -->
 
-Bellhop is a highly extensible framework providing an easy way to scale Azure managed services between their available service tiers. The solution is completely serverless and built leveraging Azure Functions, Storage Queues, and resource tags. The modular nature of Bellhop was thoughtfully designed to make it possible for anyone to extend this solution to cover their specific needs.
+Bellhop is a highly extensible framework providing an easy way to scale Azure managed services between their available service tiers on a schedule. The solution is completely serverless and built leveraging Azure Functions, Storage Queues, and resource tags. The modular nature of Bellhop was thoughtfully designed to make it possible for anyone to extend this solution to cover their specific needs.
 
 ## Repo Contents
 

@@ -2,7 +2,8 @@
 This README will describe how to use Bellhop to help scale your Azure SQL Database Resources.
 
 ## Scaling Considerations
-Azure SQL has a concept of a Service Objective which makes scaling, even between tiers pretty easy. **MORE INFORMATION NEEDED AROUND SCALING THIS SERVICE SPECIFICALLY, THIS IS JUST A PLACE HOLDER**
+
+- Please refer to [this](https://docs.microsoft.com/en-us/azure/azure-sql/database/single-database-scale) document for considerations when scaling an Azure SQL Database resource between service tiers.
 
 ## Required Tag for Azure SQL Database
 ```

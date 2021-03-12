@@ -1,10 +1,12 @@
 <!-- docs/_sidebar.md -->
 
-* [Getting Started](/README.md)
+* Getting Started
+
+* [Welcome](/README.md)
 * [Engine Function](/engine/README.md)
 * [Scaler Function](/scaler/README.md)
 * [Scaler Modules](/scaler/modules/README.md)
-
+&nbsp;
 * Supported Scalers
 
 * [Virtual Machine](/scaler/modules/virtualmachine.md)
