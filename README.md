@@ -48,7 +48,7 @@ The Bellhop project leverages [Docsify](https://docsify.js.org/#/) and [GitHub P
 
 **Why would I use Bellhop?**
 
-You realize that by "turning down" your resources in Dev/Test environments you could save a lot on the cost of your infrastructure. You also realize there is not currently an easy way to scale between service tiers on Azure PaaS services. Bellhop to the rescue!!!! Tag your resources with scale times and desired service tier settings and let Bellhop take care of the rest!
+You realize that by "turning down" your resources in Dev/Test environments you could save a lot on the cost of your infrastructure. You also realize there is not currently an easy way to scale between service tiers on Azure services. Bellhop to the rescue!!!! Tag your resources with scale times and desired service tier settings and let Bellhop take care of the rest!
 
 **What does the roadmap for Bellhop look like?**
 

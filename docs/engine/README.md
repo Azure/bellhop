@@ -1,7 +1,7 @@
 # Bellhop Engine Function
 The Bellhop Engine Function is the brains of the operation, and is responsible for orchestrating all of the operations Bellhop performs. 
 
-The engine is written in C# (.NET Core 3.1). By default the Engine will trigger and run on a schedule repeating every 5 minutes. When triggered the Engine will query Azure Resource Graph API for any Azure resources, within the subscription, that have the `"resize-Enable": "True"` tag set. Using Azure Resource Graph avoid querying the ARM API, reducing the likelihood of API throttling.
+The engine is written in C# (.NET Core 3.1). By default the Engine will trigger and run on a schedule repeating every 5 minutes. When triggered the Engine will query Azure Resource Graph API for any Azure resources, within the subscription, that have the `"resize-Enable": "True"` tag set. Using Azure Resource Graph avoids querying the ARM API, reducing the likelihood of API throttling.
 
 _Learn more about [Azure Resource Graph](https://docs.microsoft.com/en-us/azure/governance/resource-graph/overview)_
 

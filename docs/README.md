@@ -56,7 +56,7 @@ Enter Azure Region to deploy to: westus2
 ### Steps to update the Scaler Function when adding custom scaler modules:
 - Run `updateScaler.ps1` from project root
 
-The update script will ask user for a Resource Group name, and then zip deploy the updates to the Scaler function deployed in the given resource group.
+The update script will ask the user for a Resource Group name, and then zip deploy the updates to the Scaler function deployed in the given resource group.
 
 Example:
 ```
@@ -67,7 +67,7 @@ Enter resource group name where function is deployed: bellhop-rg
 ### Steps to tear down the deployment:
 - Run `removeBellhop.ps1` from project root
 
-The teardown script will ask user for a Resource Group name, and then delete that Resource Group and all associated resources. 
+The teardown script will ask the user for a Resource Group name, and then delete that Resource Group and all associated resources. 
 
 Example:
 ```

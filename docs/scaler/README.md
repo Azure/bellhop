@@ -3,12 +3,12 @@ The Scaler Function is a very lightweight Powershell function that is triggered 
 
 ## Bellhop Scaler Function Workflow
 - Message is recieved in the queue after being passed from the Engine
-- Scaler parses the Resource Type, and load the appropriate Scaler Module (Import function.psm1)
+- Scaler parses the Resource Type, and loads the appropriate Scaler Module (Import function.psm1)
 - Resize parameters are passed to the Scaler Module function:
     - Resize direction (Up/Down)
     - Azure Resource Graph results
     - Extracted Tag data (Save/Set state)
-- Entire resize operation happens within the Scaler Module
+- Entire resize operation is executed by the Scaler Module
 
 ## Scaler Module Details
 Instructions for creating new modules, as well as detailed information around the each current supported Azure Resource can be found in the [Scaler Modules](/scaler/modules/README.md) section of this documentation.

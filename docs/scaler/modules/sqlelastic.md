@@ -2,7 +2,6 @@
 This README will describe how to use Bellhop to help scale your Azure SQL ELastic Pool Resources.
 
 ## Scaling Considerations
-
 - Please refer to [this](https://docs.microsoft.com/en-us/azure/azure-sql/database/elastic-pool-scale) document for considerations when scaling an Azure SQL Elastic Pool resource between service tiers.
 
 ## Required Tags for DTU Type
