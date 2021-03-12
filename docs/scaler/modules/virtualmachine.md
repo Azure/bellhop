@@ -2,7 +2,9 @@
 This README will describe how to use Bellhop to help scale your Azure Virtual Machine Resources.
 
 ## Scaling Considerations
-**MORE INFORMATION NEEDED AROUND SCALING THIS SERVICE SPECIFICALLY, THIS IS JUST A PLACE HOLDER**
+- Virtual Machine will restart during the resize operation, any running processes will be stopped
+- This scaler currently does **not** validate if the target VM size is available within the subscrption and/or Azure region
+- Please ensure the target VM size is available on the current hardware cluster that the VM is running on ([More Information](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/resize-vm))
 
 ## Required Tags for Azure Virtual Machines
 ```
@@ -13,12 +15,14 @@ For more information on tag values for Azure Virtual Machines please see the Mic
 
 For a list of VM size definitions, please reference the **VirtualMachineSizeTypes** section of the [VM Update API](https://docs.microsoft.com/en-us/rest/api/compute/virtualmachines/update#definitions) documentation.
 
-## Sample scale message
+
+## Sample Message Sent to Queue by Engine Function
 An example of the message sent to the queue by the engine function 
 
-- virtualmachine.json
+**Virtual Machine Message**
 ```
 {
+    "debug": false,
     "direction": "down",
     "graphResults": {
         "id": "/subscriptions/<SUBSCRIPTION-ID>/resourceGroups/<RESOURCE-GROUP-NAME>/providers/Microsoft.Compute/virtualMachines/vm-test",
@@ -89,9 +93,9 @@ An example of the message sent to the queue by the engine function
             "vmId": "cb742c65-ce84-4a1f-86e7-5a9ddfdc7a5a"
         },
         "tags": {
+            "resize-Enable": "True",
             "resize-StartTime": "Friday 7PM",
             "resize-EndTime": "Monday 6AM",
-            "resize-Enable": "False",
             "setState-VMSize": "Standard_B1ms"
         },
         "identity": null,

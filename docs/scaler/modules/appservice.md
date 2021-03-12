@@ -2,7 +2,8 @@
 This README will describe how to use Bellhop to help scale your Azure App service Plan Resources.
 
 ## Scaling Considerations
-**MORE INFORMATION NEEDED AROUND SCALING THIS SERVICE SPECIFICALLY, THIS IS JUST A PLACE HOLDER**
+
+- Please refer to [this](https://docs.microsoft.com/en-us/azure/app-service/manage-scale-up) document for considerations when scaling an Azure App Service resource between service tiers.
 
 ## Required Tags for Azure App Service Plans
 ```
@@ -10,14 +11,28 @@ setState-WorkerSize = <String>
 setState-Tier = <String>
 ```
 
+WorkerSize Options:
+- Small
+- Medium
+- Large
+
+Tier Options:
+- Basic
+- Standard
+- Premium
+- PremiumV2
+- PremiumV3
+
 For more information on tag values for Azure App Service please see the Microsoft documentaion: [Set-AzAppServicePlan](https://docs.microsoft.com/en-us/powershell/module/az.websites/set-azappserviceplan?view=azps-5.4.0)
 
-## Sample scale message
+
+## Sample Message Sent to Queue by Engine Function
 An example of the message sent to the queue by the engine function 
 
-- appserviceplan.json
+**App Service Plan Message**
 ```
 {
+    "debug": false,
     "direction": "down",
     "graphResults": {
         "id": "/subscriptions/<SUBSCRIPTION-ID>/resourceGroups/<RESOURCE-GROUP-NAME>/providers/Microsoft.Web/serverFarms/autoscale-test-app",
@@ -44,9 +59,11 @@ An example of the message sent to the queue by the engine function
             "subscription": "<SUBSCRIPTION-ID>",
             "kind": "linux",
             "tags": {
+                "resize-Enable": "True"
+                "resize-StartTime": "Friday 7PM",
+                "resize-EndTime": "Monday 6AM",
                 "setState-WorkerSize": "Small",
                 "setState-Tier": "Basic",
-                "resize-Enable": "True"
             },
             "hostingEnvironmentProfile": null,
             "status": "Ready",
@@ -85,9 +102,11 @@ An example of the message sent to the queue by the engine function
             "mdmId": ""
         },
         "tags": {
+            "resize-Enable": "True"
+            "resize-StartTime": "Friday 7PM",
+            "resize-EndTime": "Monday 6AM",
             "setState-WorkerSize": "Small",
             "setState-Tier": "Basic",
-            "resize-Enable": "True"
         },
         "identity": null,
         "zones": null,
