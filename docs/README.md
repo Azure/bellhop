@@ -1,4 +1,4 @@
-# Welcome to Bellhop!
+# Welcome to Bellhop! {{ release }}
 
 <!-- 
 Guidelines on README format: https://review.docs.microsoft.com/help/onboard/admin/samples/concepts/readme-template?branch=master

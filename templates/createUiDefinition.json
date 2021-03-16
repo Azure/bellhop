@@ -1,0 +1,28 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/0.1.2-preview/CreateUIDefinition.MultiVm.json#",
+    "handler": "Microsoft.Azure.CreateUIDef",
+    "version": "0.1.2-preview",
+    "parameters": {
+        "basics": [
+            {
+                "name": "appName",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Deployment Prefix",
+                "toolTip": "The prefix for the Bellhop deployment components.",
+                "defaultValue": "bellhop",
+                "constraints": {
+                    "required": true,
+                    "regex": "^[a-z0-9A-Z]{3,17}$",
+                    "validationMessage": "The Deployment Prefix must be between 3 and 17 characters long and contain letters and numbers only."
+                }
+            }
+        ],
+		"steps": [ ],
+        "outputs": {
+            "location": "[location()]",
+            "appName": "[basics('appName')]",
+			"rgNewExisting": "[resourceGroup().mode]",
+			"rgName": "[resourceGroup().name]"
+        }
+    }
+}
