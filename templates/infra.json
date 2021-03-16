@@ -29,9 +29,10 @@
     },
     "resources": [
         {
+            "condition": "[equals(parameters('rgNewExisting'),'New')]",
             "type": "Microsoft.Resources/resourceGroups",
             "apiVersion": "2020-06-01",
-            "name": "[concat(parameters('appName'), '-rg')]",
+            "name": "[parameters('rgName')]",
             "location": "[deployment().location]",
             "properties": {}
         },
@@ -65,9 +66,9 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "name": "bellhopDeploy",
-            "resourceGroup": "[concat(parameters('appName'), '-rg')]",
+            "resourceGroup": "[parameters('rgName')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Resources/resourceGroups', concat(parameters('appName'), '-rg'))]"
+                "[resourceId('Microsoft.Resources/resourceGroups', parameters('rgName'))]"
             ],
             "properties": {
                 "expressionEvaluationOptions": {
