@@ -1,29 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Document</title>
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-  <meta name="description" content="Description">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
-  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
-
-</head>
-<body>
-  <div id="app"></div>
-  <script>
-    window.$docsify = {
-      name: 'Bellhop',
-      repo: 'https://github.com/Azure/bellhop',
-      loadSidebar: true,
-      subMaxLevel: 2,
-      relativePath: true,
-      auto2top: true,
-      coverpage: true,
-      logo: './images/bellhop-logo.png',
-    }
-  </script>
-  <!-- Docsify v4 -->
-  <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
-</body>
+    <head>
+        <meta charset="UTF-8">
+        <title>Document</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+        <meta name="description" content="Description">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+        <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+    </head>
+    <body>
+        <div id="app"></div>
+        <script>
+            window.$docsify = {
+                name: 'Bellhop',
+                repo: 'https://github.com/Azure/bellhop',
+                loadSidebar: true,
+                subMaxLevel: 2,
+                relativePath: true,
+                auto2top: true,
+                coverpage: true,
+                onlyCover: true,
+                logo: './images/bellhop-logo.png',
+                vueGlobalOptions: {
+                    data() {
+                        return {
+                            release: null,
+                        };
+                    },
+                    created() {
+                        fetch('https://api.github.com/repos/dcmattyg/semantic-test/releases/latest')
+                        .then(response => response.json())
+                        .then(data => (this.release = data.tag_name))
+                        .catch(err => console.log(err));
+                    }
+                },
+            }
+        </script>
+        <!-- Docsify v4 -->
+        <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
+        <!-- VueJS v3 -->
+        <script src="//cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+    </body>
 </html>
