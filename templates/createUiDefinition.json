@@ -20,9 +20,7 @@
         "steps": [ ],
         "outputs": {
             "location": "[location()]",
-            "appName": "[basics('appName')]",
-            "rgNewExisting": "[resourceGroup().mode]",
-            "rgName": "[resourceGroup().name]"
+            "appName": "[basics('appName')]"
         }
     }
 }
