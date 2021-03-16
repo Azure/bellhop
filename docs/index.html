@@ -19,26 +19,10 @@
                 relativePath: true,
                 auto2top: true,
                 coverpage: true,
-                onlyCover: true,
-                logo: './images/bellhop-logo.png',
-                vueGlobalOptions: {
-                    data() {
-                        return {
-                            release: null,
-                        };
-                    },
-                    created() {
-                        fetch('https://api.github.com/repos/dcmattyg/semantic-test/releases/latest')
-                        .then(response => response.json())
-                        .then(data => (this.release = data.tag_name))
-                        .catch(err => console.log(err));
-                    }
-                },
+                logo: './images/bellhop-logo.png'
             }
         </script>
         <!-- Docsify v4 -->
         <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
-        <!-- VueJS v3 -->
-        <script src="//cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
     </body>
 </html>
