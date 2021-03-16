@@ -12,7 +12,7 @@ products:
 description: "Bellhop allows a customer to 'hop' between service tiers, like a traditional bellhop helps you move between floors."
 ---
 
-[![Deploy To Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fbellhop%2Fdeploy-to-azure%2Ftemplates%2Fazuredeploy.json%2FcreateUIDefinitionUri%2Fhttps%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fbellhop%2Fdeploy-to-azure%2Ftemplates%2FcreateUiDefinition.json)
+[![Deploy To Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fbellhop%2Fdeploy-to-azure%2Ftemplates%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fbellhop%2Fdeploy-to-azure%2Ftemplates%2FcreateUiDefinition.json)
 
 # Bellhop
 

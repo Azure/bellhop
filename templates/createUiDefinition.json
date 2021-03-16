@@ -17,12 +17,12 @@
                 }
             }
         ],
-		"steps": [ ],
+        "steps": [ ],
         "outputs": {
             "location": "[location()]",
             "appName": "[basics('appName')]",
-			"rgNewExisting": "[resourceGroup().mode]",
-			"rgName": "[resourceGroup().name]"
+            "rgNewExisting": "[resourceGroup().mode]",
+            "rgName": "[resourceGroup().name]"
         }
     }
 }
