@@ -33,9 +33,6 @@ Bellhop is a highly extensible framework providing an easy way to scale Azure ma
 | `docs/`           | Docsify repo for web documentation.        |
 | `functions/`      | Bellhop project Azure Functions. Includes Engine and Trigger.|
 | `templates/`      | Bellhop Infrastructure ARM Template.       |
-| `deployBellhop.ps1` | PowerShell script to deploy tool.        |
-| `removeBellhop.ps1` | PowerShell script to decommission the tool. Makes testing and experimentation easy.|
-| `updateScaler.ps1` | PowerShell script to easily update the Scaler Function. |
 | `README.md`       | This README file.                          |
 | `LICENSE`         | MIT license for the project                |
 | `CODE_OF_CONDUCT.md` | Expected code of conduct for this repo  |
