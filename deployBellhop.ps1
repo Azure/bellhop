@@ -148,60 +148,6 @@ catch {
     exit
 }
 
-# Upload Azure Function contents via Zip-Deploy
-# Bellhop Scaler Function Upload First
-Write-Host "INFO: Creating staging folder for function archives..." -ForegroundColor green
-Remove-Item .\staging\ -Recurse -Force -ErrorAction Ignore
-New-Item -Name "staging" -ItemType "directory" -ErrorAction Ignore | Out-Null
-
-try {
-    Write-Host "INFO: Zipping up scaler function contents" -ForegroundColor Green
-    Write-Verbose -Message "Zipping up scaler function..."
-
-    $scalerFolder = ".\functions\scaler"
-    $scalerZipFile = ".\staging\scaler.zip"
-    $scalerExcludeDir = @(".vscode")
-    $scalerExcludeFile = @("local.settings.json")
-    $scalerDirs = Get-ChildItem $scalerFolder -Directory | Where-Object { $_.Name -notin $scalerExcludeDir }
-    $scalerFiles = Get-ChildItem $scalerFolder -File | Where-Object { $_.Name -notin $scalerExcludeFile }
-    $scalerDirs | Compress-Archive -DestinationPath $scalerZipFile -Update
-    $scalerFiles | Compress-Archive -DestinationPath $scalerZipFile -Update
-
-    Write-Host "INFO: Deploying scaler function via Zip-Deploy" -ForegroundColor Green
-    Write-Verbose -Message "Deploying scaler function via Azure CLI Zip-Deploy"
-    Publish-AzWebapp -ResourceGroupName "$name-rg" -Name "$name-function-scaler" -ArchivePath $(Resolve-Path $scalerZipFile) -Force | Out-Null
-}
-catch {
-    $_ | Out-File -FilePath $logFile -Append
-    Write-Host "ERROR: Bellhop scaler function Zip Deploy failed due to an exception, please check $logfile for details."
-    exit
-}
-
-# Bellhop Engine Function Upload
-try {
-    # Build for .NET App: dotnet publish --configuration Release
-    Write-Host "INFO: Zipping up engine function contents" -ForegroundColor Green
-    Write-Verbose -Message "Zipping up engine function..."
-
-    $engineFolder = ".\functions\engine\bin\Release\netcoreapp3.1\publish"
-    $engineZipFile = ".\staging\engine.zip"
-    $engineExcludeDir = @()
-    $engineExcludeFile = @()
-    $engineDirs = Get-ChildItem $engineFolder -Directory | Where-Object { $_.Name -notin $engineExcludeDir }
-    $engineFiles = Get-ChildItem $engineFolder -File | Where-Object { $_.Name -notin $engineExcludeFile }
-    $engineDirs | Compress-Archive -DestinationPath $engineZipFile -Update
-    $engineFiles | Compress-Archive -DestinationPath $engineZipFile -Update
-
-    Write-Host "INFO: Deploying engine function via Zip-Deploy" -ForegroundColor Green
-    Write-Verbose -Message "Deploying engine function via Azure CLI Zip-Deploy"
-    Publish-AzWebapp -ResourceGroupName "$name-rg" -Name "$name-function-engine" -ArchivePath $(Resolve-Path $engineZipFile) -Force | Out-Null
-}
-catch {
-    $_ | Out-File -FilePath $logFile -Append
-    Write-Host "ERROR: Bellhop engine function Zip Deploy failed due to an exception, please check $logfile for details."
-    exit
-}
-
 Write-Host "INFO: Cleaning up..." -ForegroundColor green
 Remove-Item .\staging\ -Recurse -Force -ErrorAction Ignore
 
