@@ -29,10 +29,9 @@
     },
     "resources": [
         {
-            "condition": "[equals(parameters('rgNewExisting'),'New')]",
             "type": "Microsoft.Resources/resourceGroups",
             "apiVersion": "2020-06-01",
-            "name": "[parameters('rgName')]",
+            "name": "[concat(parameters('appName'), '-rg')]",
             "location": "[deployment().location]",
             "properties": {}
         },
@@ -66,9 +65,9 @@
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2020-06-01",
             "name": "bellhopDeploy",
-            "resourceGroup": "[parameters('rgName')]",
+            "resourceGroup": "[concat(parameters('appName'), '-rg')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Resources/resourceGroups', parameters('rgName'))]"
+                "[resourceId('Microsoft.Resources/resourceGroups', concat(parameters('appName'), '-rg'))]"
             ],
             "properties": {
                 "expressionEvaluationOptions": {
@@ -205,7 +204,6 @@
                             "apiVersion": "2020-06-01",
                             "name": "[variables('hostingPlanName')]",
                             "location": "[resourceGroup().location]",
-                            "kind": "linux",
                             "sku": {
                                 "name": "EP1",
                                 "tier": "ElasticPremium"
@@ -215,8 +213,7 @@
                                 "workerSize": 3,
                                 "workerSizeId": 3,
                                 "numberOfWorkers": 1,
-                                "maximumElasticWorkerCount": "20",
-                                "reserved": true
+                                "maximumElasticWorkerCount": "20"
                             }
                         },
                         {
@@ -224,7 +221,7 @@
                             "apiVersion": "2020-06-01",
                             "name": "[variables('engineFuncName')]",
                             "location": "[resourceGroup().location]",
-                            "kind": "functionapp,linux",
+                            "kind": "functionapp",
                             "dependsOn": [
                                 "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
                                 "[resourceId('Microsoft.Storage/storageAccounts', variables('storAcctName'))]",
@@ -267,20 +264,15 @@
                                             "value": "[parameters('engineRuntime')]"
                                         },
                                         {
-                                            "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE",
-                                            "value": "false"
-                                        },
-                                        {
-                                            "name": "DOCKER_REGISTRY_SERVER_URL",
-                                            "value": "https://index.docker.io/v1"
+                                            "name": "WEBSITE_RUN_FROM_PACKAGE",
+                                            "value": "1"
                                         },
                                         {
                                             "name": "AppConfigEndpoint",
                                             "value": "[reference(resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))).endpoint]"
                                         }
                                     ],
-                                    "use32BitWorkerProcess": false,
-                                    "linuxFxVersion": "DOCKER|azurebellhop/engine:v0.2"
+                                    "use32BitWorkerProcess": true
                                 }
                             }
                         },
@@ -289,7 +281,7 @@
                             "apiVersion": "2020-06-01",
                             "name": "[variables('scalerFuncName')]",
                             "location": "[resourceGroup().location]",
-                            "kind": "functionapp,linux",
+                            "kind": "functionapp",
                             "dependsOn": [
                                 "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
                                 "[resourceId('Microsoft.Storage/storageAccounts', variables('storAcctName'))]"
@@ -299,7 +291,6 @@
                             },
                             "properties": {
                                 "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
-                                "clientAffinityEnabled": false,
                                 "siteConfig": {
                                     "appSettings": [
                                         {
@@ -331,16 +322,12 @@
                                             "value": "[parameters('scalerRuntime')]"
                                         },
                                         {
-                                            "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE",
-                                            "value": "false"
-                                        },
-                                        {
-                                            "name": "DOCKER_REGISTRY_SERVER_URL",
-                                            "value": "https://index.docker.io/v1"
+                                            "name": "WEBSITE_RUN_FROM_PACKAGE",
+                                            "value": "1"
                                         }
                                     ],
-                                    "use32BitWorkerProcess": false,
-                                    "linuxFxVersion": "DOCKER|azurebellhop/scaler:v0.1"
+                                    "use32BitWorkerProcess": true,
+                                    "powerShellVersion": "~7"
                                 }
                             }
                         },
