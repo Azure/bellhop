@@ -8,11 +8,11 @@
                 "description": "The name of the function app that you wish to create."
             }
         },
-        "engineContributorGUID": {
+        "engineReaderGUID": {
             "type": "string",
             "defaultValue": "[newGuid()]",
             "metadata": {
-                "description": "GUID for engine contributor role on subscription."
+                "description": "GUID for engine reader role on subscription."
             }
         },
         "scalerContributorGUID": {
@@ -24,6 +24,7 @@
         }
     },
     "variables": {
+        "readerRole": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')]",
         "contributorRole": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]"
     },
     "resources": [
@@ -37,13 +38,13 @@
         {
             "type": "Microsoft.Authorization/roleAssignments",
             "apiVersion": "2020-04-01-preview",
-            "name": "[parameters('engineContributorGUID')]",
+            "name": "[parameters('engineReaderGUID')]",
             "dependsOn": [
                 "bellhopDeploy"
             ],
             "properties": {
                 "scope": "[subscription().id]",
-                "roleDefinitionId": "[variables('contributorRole')]",
+                "roleDefinitionId": "[variables('readerRole')]",
                 "principalId": "[reference('bellhopDeploy').outputs.enginePrincipalId.value]"
             }
         },
@@ -140,7 +141,7 @@
                                 "description": "GUID for engine reader role on the app config service."
                             }
                         },
-                        "storageQueueContributorGUID": {
+                        "storageQueueDataMessageSenderGUID": {
                             "type": "string",
                             "defaultValue": "[newGuid()]",
                             "metadata": {
@@ -158,7 +159,7 @@
                         "appInsightsName": "[concat(parameters('appName'), '-appinsights')]",
                         "appConfigName": "[concat(parameters('appName'), '-appconfig')]",
                         "appConfigReaderRole": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '516239f1-63e1-4d78-a4de-a74fb236a071')]",
-                        "storageQueueContributorRole": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '974c5e8b-45b9-4653-ba55-5f855dd0fb88')]"
+                        "storageQueueDataMessageSenderRole": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'c6a89b2d-59bc-44d0-9896-0f6e12d7b80a')]"
                     },
                     "resources": [
                         {
@@ -404,13 +405,13 @@
                         {
                             "type": "Microsoft.Storage/storageAccounts/providers/roleAssignments",
                             "apiVersion": "2020-04-01-preview",
-                            "name": "[concat(variables('storAcctName'), '/Microsoft.Authorization/', parameters('storageQueueContributorGUID'))]",
+                            "name": "[concat(variables('storAcctName'), '/Microsoft.Authorization/', parameters('storageQueueDataMessageSenderGUID'))]",
                             "dependsOn": [
                                 "[resourceId('Microsoft.Storage/storageAccounts', variables('storAcctName'))]"
                             ],
                             "properties": {
                                 "scope": "[resourceId('Microsoft.Storage/storageAccounts', variables('storAcctName'))]",
-                                "roleDefinitionId": "[variables('storageQueueContributorRole')]",
+                                "roleDefinitionId": "[variables('storageQueueDataMessageSenderRole')]",
                                 "principalId": "[reference(resourceId('Microsoft.Web/Sites', variables('engineFuncName')), '2019-08-01', 'full').identity.principalId]"
                             }
                         }
