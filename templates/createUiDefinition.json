@@ -3,6 +3,23 @@
     "handler": "Microsoft.Azure.CreateUIDef",
     "version": "0.1.2-preview",
     "parameters": {
+		"resourceTypes": ["Microsoft.AppConfiguration/configurationStores"],
+		"config": {
+			"isWizard": false,
+			"basics": {
+				"description": "<img src='https://github.com/Azure/bellhop/raw/main/docs/images/bellhop-logo.png' width='25%'/><br>Customized description with **markdown**, see [more](https://www.microsoft.com).",
+				"subscription": {
+					"constraints": {
+						"validations": [
+							{
+								"permission": "Microsoft.Authorization/roleAssignments/write",
+								"message": "Must have correct permission to complete this step."
+							}
+						]
+					}
+				}
+			}
+		},
         "basics": [
             {
                 "name": "appName",
@@ -17,7 +34,7 @@
                 }
             }
         ],
-        "steps": [ ],
+        "steps": [],
         "outputs": {
             "location": "[location()]",
             "appName": "[basics('appName')]"
