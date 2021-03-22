@@ -32,14 +32,14 @@ Bellhop is a highly extensible framework providing an easy way to scale Azure ma
 
 | File/folder          | Description                                                   |
 |----------------------|---------------------------------------------------------------|
-| `docs/`              | Docsify repo for web documentation.                           |
-| `functions/`         | Bellhop project Azure Functions. Includes Engine and Trigger. |
-| `templates/`         | Bellhop Infrastructure ARM Template & Portal UI Definition.   |
-| `.gitignore`         | Define what to ignore at commit time.                         |
-| `CODE_OF_CONDUCT.md` | Expected code of conduct for this repo.                       |
-| `LICENSE`            | MIT license for the project                                   |
-| `README.md`          | This README file.                                             |
-| `SECURITY.md`        | Microsoft Open Source Security Information & Details.         |
+| `docs/`              | Docsify Repo                                                  |
+| `functions/`         | Bellhop Engine & Scaler Function Code                         |
+| `templates/`         | Bellhop Infrastructure ARM Template & Portal UI Definition    |
+| `.gitignore`         | Untracked Files to Ignore                                     |
+| `CODE_OF_CONDUCT.md` | Microsoft Code of Conduct                                     |
+| `LICENSE`            | MIT License                                                   |
+| `README.md`          | This README File                                              |
+| `SECURITY.md`        | Microsoft Open Source Security Information & Details          |
 
 ## Documentation
 The Bellhop project leverages [Docsify](https://docsify.js.org/#/) and [GitHub Pages](https://docs.github.com/en/github/working-with-github-pages) to present the project documentation, which can be found here:
