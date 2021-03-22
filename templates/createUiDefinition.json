@@ -7,7 +7,7 @@
 		"config": {
 			"isWizard": false,
 			"basics": {
-				"description": "<img src='https://github.com/Azure/bellhop/raw/main/docs/images/bellhop-logo.png' width='25%'/><br>Customized description with **markdown**, see [more](https://www.microsoft.com).",
+				"description": "<img src='https://github.com/Azure/bellhop/raw/main/docs/images/bellhop-logo.png' width='25%'/><br>  \n**Welcome to Bellhop**  \nFrom the basement to the penthouse, Bellhop will make sure your Azure infrastructure always ends up on the right floor!  \n\nThe Deployment Prefix below will be used to create the following resources during the deployment:  \n\n| Resource | Resource Name |  \n| --- | --- |  \n| Resource Group | &lt;prefix&gt;-rg |  \n| Storage Account | &lt;prefix&gt;stgacct |  \n| App Service Plan | &lt;prefix&gt;-asp |  \n| Application Insights | &lt;prefix&gt;-appinsights |  \n| App Configuration | &lt;prefix&gt;-appconfig |  \n| Function App (Engine) | &lt;prefix&gt;-function-engine |  \n| Function App (Scaler) | &lt;prefix&gt;-function-scaler |  \nThe following permissions will be assigned to the Function App Managed Identities during the deployment:  \n\n| Managed Identity | Permission | Scope |  \n| --- | --- | --- |  \n| Function App (Engine) | Reader | &lt;Subscription&gt; |  \n| Function App (Engine) | Reader | &lt;App Configuration&gt; |  \n| Function App (Engine) | Queue Data Message Sender | &lt;Storage Account&gt; |  \n| Function App (Scaler) | Contributor | &lt;Subscription&gt; |",
 				"subscription": {
 					"constraints": {
 						"validations": [
@@ -26,7 +26,7 @@
                 "type": "Microsoft.Common.TextBox",
                 "label": "Deployment Prefix",
                 "toolTip": "The prefix for the Bellhop deployment components.",
-                "defaultValue": "bellhop",
+                "defaultValue": "",
                 "constraints": {
                     "required": true,
                     "regex": "^[a-z0-9A-Z]{3,17}$",
