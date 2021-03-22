@@ -14,8 +14,6 @@ description: "Bellhop allows a customer to 'hop' between service tiers, like a t
 ---
 -->
 
-[![Deploy To Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fbellhop%2Fdeploy-to-azure%2Ftemplates%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fbellhop%2Fdeploy-to-azure%2Ftemplates%2FcreateUiDefinition.json)
-
 # Bellhop
 
 <!-- 
@@ -28,17 +26,20 @@ Taxonomies for products and languages: https://review.docs.microsoft.com/new-hop
 
 Bellhop is a highly extensible framework providing an easy way to scale Azure managed services between their available service tiers on a schedule. The solution is completely serverless and built leveraging Azure Functions, Storage Queues, and resource tags. The modular nature of Bellhop was thoughtfully designed to make it possible for anyone to extend this solution to cover their specific needs.
 
+[![Deploy To Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fbellhop%2Fdeploy-to-azure%2Ftemplates%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fbellhop%2Fdeploy-to-azure%2Ftemplates%2FcreateUiDefinition.json)
+
 ## Repo Contents
 
-| File/folder       | Description                                |
-|-------------------|--------------------------------------------|
-| `docs/`           | Docsify repo for web documentation.        |
-| `functions/`      | Bellhop project Azure Functions. Includes Engine and Trigger.|
-| `templates/`      | Bellhop Infrastructure ARM Template.       |
-| `README.md`       | This README file.                          |
-| `LICENSE`         | MIT license for the project                |
-| `CODE_OF_CONDUCT.md` | Expected code of conduct for this repo  |
-| `.gitignore`      | Define what to ignore at commit time.      |
+| File/folder          | Description                                                   |
+|----------------------|---------------------------------------------------------------|
+| `docs/`              | Docsify repo for web documentation.                           |
+| `functions/`         | Bellhop project Azure Functions. Includes Engine and Trigger. |
+| `templates/`         | Bellhop Infrastructure ARM Template & Portal UI Definition.   |
+| `.gitignore`         | Define what to ignore at commit time.                         |
+| `CODE_OF_CONDUCT.md` | Expected code of conduct for this repo.                       |
+| `LICENSE`            | MIT license for the project                                   |
+| `README.md`          | This README file.                                             |
+| `SECURITY.md`        | Microsoft Open Source Security Information & Details.         |
 
 ## Documentation
 The Bellhop project leverages [Docsify](https://docsify.js.org/#/) and [GitHub Pages](https://docs.github.com/en/github/working-with-github-pages) to present the project documentation, which can be found here:
