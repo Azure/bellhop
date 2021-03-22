@@ -17,13 +17,10 @@ This project was born out of the desire to be resource conscious and to fill a g
 ## Prerequisites
 To successfully deploy this project, it requires the Azure user have the following:
 
+- Azure Subscription
+- Azure RBAC role of Owner or Contributor at the Subscription scope
 - Azure AD Role allowing user to assign roles (Global Admin, App Admin, Cloud App Admin)
     - *Necessary to assign proper scope to managed identity*
-- Azure RBAC role of Owner or Contributor at the Subscription scope
-- Azure Subscription
-- Powershell 7.0+
-- Azure PowerShell 5.6+
-- .NET 3.1 SDK
 
 
 ## Currently Supported Azure Services
@@ -34,46 +31,14 @@ The list of scalers currently supported by Bellhop:
 - Virtual Machine
 
 ## Deploying/Updating/Deleting Bellhop
-### Steps to deploy infrastructure:
-- Clone the [GitHub repo](https://github.com/Azure/Bellhop) down to your local machine
+### Steps to deploy Bellhop infrastructure:
+1. Deploy directly to Azure using the button below
 
-Example:
-```
-PS /User/github/> git clone https://github.com/Azure/bellhop.git
-```
+[![Deploy To Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fbellhop%2Fdeploy-to-azure%2Ftemplates%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fbellhop%2Fdeploy-to-azure%2Ftemplates%2FcreateUiDefinition.json)
 
-- Run `deployBellhop.ps1` from project root
+2. Provide a Deployment Prefix, and select 'Review + Create'
 
-The deployment script will ask the user to input a unique name for their deployment, as well as their desired Azure region. These will be passed to the script as parameters. 
-
-Example:
-```
-PS /User/github/bellhop> ./deployBellhop.ps1
-Enter a unique name for your deployment: bellhop
-Enter Azure Region to deploy to: westus2
-```
-
-### Steps to update the Scaler Function when adding custom scaler modules:
-- Run `updateScaler.ps1` from project root
-
-The update script will ask the user for a Resource Group name, and then zip deploy the updates to the Scaler function deployed in the given resource group.
-
-Example:
-```
-PS /User/github/Azure/bellhop> ./updateScaler.ps1
-Enter resource group name where function is deployed: bellhop-rg 
-```
-
-### Steps to tear down the deployment:
-- Run `removeBellhop.ps1` from project root
-
-The teardown script will ask the user for a Resource Group name, and then delete that Resource Group and all associated resources. 
-
-Example:
-```
-PS /User/github/Azure/bellhop> ./removeBellhop.ps1
-Enter name of resource group to teardown: bellhop-rg
-``` 
+![Bellhop Deployment](./images/deployment.png)
 
 ## Running Bellhop
 Bellhop is currently configured to run in the context of a single subscription, and relies on the Graph API and certian Tags on resources to handle service tier scaling for you! The Engine will query Graph API every 5 min (by default) and perform a get on resources tagged with `resize-Enable = True`. If resize has been enabled, and start/end times have been configured, the Engine will determine which direction the resource would like to scale and send a message to the storage queue.
@@ -94,7 +59,7 @@ resize-EndTime = <DateTime> (Monday 7:30AM)
 _**NOTE: StartTime and EndTime are currently in UTC**_
 
 
-## Bellhop Infrastructure
+## Bellhop Infrastructure Overview
 ### What gets deployed with Bellhop?
 
 The included deploy script, `deployBellhop.ps1`, will build out the following Azure infrastructure:
@@ -102,19 +67,23 @@ The included deploy script, `deployBellhop.ps1`, will build out the following Az
     - You _can_ bring an existing resource group
     - Deployment will create a new resource group if one does not already exist
 - **System Assigned Managed Identity**
-    - Managed Identity for the App Service Plan will have Contributor rights to the Subscription
-- **Azure Storage Account**
+    - Managed Identity for the Engine Function App will have the following permissions
+        - &lt;Reader&gt; on the target Subscription
+        - &lt;App Configuration Data Reader&gt; on the App Configuration resource
+        - &lt;Queue Data Message Sender&gt; on the Storage Account resource
+    - Managed Identity for the Scaler Function App will have the following permissions
+        - &lt;Contributor&gt; on the Subscription
+- **Storage Account**
     - Storage for Azure Function App Files
     - Storage Queue for Function Trigger
-- **Azure App Service Plan**
-    - Windows App Service Plan to host Function Apps
+- **App Service Plan**
+    - Linux App Service Plan to host Function Apps
+        - Engine Function App (.NET Core)
         - Scaler Function App (PowerShell)
-            - Scaler modules
-        - Engine Function App (.NET)
-- **Zip Deploy Function Package** 
-    - Deploy Function Zip packages to the Function Apps
-- **Azure Application Insights**
-    - App Insights for App Service Plan
+- **Docker Function & Scaler Containers** 
+    - Engine & Scaler code is deployed via Docker containers from the'azurebellhop' DockerHub repo
+- **Application Insights**
+    - Application Insights for the above App Service Plan
 
 ### Security considerations
 For the purpose of this project we have not integrated a complete set of security features into Bellhop. This solution is currently in an alpha phase and is not hardened from a security aspect. To use this service in a production deployment it is recommended to review the following documentation from Azure. It walks though best practices on securing Azure Functions: 
