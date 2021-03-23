@@ -26,7 +26,7 @@ Taxonomies for products and languages: https://review.docs.microsoft.com/new-hop
 
 Bellhop is a highly extensible framework providing an easy way to scale Azure managed services between their available service tiers on a schedule. The solution is completely serverless and built leveraging Azure Functions, Storage Queues, and resource tags. The modular nature of Bellhop was thoughtfully designed to make it possible for anyone to extend this solution to cover their specific needs.
 
-[![Deploy To Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fbellhop%2Fdeploy-to-azure%2Ftemplates%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fbellhop%2Fdeploy-to-azure%2Ftemplates%2FcreateUiDefinition.json)
+[![Deploy To Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fbellhop%2Fmain%2Ftemplates%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fbellhop%2Fmain%2Ftemplates%2FcreateUiDefinition.json)
 
 ## Repo Contents
 
