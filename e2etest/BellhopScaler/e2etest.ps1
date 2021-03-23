@@ -42,8 +42,13 @@ New-AzDeployment `
 Write-Output "Deploying Bellhop"
 New-AzSubscriptionDeployment `
     -Name bellhop-e2etest-$TimeStamp `
+<<<<<<< HEAD
     -Location $Location `
     -TemplateFile templates/infra.json `
+>>>>>>> testing
+=======
+    -location $Location `
+    -TemplateFile templates/azuredeploy.json `
 >>>>>>> testing
     -appName $AppName
 # Create new resource group for test resource
