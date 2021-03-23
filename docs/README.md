@@ -81,7 +81,7 @@ The included deploy script, `deployBellhop.ps1`, will build out the following Az
         - Engine Function App (.NET Core)
         - Scaler Function App (PowerShell)
 - **Docker Function & Scaler Containers** 
-    - Engine & Scaler code is deployed via Docker containers from the'azurebellhop' DockerHub repo
+    - Engine & Scaler code is deployed via Docker containers from the 'azurebellhop' DockerHub repo
 - **Application Insights**
     - Application Insights for the above App Service Plan
 
