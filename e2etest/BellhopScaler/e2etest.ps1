@@ -2,6 +2,7 @@
 # Install-Module -Name Az.ResourceGraph
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 ## example: ./e2etest/BellhopScaler/e2etest.ps1 -serviceName Microsoft.Web -templateLocation ./e2etest/BellhopScaler/microsoft.web/asp.json -settingToProjectScaledDown "sku.name" -targetSettingScaledDown "B1" -settingToProjectScaledUp "sku.name" -targetSettingScaledup "S1"
 param ($Location="westus2", 
     $serviceName,
@@ -27,6 +28,12 @@ param ($Location="westus2",
     $settingToProjectScaledUp,
     $targetSettingScaledup
 >>>>>>> e2etest
+=======
+
+param ($Location="westus2", 
+    $serviceName,
+    $templateLocation
+>>>>>>> testing
 )
 
 # Inputs:
@@ -42,6 +49,7 @@ $ScaledServiceResourceGroupName = "bhe2e-$serviceName-$TimeStamp"
 $ScaledServiceDeploymentName = "bhe2e-scalertest-$TimeStamp"
 $bellhopResourceGroupName = $appname+"-rg"
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 write-output "##########################"
@@ -71,11 +79,19 @@ New-AzSubscriptionDeployment `
     -location $Location `
     -TemplateFile templates/azuredeploy.json `
 >>>>>>> testing
+=======
+Write-Output "Deploying Bellhop"
+New-AzSubscriptionDeployment `
+    -Name bellhop-e2etest-$TimeStamp `
+    -Location $Location `
+    -TemplateFile templates/infra.json `
+>>>>>>> testing
     -appName $AppName
 # Create new resource group for test resource
 New-AzResourceGroup -Name $ScaledServiceResourceGroupName -Location $Location
 
 # Create new resource - doesn't need tags, so engine doesn't on error pick it up.
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 write-output "##########################"
@@ -89,6 +105,9 @@ write-output "##########################"
 write-output "Deploying resource " $serviceName
 write-output "##########################"
 >>>>>>> e2etest
+=======
+Write-Output "Deploying resource"
+>>>>>>> testing
 $deploy = New-AzResourceGroupDeployment -TemplateFile $templateLocation `
     -ResourceGroupName $ScaledServiceResourceGroupName `
     -Name $ScaledServiceDeploymentName
@@ -98,6 +117,7 @@ write-output "Resource ID is $resourceId"
 # Get object from resource graph
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 write-output "##########################"
 write-output "Getting info from graph"
 write-output "##########################"
@@ -120,11 +140,19 @@ $max = 30
 =======
 $objectInGraph = $null
 >>>>>>> e2etest
+=======
+
+$resourceGraphQuery = "resources | where id =~ '$resourceId'"
+#question: do we want this to time out?
+$i = 0
+$max = 30
+>>>>>>> testing
 do {
     $i+=1
     Start-Sleep -s 10
     Write-Output "Querying resource graph: $i out of $max "
     $objectInGraph = Search-AzGraph -Query $resourceGraphQuery
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
     Write-Output "got following object: " $objectInGraph
@@ -134,6 +162,9 @@ do {
 =======
     Write-Output "got following object: " $objectInGraph
 >>>>>>> e2etest
+=======
+    Write-Output "got following object: " + $objectInGraph
+>>>>>>> testing
 }
 while(($null -eq $objectInGraph) -and ($i -ne $max) )
 if ($i -eq $max){
@@ -147,6 +178,7 @@ if ($i -eq $max){
 # Send message to queue to scale resource down
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 write-output "##########################"
 write-output "Sending scale down message to queue"
 write-output "##########################"
@@ -157,6 +189,8 @@ write-output "##########################"
 write-output "Sending scale down message to queue"
 write-output "##########################"
 >>>>>>> e2etest
+=======
+>>>>>>> testing
 $staccName = $AppName+"stgacct"
 $queueName = "autoscale"
 
@@ -174,6 +208,7 @@ $queueMessage = [Microsoft.Azure.Storage.Queue.CloudQueueMessage]::new($queueMes
 Write-Output "Sending message to queue"
 $queue.CloudQueue.AddMessageAsync($QueueMessage)
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -359,3 +394,16 @@ if(($objectInGraph.target -ne $targetSettingScaledup) -or ($i -eq $max)){
 =======
 Write-Output "scaled back up succesfully"
 >>>>>>> e2e test for app service
+=======
+# Keep getting state of resource until scaled down. Error after 10 minutes
+
+
+
+
+
+# Send new message to queue to scale resource up
+
+# Keep getting state of resource until scaled up. Error after 10 minutes.
+
+
+>>>>>>> testing
