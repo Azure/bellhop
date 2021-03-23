@@ -8,6 +8,7 @@
                 "description": "The name of the function app that you wish to create."
             }
         },
+<<<<<<< HEAD
         "location": {
             "type": "string",
             "defaultValue": "[deployment().location]",
@@ -64,6 +65,8 @@
                 "description": "Prefix which will be prepended to resource parameter tags which Bellhop uses to remember the original state of the target resource when scaled down."
             }
         },
+=======
+>>>>>>> testing
         "engineReaderGUID": {
             "type": "string",
             "defaultValue": "[newGuid()]",
@@ -98,10 +101,13 @@
             "apiVersion": "2020-06-01",
             "name": "[concat(parameters('appName'), '-rg')]",
 <<<<<<< HEAD
+<<<<<<< HEAD
             "location": "[parameters('location')]",
             "properties": {
             }
 =======
+=======
+>>>>>>> testing
             "location": "[deployment().location]",
             "properties": {}
 >>>>>>> testing
