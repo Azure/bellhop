@@ -18,9 +18,9 @@ This project was born out of the desire to be resource conscious and to fill a g
 To successfully deploy this project, it requires the Azure user have the following:
 
 - Azure Subscription
-- Azure RBAC role of Owner or Contributor at the Subscription scope
-- Azure AD Role allowing user to assign roles (Global Admin, App Admin, Cloud App Admin)
-    - *Necessary to assign proper scope to managed identity*
+- Azure RBAC Role at the Subscription scope of:
+    - Owner
+    - Contributor + User Access Aministrator 
 
 
 ## Currently Supported Azure Services
@@ -30,7 +30,7 @@ The list of scalers currently supported by Bellhop:
 - SQL Elastic Pool
 - Virtual Machine
 
-## Deploying/Updating/Deleting Bellhop
+## Deploying Bellhop
 ### Steps to deploy Bellhop infrastructure:
 1. Deploy directly to Azure using the button below
 
