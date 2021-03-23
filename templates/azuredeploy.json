@@ -8,6 +8,12 @@
                 "description": "The name of the function app that you wish to create."
             }
         },
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "The location of the Bellhop deployment."
+            }
+        },
         "engineReaderGUID": {
             "type": "string",
             "defaultValue": "[newGuid()]",
@@ -32,7 +38,7 @@
             "type": "Microsoft.Resources/resourceGroups",
             "apiVersion": "2020-06-01",
             "name": "[concat(parameters('appName'), '-rg')]",
-            "location": "[deployment().location]",
+            "location": "[parameters('location')]",
             "properties": {}
         },
         {
@@ -204,6 +210,7 @@
                             "apiVersion": "2020-06-01",
                             "name": "[variables('hostingPlanName')]",
                             "location": "[resourceGroup().location]",
+                            "kind": "linux",
                             "sku": {
                                 "name": "EP1",
                                 "tier": "ElasticPremium"
@@ -213,7 +220,8 @@
                                 "workerSize": 3,
                                 "workerSizeId": 3,
                                 "numberOfWorkers": 1,
-                                "maximumElasticWorkerCount": "20"
+                                "maximumElasticWorkerCount": "20",
+                                "reserved": true
                             }
                         },
                         {
@@ -221,7 +229,7 @@
                             "apiVersion": "2020-06-01",
                             "name": "[variables('engineFuncName')]",
                             "location": "[resourceGroup().location]",
-                            "kind": "functionapp",
+                            "kind": "functionapp,linux",
                             "dependsOn": [
                                 "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
                                 "[resourceId('Microsoft.Storage/storageAccounts', variables('storAcctName'))]",
@@ -264,15 +272,20 @@
                                             "value": "[parameters('engineRuntime')]"
                                         },
                                         {
-                                            "name": "WEBSITE_RUN_FROM_PACKAGE",
-                                            "value": "1"
+                                            "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE",
+                                            "value": "false"
+                                        },
+                                        {
+                                            "name": "DOCKER_REGISTRY_SERVER_URL",
+                                            "value": "https://index.docker.io/v1"
                                         },
                                         {
                                             "name": "AppConfigEndpoint",
                                             "value": "[reference(resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))).endpoint]"
                                         }
                                     ],
-                                    "use32BitWorkerProcess": true
+                                    "use32BitWorkerProcess": false,
+                                    "linuxFxVersion": "DOCKER|azurebellhop/engine:v0.3"
                                 }
                             }
                         },
@@ -281,7 +294,7 @@
                             "apiVersion": "2020-06-01",
                             "name": "[variables('scalerFuncName')]",
                             "location": "[resourceGroup().location]",
-                            "kind": "functionapp",
+                            "kind": "functionapp,linux",
                             "dependsOn": [
                                 "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
                                 "[resourceId('Microsoft.Storage/storageAccounts', variables('storAcctName'))]"
@@ -291,6 +304,7 @@
                             },
                             "properties": {
                                 "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+                                "clientAffinityEnabled": false,
                                 "siteConfig": {
                                     "appSettings": [
                                         {
@@ -322,12 +336,16 @@
                                             "value": "[parameters('scalerRuntime')]"
                                         },
                                         {
-                                            "name": "WEBSITE_RUN_FROM_PACKAGE",
-                                            "value": "1"
+                                            "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE",
+                                            "value": "false"
+                                        },
+                                        {
+                                            "name": "DOCKER_REGISTRY_SERVER_URL",
+                                            "value": "https://index.docker.io/v1"
                                         }
                                     ],
-                                    "use32BitWorkerProcess": true,
-                                    "powerShellVersion": "~7"
+                                    "use32BitWorkerProcess": false,
+                                    "linuxFxVersion": "DOCKER|azurebellhop/scaler:v0.2"
                                 }
                             }
                         },
