@@ -345,7 +345,7 @@
                                         }
                                     ],
                                     "use32BitWorkerProcess": false,
-                                    "linuxFxVersion": "DOCKER|azurebellhop/scaler:v0.2"
+                                    "linuxFxVersion": "DOCKER|azurebellhop/scaler:v0.3"
                                 }
                             }
                         },
