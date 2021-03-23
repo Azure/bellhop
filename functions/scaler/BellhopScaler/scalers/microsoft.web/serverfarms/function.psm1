@@ -21,11 +21,11 @@ function Update-Resource {
 
     $workerSizeMap = @{
         D1          = "Small"
-        D2          = "Medmium"
+        D2          = "Medium"
         D3          = "Large"
         Default     = "Small"
         Medium      = "Medium"
-        Large       = "Lerge"
+        Large       = "Large"
         SmallV3     = "Small"
         MediumV3    = "Medium"
         LargeV3     = "Large"
