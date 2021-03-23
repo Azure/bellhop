@@ -22,8 +22,8 @@ $bellhopResourceGroupName = $appname+"-rg"
 Write-Output "Deploying Bellhop"
 New-AzSubscriptionDeployment `
     -Name bellhop-e2etest-$TimeStamp `
-    -Location $Location `
-    -TemplateFile templates/infra.json `
+    -location $Location `
+    -TemplateFile templates/azuredeploy.json `
     -appName $AppName
 # Create new resource group for test resource
 New-AzResourceGroup -Name $ScaledServiceResourceGroupName -Location $Location
