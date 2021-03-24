@@ -418,7 +418,7 @@
                             "properties": {
                                 "scope": "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))]",
                                 "roleDefinitionId": "[variables('appConfigReaderRole')]",
-                                "principalId": "[reference(resourceId('Microsoft.Web/Sites', variables('engineFuncName')), '2019-08-01', 'full').identity.principalId]"
+                                "principalId": "[reference(resourceId('Microsoft.Web/Sites', variables('engineFuncName')), '2020-09-01', 'full').identity.principalId]"
                             }
                         },
                         {
@@ -432,18 +432,18 @@
                             "properties": {
                                 "scope": "[resourceId('Microsoft.Storage/storageAccounts', variables('storAcctName'))]",
                                 "roleDefinitionId": "[variables('storageQueueDataMessageSenderRole')]",
-                                "principalId": "[reference(resourceId('Microsoft.Web/Sites', variables('engineFuncName')), '2019-08-01', 'full').identity.principalId]"
+                                "principalId": "[reference(resourceId('Microsoft.Web/Sites', variables('engineFuncName')), '2020-09-01', 'full').identity.principalId]"
                             }
                         }
                     ],
                     "outputs": {
                         "enginePrincipalId": {
                             "type": "string",
-                            "value": "[reference(resourceId('Microsoft.Web/Sites', variables('engineFuncName')), '2019-08-01', 'full').identity.principalId]"
+                            "value": "[reference(resourceId('Microsoft.Web/Sites', variables('engineFuncName')), '2020-09-01', 'full').identity.principalId]"
                         },
                         "scalerPrincipalId": {
                             "type": "string",
-                            "value": "[reference(resourceId('Microsoft.Web/Sites', variables('scalerFuncName')), '2019-08-01', 'full').identity.principalId]"
+                            "value": "[reference(resourceId('Microsoft.Web/Sites', variables('scalerFuncName')), '2020-09-01', 'full').identity.principalId]"
                         }
                     }
                 }
