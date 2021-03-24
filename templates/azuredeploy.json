@@ -412,7 +412,8 @@
                             "apiVersion": "2020-04-01-preview",
                             "name": "[concat(variables('appConfigName'), '/Microsoft.Authorization/', parameters('appConfigReaderGUID'))]",
                             "dependsOn": [
-                                "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))]"
+                                "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))]",
+                                "[resourceId('Microsoft.Web/Sites', variables('engineFuncName'))]"
                             ],
                             "properties": {
                                 "scope": "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))]",
@@ -425,7 +426,8 @@
                             "apiVersion": "2020-04-01-preview",
                             "name": "[concat(variables('storAcctName'), '/Microsoft.Authorization/', parameters('storageQueueDataMessageSenderGUID'))]",
                             "dependsOn": [
-                                "[resourceId('Microsoft.Storage/storageAccounts', variables('storAcctName'))]"
+                                "[resourceId('Microsoft.Storage/storageAccounts', variables('storAcctName'))]",
+                                "[resourceId('Microsoft.Web/Sites', variables('engineFuncName'))]"
                             ],
                             "properties": {
                                 "scope": "[resourceId('Microsoft.Storage/storageAccounts', variables('storAcctName'))]",
