@@ -3,7 +3,11 @@
 
 param ($Location="westus2", 
     $serviceName,
-    $templateLocation
+    $templateLocation,
+    $settingToProjectScaledDown,
+    $targetSettingScaledDown,
+    $settingToProjectScaledUp,
+    $targetSettingScaledup
 )
 
 # Inputs:
@@ -19,7 +23,9 @@ $ScaledServiceResourceGroupName = "bhe2e-$serviceName-$TimeStamp"
 $ScaledServiceDeploymentName = "bhe2e-scalertest-$TimeStamp"
 $bellhopResourceGroupName = $appname+"-rg"
 
-Write-Output "Deploying Bellhop"
+write-output "##########################"
+write-output "Deploying bellhop"
+write-output "##########################"
 New-AzSubscriptionDeployment `
     -Name bellhop-e2etest-$TimeStamp `
     -location $Location `
@@ -29,7 +35,9 @@ New-AzSubscriptionDeployment `
 New-AzResourceGroup -Name $ScaledServiceResourceGroupName -Location $Location
 
 # Create new resource - doesn't need tags, so engine doesn't on error pick it up.
-Write-Output "Deploying resource"
+write-output "##########################"
+write-output "Deploying resource " $serviceName
+write-output "##########################"
 $deploy = New-AzResourceGroupDeployment -TemplateFile $templateLocation `
     -ResourceGroupName $ScaledServiceResourceGroupName `
     -Name $ScaledServiceDeploymentName
@@ -37,17 +45,19 @@ $resourceId = $deploy.Outputs.resourceId.Value
 write-output "Resource ID is $resourceId"
 
 # Get object from resource graph
-
+write-output "##########################"
+write-output "Getting info from graph"
+write-output "##########################"
 $resourceGraphQuery = "resources | where id =~ '$resourceId'"
-#question: do we want this to time out?
 $i = 0
 $max = 30
+$objectInGraph = $null
 do {
     $i+=1
     Start-Sleep -s 10
     Write-Output "Querying resource graph: $i out of $max "
     $objectInGraph = Search-AzGraph -Query $resourceGraphQuery
-    Write-Output "got following object: " + $objectInGraph
+    Write-Output "got following object: " $objectInGraph
 }
 while(($null -eq $objectInGraph) -and ($i -ne $max) )
 if ($i -eq $max){
@@ -59,6 +69,9 @@ if ($i -eq $max){
 }
 
 # Send message to queue to scale resource down
+write-output "##########################"
+write-output "Sending scale down message to queue"
+write-output "##########################"
 $staccName = $AppName+"stgacct"
 $queueName = "autoscale"
 
@@ -76,14 +89,91 @@ $queueMessage = [Microsoft.Azure.Storage.Queue.CloudQueueMessage]::new($queueMes
 Write-Output "Sending message to queue"
 $queue.CloudQueue.AddMessageAsync($QueueMessage)
 
-# Keep getting state of resource until scaled down. Error after 10 minutes
+# Keep getting state of resource until scaled down. Error after 30 minutes
+# $settingToProjectScaledDown = "sku.name"
+write-output "##########################"
+write-output "Testing the scale down."
+write-output "##########################"
 
+$scaledDownresourceGraphQuery = "resources | where id =~ '$resourceId' | project target = $settingToProjectScaledDown"
+write-output "query is: $scaledDownresourceGraphQuery"
+$i = 0
+$max = 30
+do {
+    $i+=1
+    Start-Sleep -s 60
+    Write-Output "Querying resource graph: $i out of $max "
+    $objectInGraph = Search-AzGraph -Query $scaledDownresourceGraphQuery
+    Write-Output "got following result: $objectInGraph" 
+}
+while(($objectInGraph.target -ne $targetSettingScaledDown) -and ($i -ne $max) )
+
+if(($objectInGraph.target -ne $targetSettingScaledDown) -or ($i -eq $max)){
+    write-output "Error comparing scaled down resource."
+    write-output "Timed out after $i out of $max"
+    Write-Output "SKU on resource is " $objectInGraph.target
+    exit 1
+}
+# Wait for save-state tags to appear
+write-output "##########################"
+write-output "Waiting for save-state tags on resource graph"
+write-output "##########################"
+
+$resourceId = "/subscriptions/d19dddf3-9520-4226-a313-ae8ee08675e5/resourceGroups/DEVBOX-WESTUS2/providers/Microsoft.Compute/disks/premium"
+$saveStateQuery = "resources | where id =~ '$resourceId'"
+
+do {
+    $i+=1
+    #Start-Sleep -s 60
+    Write-Output "Querying resource graph: $i out of $max "
+    $objectInGraph = Search-AzGraph -Query $saveStateQuery
+    Write-Output "got following result: " + $objectInGraph
+    $tags = $objectInGraph.tags | Select-Object -Property setState*
+}
+while(($null -eq $tags.psobject.Properties) -and ($i -ne $max) )
+
+if($i -eq $max){
+    write-output "setstate tags not discovered"
+}
 
 
 
 
 # Send new message to queue to scale resource up
+write-output "##########################"
+write-output "Scaling back up"
+write-output "##########################"
+$resourceGraphQuery = "resources | where id =~ '$resourceId'"
+$objectInGraph = Search-AzGraph -Query $resourceGraphQuery
 
-# Keep getting state of resource until scaled up. Error after 10 minutes.
+$queueMessageRaw = @{ direction = "up"; debug = $False; graphResults = $objectInGraph}
+$queueMessageJson = $queueMessageRaw | ConvertTo-Json
 
+$queueMessage = [Microsoft.Azure.Storage.Queue.CloudQueueMessage]::new($queueMessageJson)
+Write-Output "Sending message to queue"
+$queue.CloudQueue.AddMessageAsync($QueueMessage)
 
+# Keep getting state of resource until scaled up. Error after 30 minutes.
+write-output "##########################"
+write-output "Testing the scale up."
+write-output "##########################"
+
+$scaledUpresourceGraphQuery = "resources | where id =~ '$resourceId' | project target = $settingToProjectScaledUp"
+write-output "query is: $scaledUpresourceGraphQuery"
+$i = 0
+$max = 30
+do {
+    $i+=1
+    Start-Sleep -s 60
+    Write-Output "Querying resource graph: $i out of $max "
+    $objectInGraph = Search-AzGraph -Query $scaledDownresourceGraphQuery
+    Write-Output "got following result: " + $objectInGraph
+}
+while(($objectInGraph.target -ne $targetSettingScaledup) -and ($i -ne $max) )
+
+if(($objectInGraph.target -ne $targetSettingScaledup) -or ($i -eq $max)){
+    write-output "Error comparing scaled down resource."
+    write-output "Timed out after $i out of $max"
+    Write-Output "SKU on resource is " $objectInGraph.target
+    exit 1
+}
