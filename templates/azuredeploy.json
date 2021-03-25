@@ -744,8 +744,12 @@
                             "properties": {
                                 "scope": "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))]",
                                 "roleDefinitionId": "[variables('appConfigReaderRole')]",
+<<<<<<< HEAD
                                 "principalId": "[reference(resourceId('Microsoft.Web/Sites', variables('engineFuncName')), '2020-09-01', 'full').identity.principalId]",
                                 "principalType": "ServicePrincipal"
+=======
+                                "principalId": "[reference(resourceId('Microsoft.Web/Sites', variables('engineFuncName')), '2020-09-01', 'full').identity.principalId]"
+>>>>>>> template
                             }
                         },
                         {
@@ -754,13 +758,23 @@
                             "name": "[concat(variables('storAcctName'), '/Microsoft.Authorization/', parameters('storageQueueDataMessageSenderGUID'))]",
                             "dependsOn": [
                                 "[resourceId('Microsoft.Storage/storageAccounts', variables('storAcctName'))]",
+<<<<<<< HEAD
                                 "[resourceId('Microsoft.Web/Sites', variables('engineFuncName'))]"
+=======
+                                "[resourceId('Microsoft.Web/Sites', variables('engineFuncName'))]",
+                                "[resourceId('Microsoft.Web/Sites', variables('scalerFuncName'))]"
+
+>>>>>>> template
                             ],
                             "properties": {
                                 "scope": "[resourceId('Microsoft.Storage/storageAccounts', variables('storAcctName'))]",
                                 "roleDefinitionId": "[variables('storageQueueDataMessageSenderRole')]",
+<<<<<<< HEAD
                                 "principalId": "[reference(resourceId('Microsoft.Web/Sites', variables('engineFuncName')), '2020-09-01', 'full').identity.principalId]",
                                 "principalType": "ServicePrincipal"
+=======
+                                "principalId": "[reference(resourceId('Microsoft.Web/Sites', variables('engineFuncName')), '2020-09-01', 'full').identity.principalId]"
+>>>>>>> template
                             }
                         }
                     ],
