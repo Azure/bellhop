@@ -19,14 +19,18 @@ param ($Location="westus2",
 param ($Location="westus2", 
     $serviceName,
 <<<<<<< HEAD
+<<<<<<< HEAD
     $templateLocation
 >>>>>>> testing
 =======
+=======
+>>>>>>> e2etest
     $templateLocation,
     $settingToProjectScaledDown,
     $targetSettingScaledDown,
     $settingToProjectScaledUp,
     $targetSettingScaledup
+<<<<<<< HEAD
 >>>>>>> e2etest
 =======
 
@@ -34,6 +38,8 @@ param ($Location="westus2",
     $serviceName,
     $templateLocation
 >>>>>>> testing
+=======
+>>>>>>> e2etest
 )
 
 # Inputs:
@@ -49,6 +55,7 @@ $ScaledServiceResourceGroupName = "bhe2e-$serviceName-$TimeStamp"
 $ScaledServiceDeploymentName = "bhe2e-scalertest-$TimeStamp"
 $bellhopResourceGroupName = $appname+"-rg"
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -82,6 +89,11 @@ New-AzSubscriptionDeployment `
 >>>>>>> testing
 =======
 Write-Output "Deploying Bellhop"
+=======
+write-output "##########################"
+write-output "Deploying bellhop"
+write-output "##########################"
+>>>>>>> e2etest
 New-AzSubscriptionDeployment `
     -Name bellhop-e2etest-$TimeStamp `
     -Location $Location `
@@ -99,6 +111,7 @@ New-AzResourceGroup -Name $ScaledServiceResourceGroupName -Location $Location
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 write-output "##########################"
 write-output "Deploying resource " $serviceName
 write-output "##########################"
@@ -113,6 +126,11 @@ write-output "##########################"
 =======
 Write-Output "Deploying resource"
 >>>>>>> testing
+=======
+write-output "##########################"
+write-output "Deploying resource " $serviceName
+write-output "##########################"
+>>>>>>> e2etest
 $deploy = New-AzResourceGroupDeployment -TemplateFile $templateLocation `
     -ResourceGroupName $ScaledServiceResourceGroupName `
     -Name $ScaledServiceDeploymentName
@@ -123,6 +141,7 @@ write-output "Resource ID is $resourceId"
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 write-output "##########################"
 write-output "Getting info from graph"
 write-output "##########################"
@@ -147,11 +166,19 @@ $objectInGraph = $null
 >>>>>>> e2etest
 =======
 
+=======
+write-output "##########################"
+write-output "Getting info from graph"
+write-output "##########################"
+>>>>>>> e2etest
 $resourceGraphQuery = "resources | where id =~ '$resourceId'"
-#question: do we want this to time out?
 $i = 0
 $max = 30
+<<<<<<< HEAD
 >>>>>>> testing
+=======
+$objectInGraph = $null
+>>>>>>> e2etest
 do {
     $i+=1
     Start-Sleep -s 10
@@ -160,6 +187,7 @@ do {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     Write-Output "got following object: " $objectInGraph
 =======
     Write-Output "got following object: " + $objectInGraph
@@ -170,6 +198,9 @@ do {
 =======
     Write-Output "got following object: " + $objectInGraph
 >>>>>>> testing
+=======
+    Write-Output "got following object: " $objectInGraph
+>>>>>>> e2etest
 }
 while(($null -eq $objectInGraph) -and ($i -ne $max) )
 if ($i -eq $max){
@@ -184,6 +215,7 @@ if ($i -eq $max){
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 write-output "##########################"
 write-output "Sending scale down message to queue"
 write-output "##########################"
@@ -196,6 +228,11 @@ write-output "##########################"
 >>>>>>> e2etest
 =======
 >>>>>>> testing
+=======
+write-output "##########################"
+write-output "Sending scale down message to queue"
+write-output "##########################"
+>>>>>>> e2etest
 $staccName = $AppName+"stgacct"
 $queueName = "autoscale"
 
@@ -216,6 +253,9 @@ $queue.CloudQueue.AddMessageAsync($QueueMessage)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e2etest
 =======
 >>>>>>> e2etest
 # Keep getting state of resource until scaled down. Error after 30 minutes
@@ -223,6 +263,7 @@ $queue.CloudQueue.AddMessageAsync($QueueMessage)
 write-output "##########################"
 write-output "Testing the scale down."
 write-output "##########################"
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 $scaledDownresourceGraphQuery = "resources | where id =~ '$resourceId' | project target = $settingToProjectScaledDown"
@@ -401,14 +442,92 @@ Write-Output "scaled back up succesfully"
 >>>>>>> e2e test for app service
 =======
 # Keep getting state of resource until scaled down. Error after 10 minutes
+=======
+>>>>>>> e2etest
 
+$scaledDownresourceGraphQuery = "resources | where id =~ '$resourceId' | project target = $settingToProjectScaledDown"
+write-output "query is: $scaledDownresourceGraphQuery"
+$i = 0
+$max = 30
+do {
+    $i+=1
+    Start-Sleep -s 60
+    Write-Output "Querying resource graph: $i out of $max "
+    $objectInGraph = Search-AzGraph -Query $scaledDownresourceGraphQuery
+    Write-Output "got following result: $objectInGraph" 
+}
+while(($objectInGraph.target -ne $targetSettingScaledDown) -and ($i -ne $max) )
+
+if(($objectInGraph.target -ne $targetSettingScaledDown) -or ($i -eq $max)){
+    write-output "Error comparing scaled down resource."
+    write-output "Timed out after $i out of $max"
+    Write-Output "SKU on resource is " $objectInGraph.target
+    exit 1
+}
+# Wait for save-state tags to appear
+write-output "##########################"
+write-output "Waiting for save-state tags on resource graph"
+write-output "##########################"
+
+$resourceId = "/subscriptions/d19dddf3-9520-4226-a313-ae8ee08675e5/resourceGroups/DEVBOX-WESTUS2/providers/Microsoft.Compute/disks/premium"
+$saveStateQuery = "resources | where id =~ '$resourceId'"
+
+do {
+    $i+=1
+    #Start-Sleep -s 60
+    Write-Output "Querying resource graph: $i out of $max "
+    $objectInGraph = Search-AzGraph -Query $saveStateQuery
+    Write-Output "got following result: " + $objectInGraph
+    $tags = $objectInGraph.tags | Select-Object -Property setState*
+}
+while(($null -eq $tags.psobject.Properties) -and ($i -ne $max) )
+
+if($i -eq $max){
+    write-output "setstate tags not discovered"
+}
 
 
 
 
 # Send new message to queue to scale resource up
+write-output "##########################"
+write-output "Scaling back up"
+write-output "##########################"
+$resourceGraphQuery = "resources | where id =~ '$resourceId'"
+$objectInGraph = Search-AzGraph -Query $resourceGraphQuery
 
-# Keep getting state of resource until scaled up. Error after 10 minutes.
+$queueMessageRaw = @{ direction = "up"; debug = $False; graphResults = $objectInGraph}
+$queueMessageJson = $queueMessageRaw | ConvertTo-Json
 
+$queueMessage = [Microsoft.Azure.Storage.Queue.CloudQueueMessage]::new($queueMessageJson)
+Write-Output "Sending message to queue"
+$queue.CloudQueue.AddMessageAsync($QueueMessage)
 
+# Keep getting state of resource until scaled up. Error after 30 minutes.
+write-output "##########################"
+write-output "Testing the scale up."
+write-output "##########################"
+
+$scaledUpresourceGraphQuery = "resources | where id =~ '$resourceId' | project target = $settingToProjectScaledUp"
+write-output "query is: $scaledUpresourceGraphQuery"
+$i = 0
+$max = 30
+do {
+    $i+=1
+    Start-Sleep -s 60
+    Write-Output "Querying resource graph: $i out of $max "
+    $objectInGraph = Search-AzGraph -Query $scaledDownresourceGraphQuery
+    Write-Output "got following result: " + $objectInGraph
+}
+while(($objectInGraph.target -ne $targetSettingScaledup) -and ($i -ne $max) )
+
+<<<<<<< HEAD
 >>>>>>> testing
+=======
+if(($objectInGraph.target -ne $targetSettingScaledup) -or ($i -eq $max)){
+    write-output "Error comparing scaled down resource."
+    write-output "Timed out after $i out of $max"
+    Write-Output "SKU on resource is " $objectInGraph.target
+    exit 1
+}
+>>>>>>> e2etest
