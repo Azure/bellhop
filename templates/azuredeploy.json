@@ -726,7 +726,9 @@
                             "name": "[concat(variables('appConfigName'), '/Microsoft.Authorization/', parameters('appConfigReaderGUID'))]",
                             "dependsOn": [
                                 "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))]",
-                                "[resourceId('Microsoft.Web/Sites', variables('engineFuncName'))]"
+                                "[resourceId('Microsoft.Web/Sites', variables('engineFuncName'))]",
+                                "[resourceId('Microsoft.Web/Sites', variables('scalerFuncName'))]"
+
                             ],
                             "properties": {
                                 "scope": "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))]",
