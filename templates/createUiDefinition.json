@@ -33,14 +33,14 @@
                     "validationMessage": "The Deployment Prefix must be between 3 and 17 characters long and contain letters and numbers only."
                 }
             },
-			{
-				"name": "engineInterval",
-				"type": "Microsoft.Common.DropDown",
-				"label": "Bellhop Schedule?",
-				"defaultValue": "Every 30 Minutes",
-				"toolTip": "The interval at which the Bellhop engine should execute.",
-				"constraints": {
-					"allowedValues": [
+            {
+                "name": "engineInterval",
+                "type": "Microsoft.Common.DropDown",
+                "label": "Bellhop Schedule",
+                "defaultValue": "Every 30 Minutes",
+                "toolTip": "The interval at which the Bellhop engine should execute.",
+                "constraints": {
+                    "allowedValues": [
                         {
                             "label": "Every 5 Minutes",
                             "description": "Run the Bellhop engine every 5 minutes.",
@@ -66,11 +66,11 @@
                             "description": "Run the Bellhop engine every hour",
                             "value": "0 0 * * * *"
                         }
-					],
-					"required": true
-				},
-				"visible": true
-			}
+                    ],
+                    "required": true
+                },
+                "visible": true
+            }
         ],
         "steps": [],
         "outputs": {
