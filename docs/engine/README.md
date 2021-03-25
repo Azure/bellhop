@@ -24,3 +24,14 @@ If the Engine finds resources that have the tag set to `True`, it then evaluates
     }
 }
 ```
+
+## Adjusting the Bellhop Engine Interval
+
+The interval at which the Bellhop engine runs is set by the Application Setting 'ENGINE_TIMER_EXPRESSION'
+
+![Bellhop Interval Setting](../images/timer_interval_setting.png)
+
+- The Application Settings for the Function can be found here
+    - &lt;deployment prefix&gt;-rg 🠆 &lt;deployment prefix&gt;-function-engine 🠆 Configuration 🠆 'ENGINE_TIMER_EXPRESSION'
+- This value should be a valid NCRONTAB expression.
+- More details on NCRONTAB expressions can be found [here](https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-timer?tabs=csharp#ncrontab-expressions)

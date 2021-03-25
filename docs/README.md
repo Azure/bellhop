@@ -36,7 +36,7 @@ The list of scalers currently supported by Bellhop:
 
 [![Deploy To Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fbellhop%2Fmain%2Ftemplates%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fbellhop%2Fmain%2Ftemplates%2FcreateUiDefinition.json)
 
-2. Select a Subscription, a Region, provide a Deployment Prefix and click 'Review + Create'
+2. Provide the required values in the deployment template, then click 'Review + Create'
 
 ![Bellhop Deployment](./images/deployment.png)
 
