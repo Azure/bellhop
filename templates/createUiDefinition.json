@@ -72,11 +72,78 @@
                 "visible": true
             }
         ],
-        "steps": [],
+        "steps": [
+            {
+                "name": "advancedConfig",
+                "label": "Advanced",
+                "elements": [
+                    {
+                        "name": "tagPrefix",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Tag Prefix (optional)",
+                        "defaultValue": "",
+                        "toolTip": "Prefix which will be appended to tags used by Bellhop.",
+                        "placeholder": "",
+                        "multiLine": false,
+                        "constraints": {
+                            "required": false,
+                            "validations": [
+                                {
+                                    "regex": "^[a-z0-9A-Z_-]{1,30}$",
+                                    "message": "Only alphanumeric characters, undercores, and dashes are allowed. The value must be 1-30 characters long."
+                                }
+                            ]
+                        },
+                        "visible": true
+                    },
+                    {
+                        "name": "setStateTag",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Target State Tag",
+                        "defaultValue": "setState-",
+                        "toolTip": "Tag which will be used for Bellhop to identify the target state of the target resource when scaled down.",
+                        "placeholder": "",
+                        "multiLine": false,
+                        "constraints": {
+                            "required": true,
+                            "validations": [
+                                {
+                                    "regex": "^[a-z0-9A-Z_-]{1,30}$",
+                                    "message": "Only alphanumeric characters, undercores, and dashes are allowed. The value must be 1-30 characters long."
+                                }
+                            ]
+                        },
+                        "visible": true
+                    },
+                    {
+                        "name": "saveStateTag",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Saved State Tag",
+                        "defaultValue": "saveState-",
+                        "toolTip": "Tag which will be used for Bellhop to remember the original state of the target resource when scaled down.",
+                        "placeholder": "",
+                        "multiLine": false,
+                        "constraints": {
+                            "required": true,
+                            "validations": [
+                                {
+                                    "regex": "^[a-z0-9A-Z_-]{1,30}$",
+                                    "message": "Only alphanumeric characters, undercores, and dashes are allowed. The value must be 1-30 characters long."
+                                }
+                            ]
+                        },
+                        "visible": true
+                    }
+                ]
+            }
+        ],
         "outputs": {
             "location": "[location()]",
             "appName": "[basics('appName')]",
-			"engineInterval": "[basics('engineInterval')]"
+            "engineInterval": "[basics('engineInterval')]",
+            "tagPrefix": "[steps('advancedConfig').tagPrefix]",
+            "setStateTag": "[steps('advancedConfig').setStateTag]",
+            "saveStateTag": "[steps('advancedConfig').saveStateTag]"
         }
     }
 }

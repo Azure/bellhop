@@ -20,6 +20,24 @@
                 "description": "The interval at which the Bellhop engine should execute."
             }
         },
+        "tagPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "Prefix which will be appended to tags used by Bellhop."
+            }
+        },
+        "setStateTag": {
+            "type": "string",
+            "metadata": {
+                "description": "Tag which will be used for Bellhop to identify the target state of the target resource when scaled down."
+            }
+        },
+        "saveStateTag": {
+            "type": "string",
+            "metadata": {
+                "description": "Tag which will be used for Bellhop to remember the original state of the target resource when scaled down."
+            }
+        },
         "engineReaderGUID": {
             "type": "string",
             "defaultValue": "[newGuid()]",
@@ -92,6 +110,15 @@
                     },
                     "engineInterval": {
                         "value": "[parameters('engineInterval')]"
+                    },
+                    "tagPrefix": {
+                        "value": "[parameters('tagPrefix')]"
+                    },
+                    "setStateTag": {
+                        "value": "[parameters('setStateTag')]"
+                    },
+                    "saveStateTag": {
+                        "value": "[parameters('saveStateTag')]"
                     }
                 },
                 "template": {
@@ -108,6 +135,24 @@
                             "type": "string",
                             "metadata": {
                                 "description": "The interval at which the Bellhop engine should execute."
+                            }
+                        },
+                        "tagPrefix": {
+                            "type": "string",
+                            "metadata": {
+                                "description": "Prefix which will be appended to tags used by Bellhop."
+                            }
+                        },
+                        "setStateTag": {
+                            "type": "string",
+                            "metadata": {
+                                "description": "Tag which will be used for Bellhop to identify the target state of the target resource when scaled down."
+                            }
+                        },
+                        "saveStateTag": {
+                            "type": "string",
+                            "metadata": {
+                                "description": "Tag which will be used for Bellhop to remember the original state of the target resource when scaled down."
                             }
                         },
                         "storageAccountType": {
@@ -423,6 +468,42 @@
                             ],
                             "properties": {
                                 "value": "false",
+                                "contentType": "string"
+                            }
+                        },
+                        {
+                            "type": "Microsoft.AppConfiguration/configurationStores/keyValues",
+                            "apiVersion": "2020-07-01-preview",
+                            "name": "[concat(variables('appConfigName'), '/tagPrefix')]",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))]"
+                            ],
+                            "properties": {
+                                "value": "[parameters('tagPrefix')]",
+                                "contentType": "string"
+                            }
+                        },
+                        {
+                            "type": "Microsoft.AppConfiguration/configurationStores/keyValues",
+                            "apiVersion": "2020-07-01-preview",
+                            "name": "[concat(variables('appConfigName'), '/setStateTag')]",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))]"
+                            ],
+                            "properties": {
+                                "value": "[parameters('setStateTag')]",
+                                "contentType": "string"
+                            }
+                        },
+                        {
+                            "type": "Microsoft.AppConfiguration/configurationStores/keyValues",
+                            "apiVersion": "2020-07-01-preview",
+                            "name": "[concat(variables('appConfigName'), '/saveStateTag')]",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))]"
+                            ],
+                            "properties": {
+                                "value": "[parameters('saveStateTag')]",
                                 "contentType": "string"
                             }
                         },
