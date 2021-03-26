@@ -47,7 +47,7 @@ namespace Bellhop.Function
         }
 
         [FunctionName("BellhopEngine")]
-        public async void Run([TimerTrigger("0 */5 * * * *")] TimerInfo myTimer, ILogger log)
+        public async void Run([TimerTrigger("%ENGINE_TIMER_EXPRESSION%")] TimerInfo myTimer, ILogger log)
         {
             log.LogInformation("Bellhop engine starting up...");
             log.LogInformation("Current UTC Time: " + DateTime.UtcNow.ToString("dddd hh:mm:ss tt"));

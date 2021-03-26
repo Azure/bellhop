@@ -3,23 +3,23 @@
     "handler": "Microsoft.Azure.CreateUIDef",
     "version": "0.1.2-preview",
     "parameters": {
-		"resourceTypes": ["Microsoft.AppConfiguration/configurationStores"],
-		"config": {
-			"isWizard": false,
-			"basics": {
-				"description": "<img src='https://github.com/Azure/bellhop/raw/main/docs/images/bellhop-logo.png' width='25%'/><br>  \n**Welcome to Bellhop**  \nFrom the basement to the penthouse, Bellhop will make sure your Azure infrastructure always ends up on the right floor!  \n\nThe Deployment Prefix below will be used to create the following resources during the deployment:  \n\n| Resource | Resource Name |  \n| --- | --- |  \n| Resource Group | &lt;prefix&gt;-rg |  \n| Storage Account | &lt;prefix&gt;stgacct |  \n| App Service Plan | &lt;prefix&gt;-asp |  \n| Application Insights | &lt;prefix&gt;-appinsights |  \n| App Configuration | &lt;prefix&gt;-appconfig |  \n| Function App (Engine) | &lt;prefix&gt;-function-engine |  \n| Function App (Scaler) | &lt;prefix&gt;-function-scaler |  \nThe following permissions will be assigned to the Function App Managed Identities during the deployment:  \n\n| Managed Identity | Permission | Scope |  \n| --- | --- | --- |  \n| Function App (Engine) | Reader | &lt;Subscription&gt; |  \n| Function App (Engine) | App Configuration Data Reader | &lt;App Configuration&gt; |  \n| Function App (Engine) | Queue Data Message Sender | &lt;Storage Account&gt; |  \n| Function App (Scaler) | Contributor | &lt;Subscription&gt; |",
-				"subscription": {
-					"constraints": {
-						"validations": [
-							{
-								"permission": "Microsoft.Authorization/roleAssignments/write",
-								"message": "Must have correct permission to complete this step."
-							}
-						]
-					}
-				}
-			}
-		},
+        "resourceTypes": ["Microsoft.AppConfiguration/configurationStores"],
+        "config": {
+            "isWizard": false,
+            "basics": {
+                "description": "<img src='https://github.com/Azure/bellhop/raw/main/docs/images/bellhop-logo.png' width='25%'/><br>  \n**Welcome to Bellhop**  \nFrom the basement to the penthouse, Bellhop will make sure your Azure infrastructure always ends up on the right floor!  \n\nThe Deployment Prefix below will be used to create the following resources during the deployment:  \n\n| Resource | Resource Name |  \n| --- | --- |  \n| Resource Group | &lt;prefix&gt;-rg |  \n| Storage Account | &lt;prefix&gt;stgacct |  \n| App Service Plan | &lt;prefix&gt;-asp |  \n| Application Insights | &lt;prefix&gt;-appinsights |  \n| App Configuration | &lt;prefix&gt;-appconfig |  \n| Function App (Engine) | &lt;prefix&gt;-function-engine |  \n| Function App (Scaler) | &lt;prefix&gt;-function-scaler |  \nThe following permissions will be assigned to the Function App Managed Identities during the deployment:  \n\n| Managed Identity | Permission | Scope |  \n| --- | --- | --- |  \n| Function App (Engine) | Reader | &lt;Subscription&gt; |  \n| Function App (Engine) | App Configuration Data Reader | &lt;App Configuration&gt; |  \n| Function App (Engine) | Queue Data Message Sender | &lt;Storage Account&gt; |  \n| Function App (Scaler) | Contributor | &lt;Subscription&gt; |",
+                "subscription": {
+                    "constraints": {
+                        "validations": [
+                            {
+                                "permission": "Microsoft.Authorization/roleAssignments/write",
+                                "message": "Must have correct permission to complete this step."
+                            }
+                        ]
+                    }
+                }
+            }
+        },
         "basics": [
             {
                 "name": "appName",
@@ -32,12 +32,51 @@
                     "regex": "^[a-z0-9A-Z]{3,17}$",
                     "validationMessage": "The Deployment Prefix must be between 3 and 17 characters long and contain letters and numbers only."
                 }
+            },
+            {
+                "name": "engineInterval",
+                "type": "Microsoft.Common.DropDown",
+                "label": "Bellhop Schedule",
+                "defaultValue": "Every 30 Minutes",
+                "toolTip": "The interval at which the Bellhop engine should execute.",
+                "constraints": {
+                    "allowedValues": [
+                        {
+                            "label": "Every 5 Minutes",
+                            "description": "Run the Bellhop engine every 5 minutes.",
+                            "value": "0 */5 * * * *"
+                        },
+                        {
+                            "label": "Every 10 Minutes",
+                            "description": "Run the Bellhop engine every 10 minutes",
+                            "value": "0 */10 * * * *"
+                        },
+                        {
+                            "label": "Every 15 Minutes",
+                            "description": "Run the Bellhop engine every 15 minutes",
+                            "value": "0 */15 * * * *"
+                        },
+                        {
+                            "label": "Every 30 Minutes",
+                            "description": "Run the Bellhop engine every 30 minutes",
+                            "value": "0 */30 * * * *"
+                        },
+                        {
+                            "label": "Every 1 Hour",
+                            "description": "Run the Bellhop engine every hour",
+                            "value": "0 0 * * * *"
+                        }
+                    ],
+                    "required": true
+                },
+                "visible": true
             }
         ],
         "steps": [],
         "outputs": {
             "location": "[location()]",
-            "appName": "[basics('appName')]"
+            "appName": "[basics('appName')]",
+			"engineInterval": "[basics('engineInterval')]"
         }
     }
 }

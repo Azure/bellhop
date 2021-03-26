@@ -14,6 +14,12 @@
                 "description": "The location of the Bellhop deployment."
             }
         },
+        "engineInterval": {
+            "type": "string",
+            "metadata": {
+                "description": "The interval at which the Bellhop engine should execute."
+            }
+        },
         "engineReaderGUID": {
             "type": "string",
             "defaultValue": "[newGuid()]",
@@ -83,6 +89,9 @@
                 "parameters": {
                     "appName": {
                         "value": "[parameters('appName')]"
+                    },
+                    "engineInterval": {
+                        "value": "[parameters('engineInterval')]"
                     }
                 },
                 "template": {
@@ -93,6 +102,12 @@
                             "type": "string",
                             "metadata": {
                                 "description": "The name of the function app that you wish to create."
+                            }
+                        },
+                        "engineInterval": {
+                            "type": "string",
+                            "metadata": {
+                                "description": "The interval at which the Bellhop engine should execute."
                             }
                         },
                         "storageAccountType": {
@@ -282,10 +297,14 @@
                                         {
                                             "name": "AppConfigEndpoint",
                                             "value": "[reference(resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))).endpoint]"
+                                        },
+                                        {
+                                            "name": "ENGINE_TIMER_EXPRESSION",
+                                            "value": "[parameters('engineInterval')]"
                                         }
                                     ],
                                     "use32BitWorkerProcess": false,
-                                    "linuxFxVersion": "DOCKER|azurebellhop/engine:v0.3"
+                                    "linuxFxVersion": "DOCKER|azurebellhop/engine:v0.4"
                                 }
                             }
                         },
