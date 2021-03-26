@@ -27,9 +27,7 @@ This solution was designed to be extensible from the beginning, with the idea be
     - This module will contain all of the logic to scale the new resource type, including the Azure PowerShell call to resize the rarget resource.
     - Developed to accept the message format sent to the `autoscale` storage queue.
         - Scale Direction + Azure Resource Graph Query.
-
-***template.psm1 example:***
-_Sample-scaler module code can be found in the [development](./development/sample-scaler/) folder in the GitHub repo._
+    - _Sample-scaler module code can be found in the [development](./development/sample-scaler/) folder in the GitHub repo._
 
 3) Run `updateScaler.ps1` script from project root to Zip-Deploy new Scaler code.
 
