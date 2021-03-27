@@ -62,7 +62,7 @@ namespace Bellhop.Function
             await _refresher.RefreshAsync();
 
             string debugKeyName = "debugMode";
-            string debugAppSetting = _configuration[debugKeyName];
+            string debugAppSetting = _configuration.GetSection("GLOBAL")[debugKeyName];
             log.LogInformation("Debug Flag: " + debugAppSetting);
 
             try {
@@ -73,14 +73,20 @@ namespace Bellhop.Function
 		    }
 
             string storageKeyName = "storageAccount";
-            string storageAppSetting = _configuration[storageKeyName];
+            string storageAppSetting = _configuration.GetSection("CORE")[storageKeyName];
             if (Debug.Enabled) log.LogInformation("Storage Account: " + storageAppSetting);
 
             string queueKeyName = "storageQueue";
-            string queueAppSetting = _configuration[queueKeyName];
+            string queueAppSetting = _configuration.GetSection("CORE")[queueKeyName];
             if (Debug.Enabled) log.LogInformation("Storage Queue: " + queueAppSetting);
 
             bool debugFlag = bool.Parse(debugAppSetting);
+
+            IDictionary<string, string> configData = new Dictionary<string, string>();
+            configData.Add("tagPrefix", _configuration.GetSection("CONFIG")["tagPrefix"]);
+            configData.Add("setTag", _configuration.GetSection("CONFIG")["setStateTag"]);
+            configData.Add("saveTag", _configuration.GetSection("CONFIG")["saveStateTag"]);
+            if (Debug.Enabled) log.LogInformation("Config Data: " + JsonConvert.SerializeObject(configData, Formatting.None));
 
             QueueClient messageQueue = getQueueClient(storageAppSetting, queueAppSetting);
 

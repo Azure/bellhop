@@ -19,7 +19,7 @@ namespace Bellhop
             builder.ConfigurationBuilder.AddAzureAppConfiguration(options => {
                 options.Connect(new Uri(appConfigUri), new ManagedIdentityCredential())
                 .ConfigureRefresh(ro =>
-                    ro.Register("debugMode", LabelFilter.Null, refreshAll: true)
+                    ro.Register("GLOBAL:debugMode", LabelFilter.Null, refreshAll: true)
                     .SetCacheExpiration(TimeSpan.FromSeconds(60)));
 
                 ConfigurationRefresher = options.GetRefresher();

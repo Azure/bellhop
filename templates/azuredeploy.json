@@ -406,6 +406,10 @@
                                         {
                                             "name": "DOCKER_REGISTRY_SERVER_URL",
                                             "value": "https://index.docker.io/v1"
+                                        },
+                                        {
+                                            "name": "SCALER_QUEUE_NAME",
+                                            "value": "[parameters('queueName')]"
                                         }
                                     ],
                                     "use32BitWorkerProcess": false,
