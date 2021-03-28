@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -47,15 +48,10 @@ namespace Bellhop.Function
         }
 
         [FunctionName("BellhopEngine")]
-        public async void Run([TimerTrigger("%ENGINE_TIMER_EXPRESSION%")] TimerInfo myTimer, ILogger log)
+        public async Task Run([TimerTrigger("%ENGINE_TIMER_EXPRESSION%")] TimerInfo myTimer, ILogger log)
         {
             log.LogInformation("Bellhop engine starting up...");
             log.LogInformation("Current UTC Time: " + DateTime.UtcNow.ToString("dddd hh:mm:ss tt"));
-
-            string strQuery = "Resources | where tags['resize-Enable'] =~ 'True'";
-
-            var resizeUpList = new List<JObject>();
-            var resizeDownList = new List<JObject>();
 
             log.LogInformation("Fetching app configuration settings...");
 
@@ -84,9 +80,33 @@ namespace Bellhop.Function
 
             IDictionary<string, string> configData = new Dictionary<string, string>();
             configData.Add("tagPrefix", _configuration.GetSection("CONFIG")["tagPrefix"]);
-            configData.Add("setTag", _configuration.GetSection("CONFIG")["setStateTag"]);
-            configData.Add("saveTag", _configuration.GetSection("CONFIG")["saveStateTag"]);
-            if (Debug.Enabled) log.LogInformation("Config Data: " + JsonConvert.SerializeObject(configData, Formatting.None));
+            configData.Add("setPrefix", _configuration.GetSection("CONFIG")["setStateTag"]);
+            configData.Add("savePrefix", _configuration.GetSection("CONFIG")["saveStateTag"]);
+            // if (Debug.Enabled) log.LogInformation("Config Data: " + JsonConvert.SerializeObject(configData, Formatting.None));
+
+            IDictionary<string, string> tagMap = new Dictionary<string, string>();
+            tagMap.Add("enable", (configData["tagPrefix"] + "resize-Enable"));
+            tagMap.Add("start", (configData["tagPrefix"] + "resize-StartTime"));
+            tagMap.Add("end", (configData["tagPrefix"] + "resize-EndTime"));
+            tagMap.Add("set", (configData["tagPrefix"] + configData["setPrefix"]));
+            tagMap.Add("save", (configData["tagPrefix"] + configData["savePrefix"]));
+
+            if (Debug.Enabled) {
+                string configDataJson = JsonConvert.SerializeObject(configData);
+                string tagMapJson = JsonConvert.SerializeObject(tagMap);
+
+                log.LogInformation("Config Data:");
+                log.LogInformation(configDataJson);
+
+                log.LogInformation("Tag Map:");
+                log.LogInformation(tagMapJson);
+            }
+
+            string strQuery = $"Resources | where tags['{tagMap["enable"]}'] =~ 'True'";
+            // string strQuery = string.Format("Resources | where tags['{0}'] =~ 'True'", tagMap["enable"]);
+
+            var resizeUpList = new List<JObject>();
+            var resizeDownList = new List<JObject>();
 
             QueueClient messageQueue = getQueueClient(storageAppSetting, queueAppSetting);
 
@@ -131,8 +151,8 @@ namespace Bellhop.Function
                 if (Debug.Enabled) log.LogInformation("Resource: " + resource["name"].ToString());
 
                 Hashtable times = new Hashtable() {
-                    {"StartTime", resource["tags"]["resize-StartTime"].ToString()},
-                    {"EndTime", resource["tags"]["resize-EndTime"].ToString()}
+                    {"StartTime", resource["tags"][tagMap["start"]].ToString()},
+                    {"EndTime", resource["tags"][tagMap["end"]].ToString()}
                 };
 
                 if (Debug.Enabled){
@@ -140,7 +160,8 @@ namespace Bellhop.Function
                     log.LogInformation("Scale Up: " + times["EndTime"]);
                 }
 
-                Regex rg = new Regex("saveState-.*");
+                // Regex rg = new Regex("saveState-.*");
+                Regex rg = new Regex($"{tagMap["save"] }.*");
 
                 if (resizeTime(times))
                 {
@@ -187,6 +208,7 @@ namespace Bellhop.Function
                 var messageData = new JObject();
                 messageData.Add(new JProperty("debug", debugFlag));
                 messageData.Add(new JProperty("direction", "up"));
+                messageData.Add(new JProperty("tagMap", JObject.FromObject(tagMap)));
                 messageData.Add(new JProperty("graphResults", item));
 
                 if (Debug.Enabled) log.LogInformation("Queue Message:");
@@ -206,6 +228,7 @@ namespace Bellhop.Function
                 var messageData = new JObject();
                 messageData.Add(new JProperty("debug", debugFlag));
                 messageData.Add(new JProperty("direction", "down"));
+                messageData.Add(new JProperty("tagMap", JObject.FromObject(tagMap)));
                 messageData.Add(new JProperty("graphResults", item));
 
                 if (Debug.Enabled) log.LogInformation("Queue Message:");

@@ -23,19 +23,19 @@
         "tagPrefix": {
             "type": "string",
             "metadata": {
-                "description": "Prefix which will be appended to tags used by Bellhop."
+                "description": "Prefix which will Bellhop will expect to be prepended to all tags."
             }
         },
         "setStateTag": {
             "type": "string",
             "metadata": {
-                "description": "Tag which will be used for Bellhop to identify the target state of the target resource when scaled down."
+                "description": "Prefix which will be prepended to resource parameter tags which Bellhop uses to identify the target state of the target resource when scaled down."
             }
         },
         "saveStateTag": {
             "type": "string",
             "metadata": {
-                "description": "Tag which will be used for Bellhop to remember the original state of the target resource when scaled down."
+                "description": "Prefix which will be prepended to resource parameter tags which Bellhop uses to remember the original state of the target resource when scaled down."
             }
         },
         "engineReaderGUID": {
@@ -140,19 +140,19 @@
                         "tagPrefix": {
                             "type": "string",
                             "metadata": {
-                                "description": "Prefix which will be appended to tags used by Bellhop."
+                                "description": "Prefix which will Bellhop will expect to be prepended to all tags."
                             }
                         },
                         "setStateTag": {
                             "type": "string",
                             "metadata": {
-                                "description": "Tag which will be used for Bellhop to identify the target state of the target resource when scaled down."
+                                "description": "Prefix which will be prepended to resource parameter tags which Bellhop uses to identify the target state of the target resource when scaled down."
                             }
                         },
                         "saveStateTag": {
                             "type": "string",
                             "metadata": {
-                                "description": "Tag which will be used for Bellhop to remember the original state of the target resource when scaled down."
+                                "description": "Prefix which will be prepended to resource parameter tags which Bellhop uses to remember the original state of the target resource when scaled down."
                             }
                         },
                         "storageAccountType": {

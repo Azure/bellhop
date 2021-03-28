@@ -82,7 +82,7 @@
                         "type": "Microsoft.Common.TextBox",
                         "label": "Tag Prefix (optional)",
                         "defaultValue": "",
-                        "toolTip": "Prefix which will be appended to tags used by Bellhop.",
+                        "toolTip": "Prefix which will Bellhop will expect to be prepended to all tags.",
                         "placeholder": "",
                         "multiLine": false,
                         "constraints": {
@@ -99,9 +99,9 @@
                     {
                         "name": "setStateTag",
                         "type": "Microsoft.Common.TextBox",
-                        "label": "Target State Tag",
+                        "label": "Target State Prefix",
                         "defaultValue": "setState-",
-                        "toolTip": "Tag which will be used for Bellhop to identify the target state of the target resource when scaled down.",
+                        "toolTip": "Prefix which will be prepended to resource parameter tags which Bellhop uses to identify the target state of the target resource when scaled down.",
                         "placeholder": "",
                         "multiLine": false,
                         "constraints": {
@@ -118,9 +118,9 @@
                     {
                         "name": "saveStateTag",
                         "type": "Microsoft.Common.TextBox",
-                        "label": "Saved State Tag",
+                        "label": "Saved State Prefix",
                         "defaultValue": "saveState-",
-                        "toolTip": "Tag which will be used for Bellhop to remember the original state of the target resource when scaled down.",
+                        "toolTip": "Prefix which will be prepended to resource parameter tags which Bellhop uses to remember the original state of the target resource when scaled down.",
                         "placeholder": "",
                         "multiLine": false,
                         "constraints": {

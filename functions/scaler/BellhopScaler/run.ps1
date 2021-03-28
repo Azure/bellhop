@@ -3,7 +3,8 @@ param($QueueItem, $TriggerMetadata)
 
 function Initialize-TagData {
     param (
-        $inTags
+        $inTags,
+        $tagMap
     )
 
     $tags = @{}
@@ -11,13 +12,13 @@ function Initialize-TagData {
     $saveData = @{}
 
     foreach ($key in $inTags.Keys) {
-        if ($key -Match "setState-") {
-            $setKey = $key -replace "setState-", ""
+        if ($key -Match $tagMap.set) {
+            $setKey = $key -replace $tagMap.set, ""
             $setData += @{$setKey = $inTags[$key] }
             $tags += @{$key = $inTags[$key] }
         }
-        elseif ($key -Match "saveState-") {
-            $saveKey = $key -replace "saveState-", ""
+        elseif ($key -Match $tagMap.save) {
+            $saveKey = $key -replace $tagMap.save, ""
             $saveData += @{$saveKey = $inTags[$key] }
         }
         else {
@@ -26,9 +27,10 @@ function Initialize-TagData {
     }
 
     $tagData = @{
-        "tags"     = $tags
-        "setData"  = $setData
-        "saveData" = $saveData
+        "tags"      = $tags
+        "map"       = $tagMap
+        "setData"   = $setData
+        "saveData"  = $saveData
     }
 
     return $tagData
@@ -37,7 +39,7 @@ function Initialize-TagData {
 # Set preference variables
 $ErrorActionPreference = "Stop"
 
-# Write out the queue message and insertion time to the information log.
+# Write out the queue message and insertion time to the information log
 Write-Host "PowerShell queue trigger function processed work item: $QueueItem"
 Write-Host "Queue item insertion time: $($TriggerMetadata.InsertionTime)"
 
@@ -46,7 +48,7 @@ Write-Host "Importing scaler for: $($QueueItem.graphResults.type)"
 
 try {
     $modulePath = Join-Path $PSScriptRoot -ChildPath "scalers\$($QueueItem.graphResults.type)\function.psm1"
-    Import-Module -Name $modulePath #-ErrorAction Stop #SilentlyContinue -ErrorVariable abc
+    Import-Module -Name $modulePath
 }
 catch {
     Write-Host "Error loading the target scaler!"
@@ -61,7 +63,6 @@ catch {
 
     Write-Host "($($Error.exception.GetType().fullname)) - $($PSItem.ToString())"
     # throw $PSItem
-
     Exit
 }
 
@@ -82,7 +83,7 @@ catch {
 Write-Host "Beginning operation to scale: '$($QueueItem.graphResults.id)' - ($($QueueItem.direction.ToUpper()))"
 
 try {
-    $tagData = Initialize-TagData $QueueItem.graphResults.tags
+    $tagData = Initialize-TagData $QueueItem.graphResults.tags $QueueItem.tagMap
     Update-Resource $QueueItem.graphResults $tagData $QueueItem.direction
 }
 catch {
