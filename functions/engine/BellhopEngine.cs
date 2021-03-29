@@ -79,11 +79,13 @@ namespace Bellhop.Function
 
             JArray missingConfig = new JArray();
 
-            foreach (var configItem in configData) {
+            foreach (var configItem in configData)
+            {
                 if (String.IsNullOrEmpty(configItem.Value)) { missingConfig.Add("test"); }
             }
 
-            if (missingConfig.Count > 0) {
+            if (missingConfig.Count > 0)
+            {
                 log.LogError("Missing config items: " + missingConfig);
                 // Terminate Execution
             }
@@ -95,7 +97,8 @@ namespace Bellhop.Function
             tagMap.Add("set", (configData["tagPrefix"] + configData["setPrefix"]));
             tagMap.Add("save", (configData["tagPrefix"] + configData["savePrefix"]));
 
-            if (Debug.Enabled) {
+            if (Debug.Enabled)
+            {
                 string configDataJson = JsonConvert.SerializeObject(configData);
                 string tagMapJson = JsonConvert.SerializeObject(tagMap);
 
@@ -127,15 +130,15 @@ namespace Bellhop.Function
                 .Select(s => s.SubscriptionId)
                 .ToList();
 
-            if (Debug.Enabled) {
+            if (Debug.Enabled)
+            {
                 string subscriptionJson = JsonConvert.SerializeObject(subscriptionIds);
 
                 log.LogInformation("Target Subscriptions:");
                 log.LogInformation(subscriptionJson);
             }
 
-            QueryRequest request = new QueryRequest
-            {
+            QueryRequest request = new QueryRequest {
                 Subscriptions = subscriptionIds,
                 Query = strQuery,
                 Options = new QueryRequestOptions(resultFormat: ResultFormat.ObjectArray)
@@ -158,12 +161,12 @@ namespace Bellhop.Function
                     {"EndTime", resource["tags"][tagMap["end"]].ToString()}
                 };
 
-                if (Debug.Enabled){
+                if (Debug.Enabled)
+                {
                     log.LogInformation("Scale Down: " + times["StartTime"]);
                     log.LogInformation("Scale Up: " + times["EndTime"]);
                 }
 
-                // Regex rg = new Regex("saveState-.*");
                 Regex rg = new Regex($"{tagMap["save"] }.*");
 
                 if (resizeTime(times))
@@ -251,8 +254,7 @@ namespace Bellhop.Function
         {
             ManagedIdentityCredential managedIdentityCredential = new ManagedIdentityCredential();
 
-            QueueClientOptions queueOptions = new QueueClientOptions
-            {
+            QueueClientOptions queueOptions = new QueueClientOptions {
                 Retry = {
                   MaxRetries = 5,
                   Mode = 0

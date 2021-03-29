@@ -18,7 +18,10 @@
                         ]
                     }
                 }
-            }
+            },
+			"steps": {
+                "description": "<img src='https://github.com/Azure/bellhop/raw/main/docs/images/bellhop-logo.png' width='25%'/><br>  \n**Welcome to Bellhop**  \nFrom the basement to the penthouse, Bellhop will make sure your Azure infrastructure always ends up on the right floor!  \n\nThe Deployment Prefix below will be used to create the following resources during the deployment:  \n\n| Resource | Resource Name |  \n| --- | --- |  \n| Resource Group | &lt;prefix&gt;-rg |  \n| Storage Account | &lt;prefix&gt;stgacct |  \n| App Service Plan | &lt;prefix&gt;-asp |  \n| Application Insights | &lt;prefix&gt;-appinsights |  \n| App Configuration | &lt;prefix&gt;-appconfig |  \n| Function App (Engine) | &lt;prefix&gt;-function-engine |  \n| Function App (Scaler) | &lt;prefix&gt;-function-scaler |  \nThe following permissions will be assigned to the Function App Managed Identities during the deployment:  \n\n| Managed Identity | Permission | Scope |  \n| --- | --- | --- |  \n| Function App (Engine) | Reader | &lt;Subscription&gt; |  \n| Function App (Engine) | App Configuration Data Reader | &lt;App Configuration&gt; |  \n| Function App (Engine) | Queue Data Message Sender | &lt;Storage Account&gt; |  \n| Function App (Scaler) | Contributor | &lt;Subscription&gt; |"
+			}
         },
         "basics": [
             {
@@ -80,9 +83,9 @@
                     {
                         "name": "tagPrefix",
                         "type": "Microsoft.Common.TextBox",
-                        "label": "Tag Prefix (optional)",
+                        "label": "Bellhop Tag Prefix (optional)",
                         "defaultValue": "",
-                        "toolTip": "Prefix which will Bellhop will expect to be prepended to all tags.",
+                        "toolTip": "Prefix which will be appended to all tags used by Bellhop (NOTE: This prefix will be pre-pended to ALL of the below tags).",
                         "placeholder": "",
                         "multiLine": false,
                         "constraints": {
@@ -97,11 +100,68 @@
                         "visible": true
                     },
                     {
+                        "name": "enableTag",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Enable Tag",
+                        "defaultValue": "resize-Enable",
+                        "toolTip": "Tag which will be used to identify which resources are currently enabled for Bellhop scaling.",
+                        "placeholder": "",
+                        "multiLine": false,
+                        "constraints": {
+                            "required": true,
+                            "validations": [
+                                {
+                                    "regex": "^[a-z0-9A-Z_-]{1,30}$",
+                                    "message": "Only alphanumeric characters, undercores, and dashes are allowed. The value must be 1-30 characters long."
+                                }
+                            ]
+                        },
+                        "visible": true
+                    },
+                    {
+                        "name": "startTimeTag",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Start Time Tag",
+                        "defaultValue": "resize-StartTime",
+                        "toolTip": "Tag which will be used to identify the day of the week & time which Bellhop should scale DOWN the resource.",
+                        "placeholder": "",
+                        "multiLine": false,
+                        "constraints": {
+                            "required": true,
+                            "validations": [
+                                {
+                                    "regex": "^[a-z0-9A-Z_-]{1,30}$",
+                                    "message": "Only alphanumeric characters, undercores, and dashes are allowed. The value must be 1-30 characters long."
+                                }
+                            ]
+                        },
+                        "visible": true
+                    },
+                    {
+                        "name": "endTimeTag",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "End Time Tag",
+                        "defaultValue": "resize-EndTime",
+                        "toolTip": "Tag which will be used to identify the day of the week & time which Bellhop should scale UP the resource.",
+                        "placeholder": "",
+                        "multiLine": false,
+                        "constraints": {
+                            "required": true,
+                            "validations": [
+                                {
+                                    "regex": "^[a-z0-9A-Z_-]{1,30}$",
+                                    "message": "Only alphanumeric characters, undercores, and dashes are allowed. The value must be 1-30 characters long."
+                                }
+                            ]
+                        },
+                        "visible": true
+                    },
+                    {
                         "name": "setStateTag",
                         "type": "Microsoft.Common.TextBox",
-                        "label": "Target State Prefix",
+                        "label": "Target State Tag Prefix",
                         "defaultValue": "setState-",
-                        "toolTip": "Prefix which will be prepended to resource parameter tags which Bellhop uses to identify the target state of the target resource when scaled down.",
+                        "toolTip": "Tag prefix which will be used for Bellhop to identify configuration elements of the target resource, which describe it's target state when scaled down.",
                         "placeholder": "",
                         "multiLine": false,
                         "constraints": {
@@ -118,9 +178,9 @@
                     {
                         "name": "saveStateTag",
                         "type": "Microsoft.Common.TextBox",
-                        "label": "Saved State Prefix",
+                        "label": "Saved State Tag Prefix",
                         "defaultValue": "saveState-",
-                        "toolTip": "Prefix which will be prepended to resource parameter tags which Bellhop uses to remember the original state of the target resource when scaled down.",
+                        "toolTip": "Tag prefix which will be used for Bellhop to rememebr configuration elements of the target resource, after the resource has been scaled down.",
                         "placeholder": "",
                         "multiLine": false,
                         "constraints": {
@@ -142,6 +202,9 @@
             "appName": "[basics('appName')]",
             "engineInterval": "[basics('engineInterval')]",
             "tagPrefix": "[steps('advancedConfig').tagPrefix]",
+            "enableTag": "[steps('advancedConfig').enableTag]",
+            "startTimeTag": "[steps('advancedConfig').startTimeTag]",
+            "endTimeTag": "[steps('advancedConfig').endTimeTag]",
             "setStateTag": "[steps('advancedConfig').setStateTag]",
             "saveStateTag": "[steps('advancedConfig').saveStateTag]"
         }
