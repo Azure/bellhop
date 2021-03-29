@@ -68,21 +68,25 @@ namespace Bellhop.Function
 			    Debug.Enabled = false;
 		    }
 
-            string storageKeyName = "storageAccount";
-            string storageAppSetting = _configuration.GetSection("CORE")[storageKeyName];
-            if (Debug.Enabled) log.LogInformation("Storage Account: " + storageAppSetting);
-
-            string queueKeyName = "storageQueue";
-            string queueAppSetting = _configuration.GetSection("CORE")[queueKeyName];
-            if (Debug.Enabled) log.LogInformation("Storage Queue: " + queueAppSetting);
-
             bool debugFlag = bool.Parse(debugAppSetting);
 
             IDictionary<string, string> configData = new Dictionary<string, string>();
+            configData.Add("storAccount", _configuration.GetSection("CORE")["storageAccount"]);
+            configData.Add("storQueue", _configuration.GetSection("CORE")["storageQueue"]);
             configData.Add("tagPrefix", _configuration.GetSection("CONFIG")["tagPrefix"]);
             configData.Add("setPrefix", _configuration.GetSection("CONFIG")["setStateTag"]);
             configData.Add("savePrefix", _configuration.GetSection("CONFIG")["saveStateTag"]);
-            // if (Debug.Enabled) log.LogInformation("Config Data: " + JsonConvert.SerializeObject(configData, Formatting.None));
+
+            JArray missingConfig = new JArray();
+
+            foreach (var configItem in configData) {
+                if (String.IsNullOrEmpty(configItem.Value)) { missingConfig.Add("test"); }
+            }
+
+            if (missingConfig.Count > 0) {
+                log.LogError("Missing config items: " + missingConfig);
+                // Terminate Execution
+            }
 
             IDictionary<string, string> tagMap = new Dictionary<string, string>();
             tagMap.Add("enable", (configData["tagPrefix"] + "resize-Enable"));
@@ -103,12 +107,11 @@ namespace Bellhop.Function
             }
 
             string strQuery = $"Resources | where tags['{tagMap["enable"]}'] =~ 'True'";
-            // string strQuery = string.Format("Resources | where tags['{0}'] =~ 'True'", tagMap["enable"]);
 
             var resizeUpList = new List<JObject>();
             var resizeDownList = new List<JObject>();
 
-            QueueClient messageQueue = getQueueClient(storageAppSetting, queueAppSetting);
+            QueueClient messageQueue = getQueueClient(configData["storAccount"], configData["storQueue"]);
 
             ManagedIdentityCredential managedIdentityCredential = new ManagedIdentityCredential();
             string[] scope = new string[] { "https://management.azure.com/.default" };
@@ -202,7 +205,7 @@ namespace Bellhop.Function
 
             foreach (var item in resizeUpList)
             {
-                if (Debug.Enabled) log.LogInformation("=========================");
+                if (Debug.Enabled) log.LogInformation("-------------------------");
                 if (Debug.Enabled) log.LogInformation(item["name"].ToString() + " => up");
                 
                 var messageData = new JObject();
@@ -213,7 +216,7 @@ namespace Bellhop.Function
 
                 if (Debug.Enabled) log.LogInformation("Queue Message:");
                 if (Debug.Enabled) log.LogInformation(messageData.ToString(Formatting.None));
-                if (Debug.Enabled) log.LogInformation("=========================");
+                if (Debug.Enabled) log.LogInformation("-------------------------");
 
                 writeQueueMessage(messageData, messageQueue);
             };
@@ -222,7 +225,7 @@ namespace Bellhop.Function
 
             foreach (var item in resizeDownList)
             {
-                if (Debug.Enabled) log.LogInformation("=========================");
+                if (Debug.Enabled) log.LogInformation("-------------------------");
                 if (Debug.Enabled) log.LogInformation(item["name"].ToString() + " => down");
 
                 var messageData = new JObject();
@@ -233,10 +236,13 @@ namespace Bellhop.Function
 
                 if (Debug.Enabled) log.LogInformation("Queue Message:");
                 if (Debug.Enabled) log.LogInformation(messageData.ToString(Formatting.None));
-                if (Debug.Enabled) log.LogInformation("=========================");
+                if (Debug.Enabled) log.LogInformation("-------------------------");
 
                 writeQueueMessage(messageData, messageQueue);
             };
+
+            if (Debug.Enabled) log.LogInformation("=========================");
+            log.LogInformation("Done processing scale queues!");
 
             log.LogInformation("Bellhop engine execution complete!");
         }
