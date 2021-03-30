@@ -26,16 +26,12 @@ This solution was designed to be extensible from the beginning, with the idea be
     - Named: `function.psm1`
     - This module will contain all of the logic to scale the new resource type, including the Azure PowerShell call to resize the rarget resource.
     - Developed to accept the message format sent to the `autoscale` storage queue.
-        - Scale Direction + Azure Resource Graph Query.
-    - _Sample-scaler module code can be found in the [development](./development/sample-scaler/) folder in the GitHub repo._
+        - Scale Direction + Azure Resource Graph Query results.
+    - The scaler modules should all follow a similar format and be designed to accept the same common parameters.
+        - **Sample-scaler module psm1 can be found in the [development](./development/sample-scaler/) folder in the GitHub repo.**
 
-3) Run `updateScaler.ps1` script from project root to Zip-Deploy new Scaler code.
-
-Example:
-```
-PS /User/github/Azure/bellhop> ./updateScaler.ps1
-Enter resource group name where function is deployed: bellhop-rg 
-```
+3) **TODO: DOCUMENT PROCESS TO UPDATE SCALER FUNCTION CONTAINER IMAGE**
+    - _Current process is being updated and documented_
 
 4) Create new `servicename.md` page to document how to use the new scaler.
     - Create this file in the `./docs/scaler/modules/` folder
