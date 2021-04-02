@@ -92,22 +92,10 @@ For the purpose of this project we have not integrated a complete set of securit
 **_IT IS RECOMMENDED TO USE AVAILABLE SECURITY CONTROLS IN A PRODUCTION DEPLOYMENT_**
 
 
-## FAQ
-**Why would I use Bellhop?**
+## Questions or Comments
+The Bellhop team welcomes engagement and contributions from the community. We have set up a GitHub Discussions page [here](https://github.com/Azure/bellhop/discussions) to make it easy to engage with the Bellhop team without opening an issue.
 
-You realize that by "turning down" your resources in Dev/Test environments you could save a lot on the cost of your infrastructure. You also realize there is not currently an easy way to scale between service tiers on Azure PaaS services. Bellhop to the rescue!!!! Tag your resources with scale times and desired service tier settings and let Bellhop take care of the rest!
-
-**What does the roadmap for Bellhop look like?**
-
-We would like this to become a SaaS/PaaS product that will help to keep Azure infrastructure costs under control in Dev/Test Environments. 
-
-**Who are the awesome people that built this solution??**
-
-Matt, Nills, and Tyler are Cloud Solutions Architects at Microsoft, and are always looking for interesting ways to help our customers solve problems.
-
-**Want to know more about Bellhop??**
-
-Please feel free to reach out to <bellhop@microsoft.com> with any questions or feedback.
+Also, feel free to email us at bellhop@microsoft.com with any questions or comments and we will respond as soon as we can. 
 
 
 ## Contributing
