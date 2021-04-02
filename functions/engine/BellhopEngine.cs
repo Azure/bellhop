@@ -238,12 +238,25 @@ namespace Bellhop.Function
             queue.SendMessageAsync(jTarget);
         }
 
-        public static (System.DayOfWeek, TimeSpan) getActionTime(string stamp)
-        {
+         public static (System.DayOfWeek, TimeSpan) getActionTime(string stamp)
+         {
             string[] parsedStamp = stamp.Split(" ");
+            const string dailyStr = "daily";
 
-            return ((DayOfWeek)Enum.Parse(typeof(DayOfWeek), parsedStamp[0], true), Convert.ToDateTime(parsedStamp[1]).TimeOfDay);
-        }
+            //todo: add support for "Daily" keyword
+            System.DayOfWeek day;
+
+            //if stamp contains "Daily" then resolve to today
+            // this assumes that a one-part stamp sets the time and not the day
+            if (parsedStamp[0].ToLower().Equals(dailyStr))
+                day = DateTime.UtcNow.DayOfWeek;
+            else
+                day = (DayOfWeek)Enum.Parse(typeof(DayOfWeek), parsedStamp[0], true);
+
+            TimeSpan time = Convert.ToDateTime(parsedStamp[1]).TimeOfDay;
+
+            return (day, time);
+         }
 
         public static bool resizeTime(Hashtable times)
         {
