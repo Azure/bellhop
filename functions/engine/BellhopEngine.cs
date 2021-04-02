@@ -52,7 +52,7 @@ namespace Bellhop.Function
             log.LogInformation("Bellhop engine starting up...");
             log.LogInformation("Current UTC Time: " + DateTime.UtcNow.ToString("dddd hh:mm:ss tt"));
 
-            string strQuery = "Resources | where tags['resize-Enable'] =~ 'True'";
+            const string strQuery = "Resources | where tags['resize-Enable'] =~ 'True'";
 
             var resizeUpList = new List<JObject>();
             var resizeDownList = new List<JObject>();
@@ -72,11 +72,11 @@ namespace Bellhop.Function
 			    Debug.Enabled = false;
 		    }
 
-            string storageKeyName = "storageAccount";
+            const string storageKeyName = "storageAccount";
             string storageAppSetting = _configuration[storageKeyName];
             if (Debug.Enabled) log.LogInformation("Storage Account: " + storageAppSetting);
 
-            string queueKeyName = "storageQueue";
+            const string queueKeyName = "storageQueue";
             string queueAppSetting = _configuration[queueKeyName];
             if (Debug.Enabled) log.LogInformation("Storage Queue: " + queueAppSetting);
 
