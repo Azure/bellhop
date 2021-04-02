@@ -136,7 +136,7 @@ namespace Bellhop.Function
 
                 Regex rg = new Regex("saveState-.*");
 
-                if (resizeTime(times))
+                if (resizeTime(times, log))
                 {
                     string scaleMessage = "Currently within 'scale down' period ";
 
@@ -238,48 +238,70 @@ namespace Bellhop.Function
             queue.SendMessageAsync(jTarget);
         }
 
+        
         public static (System.DayOfWeek, TimeSpan) getActionTime(string stamp)
         {
             string[] parsedStamp = stamp.Split(" ");
+            const string dailyStr = "daily";
 
-            return ((DayOfWeek)Enum.Parse(typeof(DayOfWeek), parsedStamp[0], true), Convert.ToDateTime(parsedStamp[1]).TimeOfDay);
+            //todo: add support for "Daily" keyword
+            System.DayOfWeek day;
+            
+            //if stamp does not contain dayOfWeek, assume "Daily?
+            //if stamp contains "Daily" then resolve to today
+            // this assumes that a one-part stamp sets the time and not the day
+            if (parsedStamp.Length == 1 || parsedStamp[0].ToLower().Equals(dailyStr))
+                day = DateTime.UtcNow.DayOfWeek;
+            else
+                day = (DayOfWeek)Enum.Parse(typeof(DayOfWeek), parsedStamp[0], true);
+
+            TimeSpan time = Convert.ToDateTime(parsedStamp[1]).TimeOfDay;
+            
+            return (day, time);
         }
 
-        public static bool resizeTime(Hashtable times)
+        // i feel like this logic could go for a few units tests
+        public static bool resizeTime(Hashtable times, ILogger log)
         {
-            DateTime now = DateTime.UtcNow;
-            var currentDay = now.DayOfWeek;
+            //wrap in try/catch to avoid failing across the board if one tag cannot be correctly parsed
+            try{
+                DateTime now = DateTime.UtcNow;
+                var currentDay = now.DayOfWeek;
 
-            (var fromDay, var fromTime) = getActionTime((string)times["StartTime"]);
-            (var toDay, var toTime) = getActionTime((string)times["EndTime"]);
+                (var fromDay, var fromTime) = getActionTime((string)times["StartTime"]);
+                (var toDay, var toTime) = getActionTime((string)times["EndTime"]);
 
-            if (toDay < fromDay)
-            {
-                toDay += 7;
-
-                if (currentDay < fromDay)
+                if (toDay < fromDay)
                 {
-                    currentDay += 7;
+                    toDay += 7;
+
+                    if (currentDay < fromDay)
+                    {
+                        currentDay += 7;
+                    }
                 }
+
+                var fromUpdate = (fromDay - currentDay);
+                var toUpdate = (toDay - currentDay);
+
+                var fromDate = DateTime.Parse(fromTime.ToString()).AddDays(fromUpdate);
+                var toDate = DateTime.Parse(toTime.ToString()).AddDays(toUpdate);
+
+                if (now > toDate)
+                {
+                    toDate = toDate.AddDays(7);
+                    fromDate = fromDate.AddDays(7);
+                }
+
+                if ((now > fromDate) && (now < toDate))
+                {
+                    return true;
+                }
+
+            }catch (Exception ex){
+                log.LogError(0, ex, "Error calculating resize time");
             }
-
-            var fromUpdate = (fromDay - currentDay);
-            var toUpdate = (toDay - currentDay);
-
-            var fromDate = DateTime.Parse(fromTime.ToString()).AddDays(fromUpdate);
-            var toDate = DateTime.Parse(toTime.ToString()).AddDays(toUpdate);
-
-            if (now > toDate)
-            {
-                toDate = toDate.AddDays(7);
-                fromDate = fromDate.AddDays(7);
-            }
-
-            if ((now > fromDate) && (now < toDate))
-            {
-                return true;
-            }
-
+            
             return false;
         }
     }
