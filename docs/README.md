@@ -55,6 +55,7 @@ resize-Enable = <bool> (True/False)
 resize-StartTime = <DateTime> (Friday 7PM)
 resize-EndTime = <DateTime> (Monday 7:30AM)
 ```
+_**NOTE: In addition to given days of the week, the keyword "Daily" can be used in lieu of a specific day if you'd like to trigger scaling every day at a defined time. (Daily 7PM)**_
 
 _**NOTE: StartTime and EndTime are currently in UTC**_
 
