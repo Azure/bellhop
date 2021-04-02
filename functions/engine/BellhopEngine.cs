@@ -136,7 +136,7 @@ namespace Bellhop.Function
 
                 Regex rg = new Regex("saveState-.*");
 
-                if (resizeTime(times))
+                if (resizeTime(times, DateTime.Now))
                 {
                     string scaleMessage = "Currently within 'scale down' period ";
 
@@ -258,9 +258,10 @@ namespace Bellhop.Function
             return (day, time);
          }
 
-        public static bool resizeTime(Hashtable times)
+
+        //updated function signature to make more testable
+        public static bool resizeTime(Hashtable times, DateTime now)
         {
-            DateTime now = DateTime.UtcNow;
             var currentDay = now.DayOfWeek;
 
             (var fromDay, var fromTime) = getActionTime((string)times["StartTime"]);
@@ -279,8 +280,9 @@ namespace Bellhop.Function
             var fromUpdate = (fromDay - currentDay);
             var toUpdate = (toDay - currentDay);
 
-            var fromDate = DateTime.Parse(fromTime.ToString()).AddDays(fromUpdate);
-            var toDate = DateTime.Parse(toTime.ToString()).AddDays(toUpdate);
+            //parse the Update times but use 'now' as an anchor to allow for better testability
+            var fromDate = new DateTime(now.Year, now.Month, now.Day, fromTime.Hours, fromTime.Minutes, fromTime.Seconds).AddDays(fromUpdate);
+            var toDate = new DateTime(now.Year, now.Month, now.Day, toTime.Hours, toTime.Minutes, toTime.Seconds).AddDays(toUpdate);
 
             if (now > toDate)
             {
