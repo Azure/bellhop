@@ -46,6 +46,11 @@ The Bellhop project leverages [Docsify](https://docsify.js.org/#/) and [GitHub P
 
 - **[Welcome to Bellhop!](https://azure.github.io/bellhop/#/)**
 
+## Questions or Comments?
+The Bellhop team welcomes engagement and contributions from the community. We have set up a GitHub Discussions page [here](https://github.com/Azure/bellhop/discussions) to make it easy to engage with the Bellhop team without opening an issue.
+
+Also, feel free to email us at bellhop@microsoft.com with any questions or comments and we will respond as soon as we can. 
+
 ## FAQ
 
 **Why would I use Bellhop?**
@@ -60,9 +65,6 @@ We would like this to become a SaaS/PaaS product that will help to keep our cust
 
 Matt, Nills, and Tyler are Cloud Solutions Architects at Microsoft, and are always looking for interesting ways to help our customers solve problems!
 
-**Want to know more about Bellhop??**
-
-Please feel free to reach out to bellhop@microsoft.com with any questions or feedback! 
 
 ## Contributing
 
