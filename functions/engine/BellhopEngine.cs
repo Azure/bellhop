@@ -247,10 +247,9 @@ namespace Bellhop.Function
             //todo: add support for "Daily" keyword
             System.DayOfWeek day;
             
-            //if stamp does not contain dayOfWeek, assume "Daily?
             //if stamp contains "Daily" then resolve to today
             // this assumes that a one-part stamp sets the time and not the day
-            if (parsedStamp.Length == 1 || parsedStamp[0].ToLower().Equals(dailyStr))
+            if (parsedStamp[0].ToLower().Equals(dailyStr))
                 day = DateTime.UtcNow.DayOfWeek;
             else
                 day = (DayOfWeek)Enum.Parse(typeof(DayOfWeek), parsedStamp[0], true);
@@ -260,7 +259,6 @@ namespace Bellhop.Function
             return (day, time);
         }
 
-        // i feel like this logic could go for a few units tests
         public static bool resizeTime(Hashtable times, ILogger log)
         {
             //wrap in try/catch to avoid failing across the board if one tag cannot be correctly parsed
@@ -299,7 +297,7 @@ namespace Bellhop.Function
                 }
 
             }catch (Exception ex){
-                log.LogError(0, ex, "Error calculating resize time");
+                log.LogError(0, ex, $"Error calculating resize time -- StartTime: {(string)times["StartTime"]}  EndTime: {(string)times["EndTime"]}");
             }
             
             return false;
