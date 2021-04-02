@@ -46,13 +46,12 @@ The Bellhop project leverages [Docsify](https://docsify.js.org/#/) and [GitHub P
 
 - **[Welcome to Bellhop!](https://azure.github.io/bellhop/#/)**
 
-## Questions or Comments?
+## Questions or Comments for the team?
 The Bellhop team welcomes engagement and contributions from the community. We have set up a GitHub Discussions page [here](https://github.com/Azure/bellhop/discussions) to make it easy to engage with the Bellhop team without opening an issue.
 
 Also, feel free to email us at bellhop@microsoft.com with any questions or comments and we will respond as soon as we can. 
 
 ## FAQ
-
 **Why would I use Bellhop?**
 
 You realize that by "turning down" your resources in Dev/Test environments you could save a lot on the cost of your infrastructure. You also realize there is not currently an easy way to scale between service tiers on Azure services. Bellhop to the rescue!!!! Tag your resources with scale times and desired service tier settings and let Bellhop take care of the rest!

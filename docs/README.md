@@ -92,7 +92,7 @@ For the purpose of this project we have not integrated a complete set of securit
 **_IT IS RECOMMENDED TO USE AVAILABLE SECURITY CONTROLS IN A PRODUCTION DEPLOYMENT_**
 
 
-## Questions or Comments?
+## Questions or Comments
 The Bellhop team welcomes engagement and contributions from the community. We have set up a GitHub Discussions page [here](https://github.com/Azure/bellhop/discussions) to make it easy to engage with the Bellhop team without opening an issue.
 
 Also, feel free to email us at bellhop@microsoft.com with any questions or comments and we will respond as soon as we can. 
