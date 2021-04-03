@@ -1,6 +1,7 @@
 # note to self: need to figure out how to best install resourceGraph 
 # Install-Module -Name Az.ResourceGraph
 <<<<<<< HEAD
+<<<<<<< HEAD
 ## example: ./e2etest/BellhopScaler/e2etest.ps1 -serviceName Microsoft.Web -templateLocation ./e2etest/BellhopScaler/microsoft.web/asp.json -settingToProjectScaledDown "sku.name" -targetSettingScaledDown "B1" -settingToProjectScaledUp "sku.name" -targetSettingScaledup "S1"
 param ($Location="westus2", 
     $serviceName,
@@ -11,6 +12,9 @@ param ($Location="westus2",
     $targetSettingScaledup
 =======
 
+=======
+## example: ./e2etest/BellhopScaler/e2etest.ps1 -serviceName Microsoft.Web -templateLocation ./e2etest/BellhopScaler/microsoft.web/asp.json -settingToProjectScaledDown "sku.name" -targetSettingScaledDown "B1" -settingToProjectScaledUp "sku.name" -targetSettingScaledup "S1"
+>>>>>>> e2e test for app service
 param ($Location="westus2", 
     $serviceName,
 <<<<<<< HEAD
@@ -44,6 +48,7 @@ write-output "##########################"
 write-output "Deploying bellhop"
 write-output "##########################"
 New-AzDeployment `
+<<<<<<< HEAD
     -Name bellhop-e2etest-$TimeStamp `
     -location $Location `
     -TemplateFile templates/azuredeploy.json `
@@ -55,6 +60,8 @@ write-output "Deploying bellhop"
 write-output "##########################"
 >>>>>>> e2etest
 New-AzSubscriptionDeployment `
+=======
+>>>>>>> e2e test for app service
     -Name bellhop-e2etest-$TimeStamp `
 <<<<<<< HEAD
     -Location $Location `
@@ -288,24 +295,22 @@ write-output "##########################"
 write-output "Waiting for save-state tags on resource graph"
 write-output "##########################"
 
-$resourceId = "/subscriptions/d19dddf3-9520-4226-a313-ae8ee08675e5/resourceGroups/DEVBOX-WESTUS2/providers/Microsoft.Compute/disks/premium"
-$saveStateQuery = "resources | where id =~ '$resourceId'"
-
+$saveStateQuery = "resources | where id =~ '$resourceId' | where tags contains 'saveState' "
+write-output $saveStateQuery
+$i=0
 do {
     $i+=1
-    #Start-Sleep -s 60
+    Start-Sleep -s 60
     Write-Output "Querying resource graph: $i out of $max "
     $objectInGraph = Search-AzGraph -Query $saveStateQuery
     Write-Output "got following result: " + $objectInGraph
-    $tags = $objectInGraph.tags | Select-Object -Property setState*
 }
-while(($null -eq $tags.psobject.Properties) -and ($i -ne $max) )
+while(($null -eq $objectInGraph) -and ($i -ne $max) )
 
 if($i -eq $max){
-    write-output "setstate tags not discovered"
+    write-output "savestate tags not discovered"
+    exit 1
 }
-
-
 
 
 # Send new message to queue to scale resource up
@@ -349,4 +354,8 @@ if(($objectInGraph.target -ne $targetSettingScaledup) -or ($i -eq $max)){
     Write-Output "SKU on resource is " $objectInGraph.target
     exit 1
 }
+<<<<<<< HEAD
 >>>>>>> e2etest
+=======
+Write-Output "scaled back up succesfully"
+>>>>>>> e2e test for app service
