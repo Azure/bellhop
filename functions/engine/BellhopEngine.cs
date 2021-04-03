@@ -136,7 +136,7 @@ namespace Bellhop.Function
 
                 Regex rg = new Regex("saveState-.*");
 
-                if (resizeTime(times))
+                if (resizeTime(times, DateTime.Now))
                 {
                     string scaleMessage = "Currently within 'scale down' period ";
 
@@ -238,16 +238,30 @@ namespace Bellhop.Function
             queue.SendMessageAsync(jTarget);
         }
 
-        public static (System.DayOfWeek, TimeSpan) getActionTime(string stamp)
-        {
+         public static (System.DayOfWeek, TimeSpan) getActionTime(string stamp)
+         {
             string[] parsedStamp = stamp.Split(" ");
+            const string dailyStr = "daily";
 
-            return ((DayOfWeek)Enum.Parse(typeof(DayOfWeek), parsedStamp[0], true), Convert.ToDateTime(parsedStamp[1]).TimeOfDay);
-        }
+            //todo: add support for "Daily" keyword
+            System.DayOfWeek day;
 
-        public static bool resizeTime(Hashtable times)
+            //if stamp contains "Daily" then resolve to today
+            // this assumes that a one-part stamp sets the time and not the day
+            if (parsedStamp[0].ToLower().Equals(dailyStr))
+                day = DateTime.UtcNow.DayOfWeek;
+            else
+                day = (DayOfWeek)Enum.Parse(typeof(DayOfWeek), parsedStamp[0], true);
+
+            TimeSpan time = Convert.ToDateTime(parsedStamp[1]).TimeOfDay;
+
+            return (day, time);
+         }
+
+
+        //updated function signature to make more testable
+        public static bool resizeTime(Hashtable times, DateTime now)
         {
-            DateTime now = DateTime.UtcNow;
             var currentDay = now.DayOfWeek;
 
             (var fromDay, var fromTime) = getActionTime((string)times["StartTime"]);
@@ -266,8 +280,9 @@ namespace Bellhop.Function
             var fromUpdate = (fromDay - currentDay);
             var toUpdate = (toDay - currentDay);
 
-            var fromDate = DateTime.Parse(fromTime.ToString()).AddDays(fromUpdate);
-            var toDate = DateTime.Parse(toTime.ToString()).AddDays(toUpdate);
+            //parse the Update times but use 'now' as an anchor to allow for better testability
+            var fromDate = new DateTime(now.Year, now.Month, now.Day, fromTime.Hours, fromTime.Minutes, fromTime.Seconds).AddDays(fromUpdate);
+            var toDate = new DateTime(now.Year, now.Month, now.Day, toTime.Hours, toTime.Minutes, toTime.Seconds).AddDays(toUpdate);
 
             if (now > toDate)
             {
