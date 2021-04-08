@@ -148,6 +148,263 @@ namespace Bellhop.Function
         }
     }
 
+    class ResizeObject
+    {
+        private JObject graphData;
+        private string resizeDirection;
+        private Hashtable errors = new Hashtable();
+
+        public ResizeObject(JObject data)
+        {
+            graphData = data;
+
+            if (Settings.Debug) Console.WriteLine("=========================");
+            if (Settings.Debug) Console.WriteLine("Resource: " + graphData["name"].ToString());
+            // if (Settings.Debug) log.LogInformation("=========================");
+            // if (Settings.Debug) log.LogInformation("Resource: " + graphData["name"].ToString());
+
+            resizeDirection = getResizeDirection();
+
+            if (Settings.Debug) Console.WriteLine("=========================");
+            // if (Settings.Debug) log.LogInformation("=========================");
+        }
+
+        public string Name()
+        {
+            return graphData["name"].ToString();
+        }
+
+        public bool IsValid()
+        {
+            if(errors.Count > 0)
+            {
+                return false;
+            }
+            
+            return true;
+        }
+
+        public Hashtable Errors()
+        {
+            return errors;	
+        }
+
+        public string CurrentState()
+        {
+            if(scaledDown())
+            {
+                return "down";
+            }
+            
+            return "up";
+        }
+
+        public string TargetState()
+        {
+            if(timeToScale())
+            {
+                return "down";
+            }
+            
+            return "up";
+        }
+
+        public string ResizeDirection()
+        {
+            return resizeDirection;
+        }
+
+        private string getResizeDirection()
+        {
+            bool inScaleWindow = false;
+            string resizeDir;
+            string scaleMessage;
+
+            try
+            {
+                inScaleWindow = timeToScale();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.GetType().ToString());
+                Console.WriteLine(ex.Message);
+                // log.LogError(0, ex, ex.GetType().ToString());
+                // log.LogError(0, ex, ex.Message);
+            }
+
+            if(inScaleWindow)
+            {
+                scaleMessage = "Currently within 'scale down' period ";
+
+                if (scaledDown())
+                {
+                    scaleMessage += "(Already Scaled)";
+                    resizeDir = null;
+                }
+                else
+                {
+                    scaleMessage += "(Scale Scheduled)";
+                    resizeDir = "down";
+                }
+            }
+            else
+            {
+                scaleMessage = "Currently within 'scale up' period ";
+
+                if (scaledDown())
+                {
+                    scaleMessage += "(Scale Scheduled)";
+                    resizeDir = "up";
+                }
+                else
+                {
+                    scaleMessage += "(Already Scaled)";
+                    resizeDir = null;
+                }
+            }
+
+            if (Settings.Debug) Console.WriteLine(scaleMessage);
+            //if (Settings.Debug) log.LogInformation(scaleMessage);
+
+            return resizeDir;
+        }
+
+        private bool scaledDown()
+        {
+            Regex rg = new Regex($"{Settings.GetTag("save")}.*");
+
+            if (graphData["tags"].Children<JProperty>().Any(prop => rg.IsMatch(prop.Name.ToString())))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool timeToScale()
+        {
+            DateTime now = DateTime.UtcNow;
+            var currentDay = now.DayOfWeek;
+            const string dailyStr = "daily";
+
+            Dictionary<string, string> times = new Dictionary<string, string>()
+            {
+                {"StartTime", (string)graphData["tags"][Settings.GetTag("start")]},
+                {"EndTime", (string)graphData["tags"][Settings.GetTag("end")]}
+            };
+
+            if (Settings.Debug)
+            {
+                Console.WriteLine("Scale Down: " + times["StartTime"]);
+                Console.WriteLine("Scale Up: " + times["EndTime"]);
+                // log.LogInformation("Scale Down: " + times["StartTime"]);
+                // log.LogInformation("Scale Up: " + times["EndTime"]);
+            }
+
+            string[] fromStamp;
+            string[] toStamp;
+
+            (var fromDay, var fromTime) = (new DayOfWeek(), new TimeSpan());
+
+            try
+            {
+                fromStamp = times["StartTime"].Split(' ');
+
+                // If stamp contains "Daily" in lieu of a day of the week, resolve as today
+                if (fromStamp[0].ToLower().Equals(dailyStr))
+                {
+                    fromDay = DateTime.UtcNow.DayOfWeek;
+                }
+                else
+                {
+                    fromDay = (DayOfWeek)Enum.Parse(typeof(DayOfWeek), fromStamp[0], true);
+                }
+
+                fromTime = Convert.ToDateTime(fromStamp[1]).TimeOfDay;
+            }
+            catch (Exception)
+            {
+                throw new ArgumentException("StartTime has an invalid format", "StartTime");
+            }
+
+            (var toDay, var toTime) = (new DayOfWeek(), new TimeSpan());
+
+            try
+            {
+                toStamp = times["EndTime"].Split(' ');
+
+                // If stamp contains "Daily" in lieu of a day of the week, resolve as today
+                if (toStamp[0].ToLower().Equals(dailyStr))
+                {
+                    toDay = DateTime.UtcNow.DayOfWeek;
+                }
+                else
+                {
+                    toDay = (DayOfWeek)Enum.Parse(typeof(DayOfWeek), toStamp[0], true);
+                }
+
+                toTime = Convert.ToDateTime(toStamp[1]).TimeOfDay;
+            }
+            catch (Exception)
+            {
+                throw new ArgumentException("EndTime has an invalid format", "EndTime");
+            }
+
+            if((fromStamp[0].ToLower() == dailyStr || toStamp[0].ToLower() == dailyStr) && (fromStamp[0].ToLower() != toStamp[0].ToLower()))
+            {
+                if(fromStamp[0].ToLower() != dailyStr)
+                {
+                    throw new ArgumentException("'Daily' identifier must be use on both start and end tags", "StartTime");
+                }
+                else
+                {
+                    throw new ArgumentException("'Daily' identifier must be use on both start and end tags", "EndTime");
+                }
+            }
+
+            if (toDay < fromDay)
+            {
+                toDay += 7;
+
+                if (currentDay < fromDay)
+                {
+                    currentDay += 7;
+                }
+            }
+
+            var fromUpdate = (fromDay - currentDay);
+            var toUpdate = (toDay - currentDay);
+
+            var fromDate = DateTime.Parse(fromTime.ToString()).AddDays(fromUpdate);
+            var toDate = DateTime.Parse(toTime.ToString()).AddDays(toUpdate);
+
+            if((now > fromDate) && (now > toDate))
+            {
+                if(toDate > fromDate)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+
+            if (now > toDate)
+            {
+                toDate = toDate.AddDays(7);
+                fromDate = fromDate.AddDays(7);
+            }
+
+            if ((now > fromDate) && (now < toDate))
+            {
+                return true;
+            }
+
+            return false;
+        }
+    }
+
     public class BellhopEngine
     {
         private readonly IConfiguration _configuration;
