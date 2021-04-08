@@ -25,14 +25,126 @@ using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 
 namespace Bellhop.Function
 {
-  	public static class Debug
+    public class Settings
     {
-        private static bool _enabled = false;
-        
-        public static bool Enabled
+        private static bool _debug = false;
+        private static bool _isValid = false;
+        private static List<string> _errors = new List<string>();
+
+        private static Dictionary<string, string> _configData = new Dictionary<string, string>()
         {
-            get => _enabled;
-            set => _enabled = value;
+            { "storageAccount", null },
+            { "storageQueue", null },
+            { "tagPrefix", null },
+            { "enableTag", null },
+            { "startTimeTag", null },
+            { "endTimeTag", null },
+            { "setStatePrefix", null },
+            { "saveStatePrefix", null }
+        };
+
+        private static Dictionary<string, string> _tagMap = new Dictionary<string, string>();
+
+        public static bool Debug
+        {
+            get => _debug;
+            set => _debug = value;
+        }
+
+        public static Dictionary<string, string> ConfigData
+        {
+            get => _configData;
+        }
+
+        public static Dictionary<string, string> TagMap
+        {
+            get
+            {
+                if (_tagMap.Count == 0)
+                {
+                    GenerateTagMap();
+                }
+
+                return _tagMap;
+            }
+        }
+
+        public static bool IsValid
+        {
+            get => _isValid;
+        }
+
+        public static List<string> Errors
+        {
+            get => _errors;
+        }
+
+        public Settings()
+        {
+            ValidateConfig();
+        }
+
+        public static void SetConfig(string key, string value)
+        {
+            if (_configData.ContainsKey(key))
+            {
+                _configData[key] = value;
+                ValidateConfig();
+            }
+        }
+
+        public static string GetConfig(string key)
+        {
+            string result = null;
+
+            if (_configData.ContainsKey(key))
+            {
+                result = _configData[key];
+            }
+
+            return result;
+        }
+
+        public static string GetTag(string key)
+        {
+            string result = null;
+
+            if (_tagMap.Count == 0)
+            {
+                GenerateTagMap();
+            }
+
+            if (_tagMap.ContainsKey(key))
+            {
+                result = _tagMap[key];
+            }
+
+            return result;
+        }
+
+        private static void GenerateTagMap()
+        {
+            _tagMap.Clear();
+            _tagMap.Add("enable", (_configData["tagPrefix"] + _configData["enableTag"]));
+            _tagMap.Add("start", (_configData["tagPrefix"] + _configData["startTimeTag"]));
+            _tagMap.Add("end", (_configData["tagPrefix"] + _configData["endTimeTag"]));
+            _tagMap.Add("set", (_configData["tagPrefix"] + _configData["setStatePrefix"]));
+            _tagMap.Add("save", (_configData["tagPrefix"] + _configData["saveStatePrefix"]));
+        }
+
+        public static void ValidateConfig()
+        {
+            _errors.Clear();
+
+            var matches = _configData.Where(pair => String.IsNullOrEmpty(pair.Value))
+                    .Select(pair => pair.Key);
+
+            foreach (var match in matches)
+            {
+                _errors.Add(match);
+            }
+
+            _isValid = matches.Count() != 0 ? false : true;
         }
     }
 
@@ -62,45 +174,25 @@ namespace Bellhop.Function
             log.LogInformation("Debug Flag: " + debugAppSetting);
 
             try {
-			    Debug.Enabled = Boolean.Parse(debugAppSetting);
+			    Settings.Debug = Boolean.Parse(debugAppSetting);
 		    }
             catch {
-			    Debug.Enabled = false;
+			    Settings.Debug = false;
 		    }
 
-            bool debugFlag = bool.Parse(debugAppSetting);
+            Settings.SetConfig("storageAccount", _configuration.GetSection("CORE")["storageAccount"]);
+            Settings.SetConfig("storageQueue", _configuration.GetSection("CORE")["storageQueue"]);
+            Settings.SetConfig("tagPrefix", _configuration.GetSection("CONFIG")["tagPrefix"]);
+            Settings.SetConfig("enableTag", _configuration.GetSection("CONFIG")["enableTag"]);
+            Settings.SetConfig("startTimeTag", _configuration.GetSection("CONFIG")["startTimeTag"]);
+            Settings.SetConfig("endTimeTag", _configuration.GetSection("CONFIG")["endTimeTag"]);
+            Settings.SetConfig("setStatePrefix", _configuration.GetSection("CONFIG")["setStatePrefix"]);
+            Settings.SetConfig("saveStatePrefix", _configuration.GetSection("CONFIG")["saveStatePrefix"]);
 
-            IDictionary<string, string> configData = new Dictionary<string, string>();
-            configData.Add("storAccount", _configuration.GetSection("CORE")["storageAccount"]);
-            configData.Add("storQueue", _configuration.GetSection("CORE")["storageQueue"]);
-            configData.Add("tagPrefix", _configuration.GetSection("CONFIG")["tagPrefix"]);
-            configData.Add("setPrefix", _configuration.GetSection("CONFIG")["setStateTag"]);
-            configData.Add("savePrefix", _configuration.GetSection("CONFIG")["saveStateTag"]);
-
-            JArray missingConfig = new JArray();
-
-            foreach (var configItem in configData)
+            if (Settings.Debug)
             {
-                if (String.IsNullOrEmpty(configItem.Value)) { missingConfig.Add("test"); }
-            }
-
-            if (missingConfig.Count > 0)
-            {
-                log.LogError("Missing config items: " + missingConfig);
-                // Terminate Execution
-            }
-
-            IDictionary<string, string> tagMap = new Dictionary<string, string>();
-            tagMap.Add("enable", (configData["tagPrefix"] + "resize-Enable"));
-            tagMap.Add("start", (configData["tagPrefix"] + "resize-StartTime"));
-            tagMap.Add("end", (configData["tagPrefix"] + "resize-EndTime"));
-            tagMap.Add("set", (configData["tagPrefix"] + configData["setPrefix"]));
-            tagMap.Add("save", (configData["tagPrefix"] + configData["savePrefix"]));
-
-            if (Debug.Enabled)
-            {
-                string configDataJson = JsonConvert.SerializeObject(configData);
-                string tagMapJson = JsonConvert.SerializeObject(tagMap);
+                string configDataJson = JsonConvert.SerializeObject(Settings.ConfigData);
+                string tagMapJson = JsonConvert.SerializeObject(Settings.TagMap);
 
                 log.LogInformation("Config Data:");
                 log.LogInformation(configDataJson);
@@ -109,12 +201,19 @@ namespace Bellhop.Function
                 log.LogInformation(tagMapJson);
             }
 
-            string strQuery = $"Resources | where tags['{tagMap["enable"]}'] =~ 'True'";
+            if(!Settings.IsValid)
+            {
+                var errorString = string.Join(",", Settings.Errors.ToArray());
+                var ex = new ValidationException("Missing App Configuration Settings");
+                log.LogError(0, ex, $"Missing App Configuration Settings: [{errorString}]");
+            }
+
+            string strQuery = $"Resources | where tags['{Settings.GetTag("enable")}'] =~ 'True'";
 
             var resizeUpList = new List<JObject>();
             var resizeDownList = new List<JObject>();
 
-            QueueClient messageQueue = getQueueClient(configData["storAccount"], configData["storQueue"]);
+            QueueClient messageQueue = getQueueClient(Settings.GetConfig("storageAccount"), Settings.GetConfig("storageQueue"));
 
             ManagedIdentityCredential managedIdentityCredential = new ManagedIdentityCredential();
             string[] scope = new string[] { "https://management.azure.com/.default" };
@@ -130,7 +229,7 @@ namespace Bellhop.Function
                 .Select(s => s.SubscriptionId)
                 .ToList();
 
-            if (Debug.Enabled)
+            if (Settings.Debug)
             {
                 string subscriptionJson = JsonConvert.SerializeObject(subscriptionIds);
 
@@ -153,73 +252,79 @@ namespace Bellhop.Function
 
             foreach (JObject resource in resources)
             {
-                if (Debug.Enabled) log.LogInformation("=========================");
-                if (Debug.Enabled) log.LogInformation("Resource: " + resource["name"].ToString());
+                if (Settings.Debug) log.LogInformation("=========================");
+                if (Settings.Debug) log.LogInformation("Resource: " + resource["name"].ToString());
 
                 Hashtable times = new Hashtable() {
-                    {"StartTime", resource["tags"][tagMap["start"]].ToString()},
-                    {"EndTime", resource["tags"][tagMap["end"]].ToString()}
+                    {"StartTime", resource["tags"][Settings.GetTag("start")].ToString()},
+                    {"EndTime", resource["tags"][Settings.GetTag("end")].ToString()}
                 };
 
-                if (Debug.Enabled)
+                if (Settings.Debug)
                 {
                     log.LogInformation("Scale Down: " + times["StartTime"]);
                     log.LogInformation("Scale Up: " + times["EndTime"]);
                 }
 
-                Regex rg = new Regex($"{tagMap["save"] }.*");
+                Regex rg = new Regex($"{Settings.GetTag("save")}.*");
 
-                if (resizeTime(times))
-                {
-                    string scaleMessage = "Currently within 'scale down' period ";
-
-                    if (resource["tags"].Children<JProperty>().Any(prop => rg.IsMatch(prop.Name.ToString())))
+                try {
+                    if (resizeTime(times))
                     {
-                        scaleMessage += "(Already Scaled)";
+                        string scaleMessage = "Currently within 'scale down' period ";
+
+                        if (resource["tags"].Children<JProperty>().Any(prop => rg.IsMatch(prop.Name.ToString())))
+                        {
+                            scaleMessage += "(Already Scaled)";
+                        }
+                        else
+                        {
+                            scaleMessage += "(Scale Scheduled)";
+                            resizeDownList.Add(resource);
+                        }
+
+                        if (Settings.Debug) log.LogInformation(scaleMessage);
                     }
                     else
                     {
-                        scaleMessage += "(Scale Scheduled)";
-                        resizeDownList.Add(resource);
-                    }
+                        string scaleMessage = "Currently within 'scale up' period ";
 
-                    if (Debug.Enabled) log.LogInformation(scaleMessage);
-                }
-                else
-                {
-                    string scaleMessage = "=> Currently within 'scale up' period ";
+                        if (resource["tags"].Children<JProperty>().Any(prop => rg.IsMatch(prop.Name.ToString())))
+                        {
+                            scaleMessage += "(Scale Scheduled)";
+                            resizeUpList.Add(resource);
+                        }
+                        else
+                        {
+                            scaleMessage += "(Already Scaled)";
+                        }
 
-                    if (resource["tags"].Children<JProperty>().Any(prop => rg.IsMatch(prop.Name.ToString())))
-                    {
-                        scaleMessage += "(Scale Scheduled)";
-                        resizeUpList.Add(resource);
+                        if (Settings.Debug) log.LogInformation(scaleMessage);
                     }
-                    else
-                    {
-                        scaleMessage += "(Already Scaled)";
-                    }
-
-                    if (Debug.Enabled) log.LogInformation(scaleMessage);
+                } catch (Exception ex) {
+                    // log.LogError(0, ex, $"Error calculating resize time -- StartTime: {(string)times["StartTime"]}  EndTime: {(string)times["EndTime"]}");
+                    log.LogError(0, ex, ex.GetType().ToString());
+                    log.LogError(0, ex, ex.Message);
                 }
             }
 
-            if (Debug.Enabled) log.LogInformation("=========================");
+            if (Settings.Debug) log.LogInformation("=========================");
             log.LogInformation("Processing scale up queue...");
 
             foreach (var item in resizeUpList)
             {
-                if (Debug.Enabled) log.LogInformation("-------------------------");
-                if (Debug.Enabled) log.LogInformation(item["name"].ToString() + " => up");
+                if (Settings.Debug) log.LogInformation("-------------------------");
+                if (Settings.Debug) log.LogInformation(item["name"].ToString() + " => up");
                 
                 var messageData = new JObject();
-                messageData.Add(new JProperty("debug", debugFlag));
+                messageData.Add(new JProperty("debug", Settings.Debug));
                 messageData.Add(new JProperty("direction", "up"));
-                messageData.Add(new JProperty("tagMap", JObject.FromObject(tagMap)));
+                messageData.Add(new JProperty("tagMap", JObject.FromObject(Settings.TagMap)));
                 messageData.Add(new JProperty("graphResults", item));
 
-                if (Debug.Enabled) log.LogInformation("Queue Message:");
-                if (Debug.Enabled) log.LogInformation(messageData.ToString(Formatting.None));
-                if (Debug.Enabled) log.LogInformation("-------------------------");
+                if (Settings.Debug) log.LogInformation("Queue Message:");
+                if (Settings.Debug) log.LogInformation(messageData.ToString(Formatting.None));
+                if (Settings.Debug) log.LogInformation("-------------------------");
 
                 writeQueueMessage(messageData, messageQueue);
             };
@@ -228,23 +333,23 @@ namespace Bellhop.Function
 
             foreach (var item in resizeDownList)
             {
-                if (Debug.Enabled) log.LogInformation("-------------------------");
-                if (Debug.Enabled) log.LogInformation(item["name"].ToString() + " => down");
+                if (Settings.Debug) log.LogInformation("-------------------------");
+                if (Settings.Debug) log.LogInformation(item["name"].ToString() + " => down");
 
                 var messageData = new JObject();
-                messageData.Add(new JProperty("debug", debugFlag));
+                messageData.Add(new JProperty("debug", Settings.Debug));
                 messageData.Add(new JProperty("direction", "down"));
-                messageData.Add(new JProperty("tagMap", JObject.FromObject(tagMap)));
+                messageData.Add(new JProperty("tagMap", JObject.FromObject(Settings.TagMap)));
                 messageData.Add(new JProperty("graphResults", item));
 
-                if (Debug.Enabled) log.LogInformation("Queue Message:");
-                if (Debug.Enabled) log.LogInformation(messageData.ToString(Formatting.None));
-                if (Debug.Enabled) log.LogInformation("-------------------------");
+                if (Settings.Debug) log.LogInformation("Queue Message:");
+                if (Settings.Debug) log.LogInformation(messageData.ToString(Formatting.None));
+                if (Settings.Debug) log.LogInformation("-------------------------");
 
                 writeQueueMessage(messageData, messageQueue);
             };
 
-            if (Debug.Enabled) log.LogInformation("=========================");
+            if (Settings.Debug) log.LogInformation("=========================");
             log.LogInformation("Done processing scale queues!");
 
             log.LogInformation("Bellhop engine execution complete!");
@@ -287,8 +392,23 @@ namespace Bellhop.Function
             DateTime now = DateTime.UtcNow;
             var currentDay = now.DayOfWeek;
 
-            (var fromDay, var fromTime) = getActionTime((string)times["StartTime"]);
-            (var toDay, var toTime) = getActionTime((string)times["EndTime"]);
+            (var fromDay, var fromTime) = (new DayOfWeek(), new TimeSpan());
+
+            try {
+                (fromDay, fromTime) = getActionTime((string)times["StartTime"]);
+            } catch (Exception) {
+                var startTimeStr = (string)times["StartTime"];
+                throw new ArgumentException("StartTime has an invalid format", $"StartTime: {startTimeStr}");
+            }
+
+            (var toDay, var toTime) = (new DayOfWeek(), new TimeSpan());
+
+            try {
+                (toDay, toTime) = getActionTime((string)times["EndTime"]);
+            } catch (Exception) {
+                var endTimeStr = (string)times["StartTime"];
+                throw new ArgumentException("EndTime has an invalid format", $"EndTime: {endTimeStr}");
+            }
 
             if (toDay < fromDay)
             {

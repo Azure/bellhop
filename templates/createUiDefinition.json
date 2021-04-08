@@ -157,7 +157,7 @@
                         "visible": true
                     },
                     {
-                        "name": "setStateTag",
+                        "name": "setStatePrefix",
                         "type": "Microsoft.Common.TextBox",
                         "label": "Target State Tag Prefix",
                         "defaultValue": "setState-",
@@ -176,7 +176,7 @@
                         "visible": true
                     },
                     {
-                        "name": "saveStateTag",
+                        "name": "saveStatePrefix",
                         "type": "Microsoft.Common.TextBox",
                         "label": "Saved State Tag Prefix",
                         "defaultValue": "saveState-",
@@ -205,8 +205,8 @@
             "enableTag": "[steps('advancedConfig').enableTag]",
             "startTimeTag": "[steps('advancedConfig').startTimeTag]",
             "endTimeTag": "[steps('advancedConfig').endTimeTag]",
-            "setStateTag": "[steps('advancedConfig').setStateTag]",
-            "saveStateTag": "[steps('advancedConfig').saveStateTag]"
+            "setStateTag": "[steps('advancedConfig').setStatePrefix]",
+            "saveStateTag": "[steps('advancedConfig').saveStatePrefix]"
         }
     }
 }
