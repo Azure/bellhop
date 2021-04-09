@@ -78,10 +78,12 @@ Are the timestamps in a specific timezone, or can I select a timezone?
 
 Can I have Bellhop resize Daily/Weekly/Monthly?
 - Currently, we do support using the word ```Daily``` in place of the ```<DayOfWeek>``` which will trigger the resize action on a daily basis
-- When using the ```Daily``` value, both the StartTime and EndTime _must_ be set the same
+- When using the ```Daily``` value, you must use ```Daily``` in both tags - You cannot mix ```Daily``` and ```<DayOfWeek>```
 - Example usage:
     - ```resize-StartTime = Daily 8PM```
     - ```resize-EndTime = Daily 6AM```
+- Additional values such as ```Weekly``` or ```Monthly``` may be added in the future
+    - If you have a specific use case or requirement for these additional keywords, please share with us on our [GitHub Discussions](https://github.com/Azure/bellhop/discussions) page
 
 ## Bellhop Infrastructure Overview
 ### What gets deployed with Bellhop?
