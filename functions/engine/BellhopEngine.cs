@@ -69,6 +69,14 @@ namespace Bellhop.Function
             }
         }
 
+        public static JObject TagMapObject
+        {
+            get
+            {
+                return JObject.FromObject(TagMap);
+            }
+        }
+
         public static bool IsValid
         {
             get => _isValid;
@@ -151,125 +159,148 @@ namespace Bellhop.Function
     class ResizeObject
     {
         private JObject graphData;
-        private string resizeDirection;
-        private Hashtable errors = new Hashtable();
+        // private Hashtable errors = new Hashtable();
+        List<KeyValuePair<object, string>> errors = new List<KeyValuePair<object, string>>();
 
         public ResizeObject(JObject data)
         {
             graphData = data;
-
-            if (Settings.Debug) Console.WriteLine("=========================");
-            if (Settings.Debug) Console.WriteLine("Resource: " + graphData["name"].ToString());
-            // if (Settings.Debug) log.LogInformation("=========================");
-            // if (Settings.Debug) log.LogInformation("Resource: " + graphData["name"].ToString());
-
-            resizeDirection = getResizeDirection();
-
-            if (Settings.Debug) Console.WriteLine("=========================");
-            // if (Settings.Debug) log.LogInformation("=========================");
         }
 
-        public string Name()
+        public string Name
         {
-            return graphData["name"].ToString();
-        }
-
-        public bool IsValid()
-        {
-            if(errors.Count > 0)
+            get
             {
-                return false;
+                return graphData["name"].ToString();
             }
-            
-            return true;
         }
 
-        public Hashtable Errors()
+        public JObject GraphData
         {
-            return errors;	
-        }
-
-        public string CurrentState()
-        {
-            if(scaledDown())
+            get
             {
-                return "down";
+                return graphData;
             }
-            
-            return "up";
         }
 
-        public string TargetState()
+        public bool IsValid
         {
-            if(timeToScale())
+            get
             {
-                return "down";
+                if(errors.Count > 0)
+                {
+                    return false;
+                }
+
+                return true;
             }
-            
-            return "up";
         }
 
-        public string ResizeDirection()
+        public List<KeyValuePair<object, string>>  Errors
         {
-            return resizeDirection;
+            get
+            {
+                return errors;
+            }
         }
 
-        private string getResizeDirection()
+        public string CurrentState
         {
-            bool inScaleWindow = false;
-            string resizeDir;
+            get
+            {
+                if(IsScaledDown())
+                {
+                    return "down";
+                }
+
+                return "up";
+            }
+        }
+
+        public string TargetState
+        {
+            get
+            {
+                try
+                {
+                    if(TimeToScale())
+                    {
+                        return "down";
+                    }
+
+                    return "up";
+                }
+                catch (Exception ex)
+                {
+                    errors.Add(new KeyValuePair<object, string>(ex.GetType(), ex.Message));
+                    return null;
+                }
+            }
+        }
+
+        public List<string> Debug()
+        {
+            Dictionary<string, string> times = new Dictionary<string, string>()
+            {
+                {"StartTime", (string)graphData["tags"][Settings.GetTag("start")]},
+                {"EndTime", (string)graphData["tags"][Settings.GetTag("end")]}
+            };
+
+            List<string> debugMessage = new List<string>();
             string scaleMessage;
 
-            try
-            {
-                inScaleWindow = timeToScale();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.GetType().ToString());
-                Console.WriteLine(ex.Message);
-                // log.LogError(0, ex, ex.GetType().ToString());
-                // log.LogError(0, ex, ex.Message);
-            }
+            debugMessage.Add("=========================");
+            debugMessage.Add("Resource: " + graphData["name"].ToString());
+            debugMessage.Add("Scale Down: " + times["StartTime"]);
+            debugMessage.Add("Scale Up: " + times["EndTime"]);
 
-            if(inScaleWindow)
+            if (ResizeAction != null)
             {
-                scaleMessage = "Currently within 'scale down' period ";
-
-                if (scaledDown())
-                {
-                    scaleMessage += "(Already Scaled)";
-                    resizeDir = null;
-                }
-                else
-                {
-                    scaleMessage += "(Scale Scheduled)";
-                    resizeDir = "down";
-                }
+                scaleMessage = "(Scale Scheduled)";
             }
             else
             {
-                scaleMessage = "Currently within 'scale up' period ";
-
-                if (scaledDown())
-                {
-                    scaleMessage += "(Scale Scheduled)";
-                    resizeDir = "up";
-                }
-                else
-                {
-                    scaleMessage += "(Already Scaled)";
-                    resizeDir = null;
-                }
+                scaleMessage = "(Already Scaled)";
             }
 
-            if (Settings.Debug) Console.WriteLine(scaleMessage);
-            //if (Settings.Debug) log.LogInformation(scaleMessage);
+            debugMessage.Add($"Currently within 'scale {TargetState}' period {scaleMessage}");
+            debugMessage.Add("=========================");
 
-            return resizeDir;
+            return debugMessage;
         }
 
-        private bool scaledDown()
+        public string DebugString
+        {
+            get
+            {
+                string debugString = string.Join("\n", Debug());
+
+                return debugString;
+            }
+        }
+
+        public string ResizeAction
+        {
+            get
+            {
+                try
+                {
+                    if(CurrentState != TargetState)
+                    {
+                        return TargetState;
+                    }
+
+                    return null;
+                }
+                catch (Exception ex)
+                {
+                    errors.Add(new KeyValuePair<object, string>(ex.GetType(), ex.Message));
+                    return null;
+                }
+            }
+        }
+
+        private bool IsScaledDown()
         {
             Regex rg = new Regex($"{Settings.GetTag("save")}.*");
 
@@ -281,7 +312,7 @@ namespace Bellhop.Function
             return false;
         }
 
-        private bool timeToScale()
+        private bool TimeToScale()
         {
             DateTime now = DateTime.UtcNow;
             var currentDay = now.DayOfWeek;
@@ -292,14 +323,6 @@ namespace Bellhop.Function
                 {"StartTime", (string)graphData["tags"][Settings.GetTag("start")]},
                 {"EndTime", (string)graphData["tags"][Settings.GetTag("end")]}
             };
-
-            if (Settings.Debug)
-            {
-                Console.WriteLine("Scale Down: " + times["StartTime"]);
-                Console.WriteLine("Scale Up: " + times["EndTime"]);
-                // log.LogInformation("Scale Down: " + times["StartTime"]);
-                // log.LogInformation("Scale Up: " + times["EndTime"]);
-            }
 
             string[] fromStamp;
             string[] toStamp;
@@ -378,7 +401,7 @@ namespace Bellhop.Function
             var fromDate = DateTime.Parse(fromTime.ToString()).AddDays(fromUpdate);
             var toDate = DateTime.Parse(toTime.ToString()).AddDays(toUpdate);
 
-            if((now > fromDate) && (now > toDate))
+            if(((now > fromDate) && (now > toDate)) || ((now < fromDate) && (now < toDate)))
             {
                 if(toDate > fromDate)
                 {
@@ -431,11 +454,11 @@ namespace Bellhop.Function
             log.LogInformation("Debug Flag: " + debugAppSetting);
 
             try {
-			    Settings.Debug = Boolean.Parse(debugAppSetting);
-		    }
+                Settings.Debug = Boolean.Parse(debugAppSetting);
+            }
             catch {
-			    Settings.Debug = false;
-		    }
+                Settings.Debug = false;
+            }
 
             Settings.SetConfig("storageAccount", _configuration.GetSection("CORE")["storageAccount"]);
             Settings.SetConfig("storageQueue", _configuration.GetSection("CORE")["storageQueue"]);
@@ -507,97 +530,38 @@ namespace Bellhop.Function
 
             log.LogInformation("Examining resources...");
 
+            List<ResizeObject> resizeList = new List<ResizeObject>();
+
             foreach (JObject resource in resources)
             {
-                if (Settings.Debug) log.LogInformation("=========================");
-                if (Settings.Debug) log.LogInformation("Resource: " + resource["name"].ToString());
+                ResizeObject obj = new ResizeObject(resource);
 
-                Hashtable times = new Hashtable() {
-                    {"StartTime", resource["tags"][Settings.GetTag("start")].ToString()},
-                    {"EndTime", resource["tags"][Settings.GetTag("end")].ToString()}
-                };
+                resizeList.Add(obj);
 
                 if (Settings.Debug)
                 {
-                    log.LogInformation("Scale Down: " + times["StartTime"]);
-                    log.LogInformation("Scale Up: " + times["EndTime"]);
-                }
-
-                Regex rg = new Regex($"{Settings.GetTag("save")}.*");
-
-                try {
-                    if (resizeTime(times))
+                    foreach (var line in obj.Debug())
                     {
-                        string scaleMessage = "Currently within 'scale down' period ";
-
-                        if (resource["tags"].Children<JProperty>().Any(prop => rg.IsMatch(prop.Name.ToString())))
-                        {
-                            scaleMessage += "(Already Scaled)";
-                        }
-                        else
-                        {
-                            scaleMessage += "(Scale Scheduled)";
-                            resizeDownList.Add(resource);
-                        }
-
-                        if (Settings.Debug) log.LogInformation(scaleMessage);
+                        log.LogInformation(line);
                     }
-                    else
-                    {
-                        string scaleMessage = "Currently within 'scale up' period ";
-
-                        if (resource["tags"].Children<JProperty>().Any(prop => rg.IsMatch(prop.Name.ToString())))
-                        {
-                            scaleMessage += "(Scale Scheduled)";
-                            resizeUpList.Add(resource);
-                        }
-                        else
-                        {
-                            scaleMessage += "(Already Scaled)";
-                        }
-
-                        if (Settings.Debug) log.LogInformation(scaleMessage);
-                    }
-                } catch (Exception ex) {
-                    // log.LogError(0, ex, $"Error calculating resize time -- StartTime: {(string)times["StartTime"]}  EndTime: {(string)times["EndTime"]}");
-                    log.LogError(0, ex, ex.GetType().ToString());
-                    log.LogError(0, ex, ex.Message);
                 }
             }
 
+            log.LogInformation("Processing scale items...");
             if (Settings.Debug) log.LogInformation("=========================");
-            log.LogInformation("Processing scale up queue...");
 
-            foreach (var item in resizeUpList)
+            var scaleItems = resizeList.Where(x => x.ResizeAction != null);
+
+            foreach (var item in scaleItems)
             {
                 if (Settings.Debug) log.LogInformation("-------------------------");
-                if (Settings.Debug) log.LogInformation(item["name"].ToString() + " => up");
-                
-                var messageData = new JObject();
-                messageData.Add(new JProperty("debug", Settings.Debug));
-                messageData.Add(new JProperty("direction", "up"));
-                messageData.Add(new JProperty("tagMap", JObject.FromObject(Settings.TagMap)));
-                messageData.Add(new JProperty("graphResults", item));
-
-                if (Settings.Debug) log.LogInformation("Queue Message:");
-                if (Settings.Debug) log.LogInformation(messageData.ToString(Formatting.None));
-                if (Settings.Debug) log.LogInformation("-------------------------");
-
-                writeQueueMessage(messageData, messageQueue);
-            };
-
-            log.LogInformation("Processing scale down queue...");
-
-            foreach (var item in resizeDownList)
-            {
-                if (Settings.Debug) log.LogInformation("-------------------------");
-                if (Settings.Debug) log.LogInformation(item["name"].ToString() + " => down");
+                if (Settings.Debug) log.LogInformation(item.Name + " => " + item.ResizeAction);
 
                 var messageData = new JObject();
                 messageData.Add(new JProperty("debug", Settings.Debug));
-                messageData.Add(new JProperty("direction", "down"));
-                messageData.Add(new JProperty("tagMap", JObject.FromObject(Settings.TagMap)));
-                messageData.Add(new JProperty("graphResults", item));
+                messageData.Add(new JProperty("direction", item.ResizeAction));
+                messageData.Add(new JProperty("tagMap", Settings.TagMapObject));
+                messageData.Add(new JProperty("graphResults", item.GraphData));
 
                 if (Settings.Debug) log.LogInformation("Queue Message:");
                 if (Settings.Debug) log.LogInformation(messageData.ToString(Formatting.None));
@@ -607,7 +571,7 @@ namespace Bellhop.Function
             };
 
             if (Settings.Debug) log.LogInformation("=========================");
-            log.LogInformation("Done processing scale queues!");
+            log.LogInformation("Done processing scale items!");
 
             log.LogInformation("Bellhop engine execution complete!");
         }
@@ -635,66 +599,6 @@ namespace Bellhop.Function
             var jTarget = target.ToString(Formatting.None);
 
             queue.SendMessageAsync(jTarget);
-        }
-
-        public static (System.DayOfWeek, TimeSpan) getActionTime(string stamp)
-        {
-            string[] parsedStamp = stamp.Split(" ");
-
-            return ((DayOfWeek)Enum.Parse(typeof(DayOfWeek), parsedStamp[0], true), Convert.ToDateTime(parsedStamp[1]).TimeOfDay);
-        }
-
-        public static bool resizeTime(Hashtable times)
-        {
-            DateTime now = DateTime.UtcNow;
-            var currentDay = now.DayOfWeek;
-
-            (var fromDay, var fromTime) = (new DayOfWeek(), new TimeSpan());
-
-            try {
-                (fromDay, fromTime) = getActionTime((string)times["StartTime"]);
-            } catch (Exception) {
-                var startTimeStr = (string)times["StartTime"];
-                throw new ArgumentException("StartTime has an invalid format", $"StartTime: {startTimeStr}");
-            }
-
-            (var toDay, var toTime) = (new DayOfWeek(), new TimeSpan());
-
-            try {
-                (toDay, toTime) = getActionTime((string)times["EndTime"]);
-            } catch (Exception) {
-                var endTimeStr = (string)times["StartTime"];
-                throw new ArgumentException("EndTime has an invalid format", $"EndTime: {endTimeStr}");
-            }
-
-            if (toDay < fromDay)
-            {
-                toDay += 7;
-
-                if (currentDay < fromDay)
-                {
-                    currentDay += 7;
-                }
-            }
-
-            var fromUpdate = (fromDay - currentDay);
-            var toUpdate = (toDay - currentDay);
-
-            var fromDate = DateTime.Parse(fromTime.ToString()).AddDays(fromUpdate);
-            var toDate = DateTime.Parse(toTime.ToString()).AddDays(toUpdate);
-
-            if (now > toDate)
-            {
-                toDate = toDate.AddDays(7);
-                fromDate = fromDate.AddDays(7);
-            }
-
-            if ((now > fromDate) && (now < toDate))
-            {
-                return true;
-            }
-
-            return false;
         }
     }
 }
