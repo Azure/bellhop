@@ -211,7 +211,7 @@ $tags = $tagData.tags
 
 You will need to switch off of the direction sent from the Engine function.  Scaling up is the easier operation as it only requires parsing the values of the `"saveState-"` tags.
 
-`"$config"` is populated with the saved tag data and base data, providing the necessary parameters to the scaling command:
+`$config` is populated with the saved tag data and base data, providing the necessary parameters to the scaling command:
 ```
 switch ($direction) {
     'up' {
@@ -223,7 +223,7 @@ switch ($direction) {
 
 #### Scaling Down:
 
-Scaling down is the more challenging operation and often requires the most complex code logic. In the below example for App Service Plans we begin to build out the `"$config"` Hash Table, starting with the Tier which is the only _REQUIRED_ additional parameter.
+Scaling down is the more challenging operation and often requires the most complex code logic. In the below example for App Service Plans we begin to build out the `$config` Hash Table, starting with the Tier which is the only _REQUIRED_ additional parameter.
 ```
  'down' {
             Write-Host "Scaling App Service Plan: '$($graphData.name)' to Tier: '$($tagData.setData.Tier)'"
@@ -239,7 +239,7 @@ We then evaluate whether "WorkerSize" or "NumberofWorkers" has been set and if o
     if ( $tagData.setData.NumberofWorkers ) { $config.Add("NumberofWorkers", $tagData.setData.NumberofWorkers) }
 ```
 
-Next, we build the `"$saveData"` object which is used to remember the resources original state. This is done using both the `$WorkerSizeMap` we discussed above and the values from the Graph API query:
+Next, we build the `$saveData` object which is used to remember the resources original state. This is done using both the `$WorkerSizeMap` we discussed above and the values from the Graph API query:
 ```
 $saveData = @{
         WorkerSize      = $workerSizeMap[$graphData.properties.workerSize]
@@ -248,7 +248,7 @@ $saveData = @{
     }
 ```
 
-We can now finalize the `"$config"` and `"$tags"` objects that we will use to pass to the PowerShell Command. For the `"$Config"` object we just combine what we have built so far with the initial `"$baseData` we gathered. We then pass the `"$saveData` object to the `Set-SaveTags` Function which is used to generate the `"saveState-` tags (saved as `"$tags"`) to be applied to the resource during scale down:
+We can now finalize the `$config` and `$tags` objects that we will use to pass to the PowerShell Command. For the `$config` object we just combine what we have built so far with the initial `$baseData` we gathered. We then pass the `$saveData` object to the _`Set-SaveTags`_ Function which is used to generate the `"saveState-"` tags (saved as `$tags`) to be applied to the resource during scale down:
 ```
     $config += $baseData
     $tags += Set-SaveTags $saveData
@@ -258,8 +258,7 @@ At last we have all the data required to scale the desired resource:
 ```
 Set-AzAppServicePlan @config -Tag $tags
 ```
-
-
+_**Sample-scaler module psm1 can be found in the [development](./development/sample-scaler/) folder in the GitHub repo**_
 
 
 
