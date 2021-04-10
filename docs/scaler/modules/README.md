@@ -176,6 +176,25 @@ We can also determine the desired target state to scale _**DOWN**_ to. From the 
 - `"graphResults/tags/setState-WorkerSize": "Small"` - Scale down Worker Size "Small"
 - `"graphResults/tags/setState-Tier": "Basic"` - Scale down tier "Basic"
 
+### Saving the Original State
+Every Scaler Module should make use of the `Set-SaveTags` Function. This simple function takes the `$saveData` object which reprents the resources current configuration and then appends `"saveState-"` to each key creating the new tag values.
+
+Function:
+```
+function Set-SaveTags {
+    param (
+        $inTags
+    )
+
+    $outTags = @{ }
+    $inTags.keys | ForEach-Object { $outTags += @{("saveState-" + $_) = $inTags[$_] } }
+    
+    return $outTags
+}
+
+Export-ModuleMember -Function Update-Resource
+```
+
 ### Mapping Graph Results to Powershell Command Parameters
 Often times the data returned from Graph will require custom mapping to fit what values the PowerShell expects. When sizing the App Service Plan it is required to custom map the Worker Sizes returned via the Graph API query with the specific  "Small", "Medium", and "Large" that PowerShell expects.
 
@@ -255,7 +274,12 @@ We can now finalize the `$config` and `$tags` objects that we will use to pass t
     $tags += Set-SaveTags $saveData
 ```
 
-At last we have all the data required to scale the desired resource:
+#### Setting new Resource Config:
+At this time, whether we are scaling _UP_ or _DOWN_ we have all the data required to scale the target resource. All that we need to do is issue the proper PowerShell command and pass in our updated `$config` and `$tags` objects. 
+
+_Note: the config object is passed to the Set-Resource command as a hash table by using "@" instead of "$" in front of "config"_.
+
+**App Service Set Resource Example**:
 ```
 Set-AzAppServicePlan @config -Tag $tags
 ```
