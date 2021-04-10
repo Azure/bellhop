@@ -46,117 +46,221 @@ When beginning to think about extending Bellhop functionality to include a new A
 - Direction to Scale
 - Azure Graph Query result
 
-**It is important to note that we _STRONGLY_ recommend leveraging the data returned by the Graph API query. This is intended to limit the amount of queries to the API improving reliability and performance**
+**It is important to note that we _STRONGLY_ recommend leveraging the data returned by the Graph API query, and not using `Get-` commands in your scaler modules. This practice is intended to limit the number of queries to the API, thus improving reliability and performance**
 
 The Engine will always send the same formatted messages to the queue so we need to build our scaler logic around this information. The Scaler Function takes the Storage Queue message and breaks it into 3 parameters that will be passed to each Scaler Module. These parameters are:
 - $graphData - `graphResults` section from storage queue message
 - $tagData - `graphResults.tags` section from storage queue message
 - $direction - `direction` section from storage queue message
 
-To further illustrate this point, we can use the App Service Plan Scaler Module as an example. We can look at the process of building the map between Azure Graph API data and the necessary Powershell commands to scale the resource. As mentioned earlier, this will be the most complicated part of building a new Scaler Module because this logic/necessary information is not the same between all resources.  
+To further illustrate this point, we can use the App Service Plan Scaler Module as an example. We can look at the process of building the logical map between Azure Graph API data and the required Powershell commands to scale the desired resource. As mentioned earlier, this will be the most complicated part of building a new Scaler Module because this logic is not consistent across all Azure resources.
+
+### Powershell Commands
+All of the Scaler Modules are written in PowerShell due to how effectively it handles mangement operations on Azure resources. The majority of resources in Azure can be scaled by using the single `Set-Az<RESOURCENAME>` PowerShell Cmdlet. Unfortunately, this is not true for _ALL_ Azure resources, and will need validation via Azure resource specific documentation.
+
+The PowerShell command Bellhop uses to scale an App Service Plan is:
+- `Set-AzAppServicePlan`
+- From the [documentation](https://docs.microsoft.com/en-us/powershell/module/az.websites/set-azappserviceplan?view=azps-5.7.0) you can see (Example 2) that the necessary parameters to scale the resource are:
+    - Name (ASP Name)
+    - ResourceGroupName (RG where ASP is deployed)
+    - Tier (Desired ASP Tier)
+    - WorkerSize (Desired Compute size for App Service Plan)
+
+Example:
+```
+Set-AzAppServicePlan -Name "bellhop-test-app" -ResourceGroupName "bellhop-test-rg" -Tier "Basic" -WorkerSize "Small"
+```  
 
 ### Graph Results
-The base of the resource information we will have to work with is what is returned via the Azure Graph API query. Using an ASP, this is a sample Storage Queue message:
+The majority of the resource data we will have to work with is returned via the Azure Graph API query and provided to the scaler via the `graphResults` section of the scale message.
+
+App Service Plan example:
 
 ```
-{
-    "debug": false,
-    "direction": "down",
-    "graphResults": {
-        "id": "/subscriptions/<SUBSCRIPTION-ID>/resourceGroups/<RESOURCE-GROUP-NAME>/providers/Microsoft.Web/serverFarms/autoscale-test-app",
-        "name": "autoscale-test-app",
-        "type": "microsoft.web/serverfarms",
-        "tenantId": "<TENANT-ID>",
+"graphResults": {
+    "id": "/subscriptions/<SUBSCRIPTION-ID>/resourceGroups/<RESOURCE-GROUP-NAME>/providers/Microsoft.Web/serverFarms/bellhop-test-app",
+    "name": "bellhop-test-app",
+    "type": "microsoft.web/serverfarms",
+    "tenantId": "<TENANT-ID>",
+    "kind": "linux",
+    "location": "westus2",
+    "resourceGroup": "bellhop-test-rg",
+    "subscriptionId": "<SUBSCRIPTION-ID>",
+    "managedBy": "",
+    "sku": {
+        "name": "S3",
+        "tier": "Standard",
+        "capacity": 1,
+        "family": "S",
+        "size": "S3"
+    },
+    "plan": null,
+    "properties": {
+        "provisioningState": "Succeeded",
+        "name": "bellhop-test-app",
+        "resourceGroup": "bellhop-test-rg",
+        "subscription": "<SUBSCRIPTION-ID>",
         "kind": "linux",
-        "location": "westus2",
-        "resourceGroup": "<RESOURCE-GROUP-NAME>",
-        "subscriptionId": "<SUBSCRIPTION-ID>",
-        "managedBy": "",
-        "sku": {
-            "name": "S3",
-            "tier": "Standard",
-            "capacity": 1,
-            "family": "S",
-            "size": "S3"
-        },
-        "plan": null,
-        "properties": {
-            "provisioningState": "Succeeded",
-            "name": "autoscale-test-app",
-            "resourceGroup": "<RESOURCE-GROUP-NAME>",
-            "subscription": "<SUBSCRIPTION-ID>",
-            "kind": "linux",
-            "tags": {
-                "resize-Enable": "True"
-                "resize-StartTime": "Friday 7PM",
-                "resize-EndTime": "Monday 6AM",
-                "setState-WorkerSize": "Small",
-                "setState-Tier": "Basic",
-            },
-            "hostingEnvironmentProfile": null,
-            "status": "Ready",
-            "hostingEnvironmentId": null,
-            "hostingEnvironment": null,
-            "numberOfWorkers": 1,
-            "serverFarmId": 13574,
-            "computeMode": "Dedicated",
-            "webSpace": "<RESOURCE-GROUP-NAME>-<REGION>webspace",
-            "reserved": true,
-            "siteMode": null,
-            "isXenon": false,
-            "hyperV": false,
-            "freeOfferExpirationTime": null,
-            "spotExpirationTime": null,
-            "isSpot": false,
-            "numberOfSites": 0,
-            "maximumElasticWorkerCount": 1,
-            "perSiteScaling": false,
-            "geoRegion": "West US 2",
-            "adminRuntimeSiteName": null,
-            "planName": "VirtualDedicatedPlan",
-            "maximumNumberOfWorkers": 10,
-            "adminSiteName": null,
-            "currentNumberOfWorkers": 1,
-            "currentWorkerSizeId": 2,
-            "currentWorkerSize": "Large",
-            "workerTierName": null,
-            "workerSizeId": 2,
-            "workerSize": "Large",
-            "azBalancing": false,
-            "existingServerFarmIds": null,
-            "webSiteId": null,
-            "targetWorkerSizeId": 0,
-            "targetWorkerCount": 0,
-            "mdmId": ""
-        },
         "tags": {
-            "resize-Enable": "True",
+            "resize-Enable": "True"
             "resize-StartTime": "Friday 7PM",
             "resize-EndTime": "Monday 6AM",
             "setState-WorkerSize": "Small",
-            "setState-Tier": "Basic"
+            "setState-Tier": "Basic",
         },
-        "identity": null,
-        "zones": null,
-        "extendedLocation": null,
-        "ResourceId": "/subscriptions/<SUBSCRIPTION-ID>/resourceGroups/<RESOURCE-GROUP-NAME>/providers/Microsoft.Web/serverFarms/autoscale-test-app"
-    }
+        "hostingEnvironmentProfile": null,
+        "status": "Ready",
+        "hostingEnvironmentId": null,
+        "hostingEnvironment": null,
+        "numberOfWorkers": 1,
+        "serverFarmId": 13574,
+        "computeMode": "Dedicated",
+        "webSpace": "<RESOURCE-GROUP-NAME>-<REGION>webspace",
+        "reserved": true,
+        "siteMode": null,
+        "isXenon": false,
+        "hyperV": false,
+        "freeOfferExpirationTime": null,
+        "spotExpirationTime": null,
+        "isSpot": false,
+        "numberOfSites": 0,
+        "maximumElasticWorkerCount": 1,
+        "perSiteScaling": false,
+        "geoRegion": "West US 2",
+        "adminRuntimeSiteName": null,
+        "planName": "VirtualDedicatedPlan",
+        "maximumNumberOfWorkers": 10,
+        "adminSiteName": null,
+        "currentNumberOfWorkers": 1,
+        "currentWorkerSizeId": 2,
+        "currentWorkerSize": "Large",
+        "workerTierName": null,
+        "workerSizeId": 2,
+        "workerSize": "Large",
+        "azBalancing": false,
+        "existingServerFarmIds": null,
+        "webSiteId": null,
+        "targetWorkerSizeId": 0,
+        "targetWorkerCount": 0,
+        "mdmId": ""
+    },
+    "tags": {
+        "resize-Enable": "True",
+        "resize-StartTime": "Friday 7PM",
+        "resize-EndTime": "Monday 6AM",
+        "setState-WorkerSize": "Small",
+        "setState-Tier": "Basic"
+    },
+    "identity": null,
+    "zones": null,
+    "extendedLocation": null,
+    "ResourceId": "/subscriptions/<SUBSCRIPTION-ID>/resourceGroups/<RESOURCE-GROUP-NAME>/providers/Microsoft.Web/serverFarms/bellhop-test-app"
 }
 ```
 
-From these results, we see that the resource is going to scale is down as noted here:
+From these results, we can gather the information required to capture the resources current state. These vales will be used to create the `"saveState-"` tags:
+- `"graphResults/properties/workerSize": "Large"` 
+    - becomes the `"saveState-WorkerSize": "Large"` tag
+- `"graphResults/sku/tier": "Standard"` 
+    - becomes the `"saveState-Tier": "Standard"` tag
+
+We can also determine the desired target state to scale _**DOWN**_ to. From the `graphResults` above we would use the following tag and query values to map to our PowerShell Command:
+
+**Base Resource Information**:
+- `"graphResults/name": "bellhop-test-app"` - App Name
+- `"graphResults/ResourceGroup": "bellhop-test-rg"` - Resource Group Name
+- `"graphResults/type": "microsoft.web/serverfarms"` - Resource type for Scaler Module import
+
+**App Service Specific Information**:
+- `"graphResults/tags/setState-WorkerSize": "Small"` - Scale down Worker Size "Small"
+- `"graphResults/tags/setState-Tier": "Basic"` - Scale down tier "Basic"
+
+### Mapping Graph Results to Powershell Command Parameters
+Often times the data returned from Graph will require custom mapping to fit what values the PowerShell expects. When sizing the App Service Plan it is required to custom map the Worker Sizes returned via the Graph API query with the specific  "Small", "Medium", and "Large" that PowerShell expects.
+
+For Example ([sample-scaler/function.psm1](./development/sample-scaler/function.psm1)):
+
 ```
-{
-    "debug": false,
-    "direction": "down",
-    "graphResults": {
-    ...
+   $workerSizeMap = @{
+        D1          = "Small"
+        D2          = "Medmium"
+        D3          = "Large"
+        Default     = "Small"
+        Medium      = "Medium"
+        Large       = "Large"
+        SmallV3     = "Small"
+        MediumV3    = "Medium"
+        LargeV3     = "Large"
+    }
 ```
-
-
-
-### Powershell Commands to Scale
-
-### Mapping Graph Results to Powershell Scale Commands
 
 ### Putting it all together
+In all Scaler Modules we begin by building our `$baseData`, `$config`, and `$tag` objects. In the App Service Example we see that represented as:
+
+```
+$baseData = @{
+    ResourceGroupName = $graphData.resourceGroup
+    Name              = $graphData.name
+}
+
+$config = @{ }
+$tags = $tagData.tags
+```
+
+#### Scaling Up:
+
+You will need to switch off of the direction sent from the Engine function.  Scaling up is the easier operation as it only requires parsing the values of the `"saveState-"` tags.
+
+`"$config"` is populated with the saved tag data and base data, providing the necessary parameters to the scaling command:
+```
+switch ($direction) {
+    'up' {
+        Write-Host "Scaling App Service Plan: '$($graphData.name)' to Tier: '$($tagData.saveData.Tier)'"
+
+        $config = $baseData + $tagData.saveData
+    }
+```
+
+#### Scaling Down:
+
+Scaling down is the more challenging operation and often requires the most complex code logic. In the below example for App Service Plans we begin to build out the `"$config"` Hash Table, starting with the Tier which is the only _REQUIRED_ additional parameter.
+```
+ 'down' {
+            Write-Host "Scaling App Service Plan: '$($graphData.name)' to Tier: '$($tagData.setData.Tier)'"
+
+            $config = @{
+                Tier = $tagData.setData.Tier
+            }
+```
+
+We then evaluate whether "WorkerSize" or "NumberofWorkers" has been set and if one, or both, has they are then added to the "$config" hash table:
+```
+    if ( $tagData.setData.WorkerSize ) { $config.Add("WorkerSize", $tagData.setData.WorkerSize) }
+    if ( $tagData.setData.NumberofWorkers ) { $config.Add("NumberofWorkers", $tagData.setData.NumberofWorkers) }
+```
+
+Next, we build the `"$saveData"` object which is used to remember the resources original state. This is done using both the `$WorkerSizeMap` we discussed above and the values from the Graph API query:
+```
+$saveData = @{
+        WorkerSize      = $workerSizeMap[$graphData.properties.workerSize]
+        Tier            = $graphData.sku.tier
+        NumberofWorkers = $graphData.sku.capacity
+    }
+```
+
+We can now finalize the `"$config"` and `"$tags"` objects that we will use to pass to the PowerShell Command. For the `"$Config"` object we just combine what we have built so far with the initial `"$baseData` we gathered. We then pass the `"$saveData` object to the `Set-SaveTags` Function which is used to generate the `"saveState-` tags (saved as `"$tags"`) to be applied to the resource during scale down:
+```
+    $config += $baseData
+    $tags += Set-SaveTags $saveData
+```
+
+At last we have all the data required to scale the desired resource:
+```
+Set-AzAppServicePlan @config -Tag $tags
+```
+
+
+
+
+
+
