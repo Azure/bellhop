@@ -7,16 +7,14 @@ Each Azure resource that you wish to scale using Bellhop, will require its own P
 _You can reference these resource types when creating new scalers: [Azure Resource Graph Type Reference](https://docs.microsoft.com/en-us/azure/governance/resource-graph/reference/supported-tables-resources)_
 
 **For example**
-When creating the `App Service Plan` scaler module, the folder structure looks like this:
+When creating the `App Service Plan` scaler module (discussed in detail below), the folder structure looks like this:
 ```
 ./functions/scaler/BellhopScaler/scalers/microsoft.web/serverfarms/function.psm1
 ```
 
 
 ## Creating a New Scaler Module
-How can I extend this myself for a new Azure Resource Type?
-
-This solution was designed to be extensible from the beginning, with the idea being that to scale a new resource you only need to write a new module. There are a few steps to this process:
+This solution was designed to be extensible from the beginning, with the idea being that to scale a new resource you only need to write a new module. The core Engine and Scaler Function code should not have to change.  There are a few steps to follow to ensure success:
 
 1) Create new folder in the `/functions/scaler/BellhopScaler/scalers` folder that follows the pattern based on [Azure Resource Type](https://docs.microsoft.com/en-us/azure/governance/resource-graph/reference/supported-tables-resources)
     - **The format of these folders is important because the main Scaler-Trigger function uses the resource type returned from the Graph API query to determine the path to the correct Powershell Module to import**
@@ -24,15 +22,18 @@ This solution was designed to be extensible from the beginning, with the idea be
 
 2) Create new .psm1 PowerShell Module
     - Named: `function.psm1`
-    - This module will contain all of the logic to scale the new resource type, including the Azure PowerShell call to resize the rarget resource.
-    - Developed to accept the message format sent to the `autoscale` storage queue.
+    - This module will contain all of the logic to scale the new resource type, including the Azure PowerShell call to resize the rarget resource
+    - Developed to accept the message format sent to the `autoscale` storage queue
         - Scale Direction + Azure Resource Graph Query results
-    - The scaler modules should all follow a similar format and be designed to accept the same common parameters.
+    - The scaler modules should all follow a similar format and be designed to accept the same common parameters
         - **Sample-scaler module psm1 can be found in the [development](./development/sample-scaler/) folder in the GitHub repo**
         - **Example scaler logic walkthrough in section below**
 
-3) **TODO: DOCUMENT PROCESS TO UPDATE SCALER FUNCTION CONTAINER IMAGE**
-    - _Current process is being updated and documented_
+3) Build and Push new Scaler Function container version.
+    - Build new version via Dockerfile in `./functions/scaler/Dockerfile`
+    - Push new version to Docker Hub Repo
+    - _**NEED STEP BY STEP INSTRUCTIONS FOR HOW TO ACCOMPLISH THIS**_
+    - _**Current process is being updated and documented**_
 
 4) Create new `servicename.md` page to document how to use the new scaler.
     - Create this file in the `./docs/scaler/modules/` folder
@@ -46,7 +47,7 @@ When beginning to think about extending Bellhop functionality to include a new A
 - Direction to Scale
 - Azure Graph Query result
 
-**It is important to note that we _STRONGLY_ recommend leveraging the data returned by the Graph API query, and not using `Get-` commands in your scaler modules. This practice is intended to limit the number of queries to the API, thus improving reliability and performance**
+**It is important to note that we _STRONGLY_ recommend leveraging the data returned by the Graph API query, and not using `"Get-"` commands in your scaler modules. This practice is intended to limit the number of queries to the API, thus improving reliability and performance**
 
 The Engine will always send the same formatted messages to the queue so we need to build our scaler logic around this information. The Scaler Function takes the Storage Queue message and breaks it into 3 parameters that will be passed to each Scaler Module. These parameters are:
 - $graphData - `graphResults` section from storage queue message
