@@ -40,7 +40,7 @@ The list of scalers currently supported by Bellhop:
 
 ![Bellhop Deployment](./images/deployment_basics.png)
 
-3. You are provided the option to override the default tag values that Bellhop uses to custom values of your choice. Additionally you can select a tag 'prefix' which will prepend all other tags. Click 'Review + Create' to proceed.
+3. You are provided the option to override the default tag values that Bellhop uses to custom values of your choice. Additionally you can define a tag 'prefix' which will prepend all other tags. Click 'Review + Create' to proceed.
 
 ![Bellhop Deployment](./images/deployment_advanced.png)
 
@@ -62,14 +62,14 @@ resize-EndTime = <DateTime> (Monday 7:30AM)
 
 ### StartTime & EndTime Tags
 What does 'StartTime' & 'EndTime' represent?
-- The ```StartTime``` tag represents when Bellhop will scale _**DOWN**_ the target resource (saves the current state)
-- The ```EndTime``` tag represents when Bellhop will scale _**UP**_ the target resource (reverts to saved state)
+- The `StartTime` tag represents when Bellhop will scale _**DOWN**_ the target resource (saves the current state)
+- The `EndTime` tag represents when Bellhop will scale _**UP**_ the target resource (reverts to saved state)
 
 Can you provide some examples of how to format the expected timestamp?
-- The expected format is ```<DayOfWeek> <TimeOfDay>```
-    - ```<TimeOfDay>``` is the time, based on the 12HR clock, which can be simply the hour, or hour + minutes
-    - Hour Only: ```resize-StartTime = Monday 7PM```
-    - Hour + Minutes: ```resize-StartTime = Friday 9:30AM```
+- The expected format is `<DayOfWeek> <TimeOfDay>`
+    - `<TimeOfDay>` is the time, based on the 12HR clock, which can be simply the hour, or hour + minutes
+    - Hour Only: `resize-StartTime = Monday 7PM`
+    - Hour + Minutes: `resize-StartTime = Friday 9:30AM`
 
 Are the timestamps in a specific timezone, or can I select a timezone?
 - All timestamps are in UTC format
@@ -77,12 +77,12 @@ Are the timestamps in a specific timezone, or can I select a timezone?
     - Please feel free to discuss your specific requirements around this on our [GitHub Discussions](https://github.com/Azure/bellhop/discussions) page
 
 Can I have Bellhop resize Daily/Weekly/Monthly?
-- Currently, we do support using the word ```Daily``` in place of the ```<DayOfWeek>``` which will trigger the resize action on a daily basis
-- When using the ```Daily``` value, you must use ```Daily``` in both tags - You cannot mix ```Daily``` and ```<DayOfWeek>```
+- Currently, we do support using the word `Daily` in place of the `<DayOfWeek>` which will trigger the resize action on a daily basis
+- When using the `Daily` value, you must use `Daily` in both tags ( you cannot mix `Daily` and `<DayOfWeek>`)
 - Example usage:
-    - ```resize-StartTime = Daily 8PM```
-    - ```resize-EndTime = Daily 6AM```
-- Additional values such as ```Weekly``` or ```Monthly``` may be added in the future
+    - `resize-StartTime = Daily 8PM`
+    - `resize-EndTime = Daily 6AM`
+- Additional values such as `Weekly` or `Monthly` may be added in the future
     - If you have a specific use case or requirement for these additional keywords, please share with us on our [GitHub Discussions](https://github.com/Azure/bellhop/discussions) page
 
 ## Bellhop Infrastructure Overview
