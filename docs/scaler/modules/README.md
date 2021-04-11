@@ -184,10 +184,11 @@ We can also determine the desired target state to scale _**DOWN**_ to. From the 
 - `"graphResults/tags/setState-Tier": "Basic"` - Scale down tier "Basic"
 
 ### Mapping Graph Results to Powershell Command Parameters
-Often times the data returned from Graph will require custom mapping to fit what values the PowerShell expects. When sizing the App Service Plan it is required to custom map the Worker Sizes returned via the Graph API query with the specific  "Small", "Medium", and "Large" that PowerShell expects.
+Often times the data returned from the Graph API query will require custom mapping to fit the values the `"Set-Az<RESOURCENAME>"` PowerShell command expects. This is where each Scaler Module will differ the most. Each service requires different combinations of parameters to issue a scale operation. 
 
-For Example ([sample-scaler/function.psm1](./development/sample-scaler/function.psm1)):
+When building the Scaler Module for an App Service Plan it was required to build a custom map of the WorkerSize values returned via the Graph API to the values that PowerShell expects, because they do not match. 
 
+**Custom Map built for App Service Plan Worker Size**:
 ```
    $workerSizeMap = @{
         D1          = "Small"
@@ -215,8 +216,7 @@ $config = @{ }
 $tags = $tagData.tags
 ```
 
-#### Scaling Up:
-
+#### Scaling Up
 You will need to switch off of the direction sent from the Engine function.  Scaling up is the easier operation as it only requires parsing the values of the `"saveState-"` tags.
 
 `$config` is populated with the saved tag data and base data, providing the necessary parameters to the scaling command:
@@ -229,18 +229,20 @@ switch ($direction) {
     }
 ```
 
-#### Scaling Down:
+#### Scaling Down
 Scaling down is the more challenging operation and often requires the most complex code logic. In the below example for App Service Plans we begin to build out the `$config` Hash Table, starting with the Tier which is the only _REQUIRED_ additional parameter.
 ```
- 'down' {
-            Write-Host "Scaling App Service Plan: '$($graphData.name)' to Tier: '$($tagData.setData.Tier)'"
+switch ($direction) {
+    'down' {
+        Write-Host "Scaling App Service Plan: '$($graphData.name)' to Tier: '$($tagData.setData.Tier)'"
 
-            $config = @{
-                Tier = $tagData.setData.Tier
-            }
+        $config = @{
+            Tier = $tagData.setData.Tier
+        }
+    }
 ```
 
-We then evaluate whether "WorkerSize" or "NumberofWorkers" has been set and if one, or both, has they are then added to the "$config" hash table:
+We then evaluate whether "WorkerSize" or "NumberofWorkers" was configured on the target resource. If one or both has then they are then added to the `$config` hash table via the below commands:
 ```
     if ( $tagData.setData.WorkerSize ) { $config.Add("WorkerSize", $tagData.setData.WorkerSize) }
     if ( $tagData.setData.NumberofWorkers ) { $config.Add("NumberofWorkers", $tagData.setData.NumberofWorkers) }
@@ -264,7 +266,7 @@ We can now finalize the `$config` and `$tags` objects that we will use to pass t
 #### Saving the Original State
 In order to track the original configuration of the resource, every Scaler Module uses the `Set-SaveTags` function inside of their `psm1`. This simple function takes the `$saveData` object which reprents the resources current configuration and then appends `"saveState-"` to each key creating the new tag values. These values are then appended to the `$tags` object which will be passed to the `"Set-Az<RESOURCENAME>"` command. 
 
-**Set-SaveTags:**
+**Set-SaveTags**:
 ```
 function Set-SaveTags {
     param (
@@ -280,7 +282,7 @@ function Set-SaveTags {
 Export-ModuleMember -Function Update-Resource
 ```
 
-#### Setting new Resource Config:
+#### Setting new Resource Config
 At this time, whether we are scaling _UP_ or _DOWN_ we have all the data required to scale the target resource. All that we need to do is issue the proper PowerShell command and pass in our updated `$config` and `$tags` objects. 
 
 _Note: the config object is passed to the Set-Resource command as a hash table by using "@" instead of "$" in front of "config"_.
