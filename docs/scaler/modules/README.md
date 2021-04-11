@@ -29,13 +29,20 @@ This solution was designed to be extensible from the beginning, with the idea be
         - **Sample-scaler module psm1 can be found in the [development](./development/sample-scaler/) folder in the GitHub repo**
         - **Example scaler logic walkthrough in section below**
 
-3) Build and Push new Scaler Function container version.
-    - Build new version via Dockerfile in `./functions/scaler/Dockerfile`
-    - Push new version to Docker Hub Repo
-    - _**NEED STEP BY STEP INSTRUCTIONS FOR HOW TO ACCOMPLISH THIS**_
-    - _**Current process is being updated and documented**_
+3) Build and Push New Container Image Versions
+    - When creating a new Scaler Module you must update the Scaler Function container, at a minimum, so that it includes the new module in the image. We recommend building both a new Scaler Function and a new Engine Function to keep build versions in sync.
 
-4) Create new `servicename.md` page to document how to use the new scaler.
+        - **Scaler Example** - To build and push a new Scaler Function Image just run the following command from the project path `./functions/scaler`:
+        ```
+        docker build -t azurebellhop/scaler:vX.X
+        ```
+        - **Engine Example** - To build and push a new Engine Function Image just run the following command from the project path `./functions/engine`:
+        ```
+        docker build -t azurebellhop/engine:vX.X
+        ```
+        _**Docker build commands must include valid version numbers**_
+
+4) Create new `servicename.md` page to document how to use the new scaler
     - Create this file in the `./docs/scaler/modules/` folder
     - Update the `./docs/_sidebar.md` with path to new scaler document
     - New page will be displayed on the documentation site
@@ -176,25 +183,6 @@ We can also determine the desired target state to scale _**DOWN**_ to. From the 
 - `"graphResults/tags/setState-WorkerSize": "Small"` - Scale down Worker Size "Small"
 - `"graphResults/tags/setState-Tier": "Basic"` - Scale down tier "Basic"
 
-### Saving the Original State
-Every Scaler Module should make use of the `Set-SaveTags` Function. This simple function takes the `$saveData` object which reprents the resources current configuration and then appends `"saveState-"` to each key creating the new tag values.
-
-Function:
-```
-function Set-SaveTags {
-    param (
-        $inTags
-    )
-
-    $outTags = @{ }
-    $inTags.keys | ForEach-Object { $outTags += @{("saveState-" + $_) = $inTags[$_] } }
-    
-    return $outTags
-}
-
-Export-ModuleMember -Function Update-Resource
-```
-
 ### Mapping Graph Results to Powershell Command Parameters
 Often times the data returned from Graph will require custom mapping to fit what values the PowerShell expects. When sizing the App Service Plan it is required to custom map the Worker Sizes returned via the Graph API query with the specific  "Small", "Medium", and "Large" that PowerShell expects.
 
@@ -242,7 +230,6 @@ switch ($direction) {
 ```
 
 #### Scaling Down:
-
 Scaling down is the more challenging operation and often requires the most complex code logic. In the below example for App Service Plans we begin to build out the `$config` Hash Table, starting with the Tier which is the only _REQUIRED_ additional parameter.
 ```
  'down' {
@@ -272,6 +259,25 @@ We can now finalize the `$config` and `$tags` objects that we will use to pass t
 ```
     $config += $baseData
     $tags += Set-SaveTags $saveData
+```
+
+#### Saving the Original State
+In order to track the original configuration of the resource, every Scaler Module uses the `Set-SaveTags` function inside of their `psm1`. This simple function takes the `$saveData` object which reprents the resources current configuration and then appends `"saveState-"` to each key creating the new tag values. These values are then appended to the `$tags` object which will be passed to the `"Set-Az<RESOURCENAME>"` command. 
+
+**Set-SaveTags:**
+```
+function Set-SaveTags {
+    param (
+        $inTags
+    )
+
+    $outTags = @{ }
+    $inTags.keys | ForEach-Object { $outTags += @{("saveState-" + $_) = $inTags[$_] } }
+    
+    return $outTags
+}
+
+Export-ModuleMember -Function Update-Resource
 ```
 
 #### Setting new Resource Config:
