@@ -26,6 +26,24 @@
                 "description": "Prefix which will Bellhop will expect to be prepended to all tags."
             }
         },
+        "enableTag": {
+            "type": "string",
+            "metadata": {
+                "description": "Tag which will be used to identify which resources are currently enabled for Bellhop scaling."
+            }
+        },
+        "startTimeTag": {
+            "type": "string",
+            "metadata": {
+                "description": "Tag which will be used to identify the day of the week & time which Bellhop should scale DOWN the resource."
+            }
+        },
+        "endTimeTag": {
+            "type": "string",
+            "metadata": {
+                "description": "Tag which will be used to identify the day of the week & time which Bellhop should scale UP the resource."
+            }
+        },
         "setStateTag": {
             "type": "string",
             "metadata": {
@@ -114,6 +132,15 @@
                     "tagPrefix": {
                         "value": "[parameters('tagPrefix')]"
                     },
+                    "enableTag": {
+                        "value": "[parameters('enableTag')]"
+                    },
+                    "startTimeTag": {
+                        "value": "[parameters('startTimeTag')]"
+                    },
+                    "endTimeTag": {
+                        "value": "[parameters('endTimeTag')]"
+                    },
                     "setStateTag": {
                         "value": "[parameters('setStateTag')]"
                     },
@@ -141,6 +168,24 @@
                             "type": "string",
                             "metadata": {
                                 "description": "Prefix which will Bellhop will expect to be prepended to all tags."
+                            }
+                        },
+                        "enableTag": {
+                            "type": "string",
+                            "metadata": {
+                                "description": "Tag which will be used to identify which resources are currently enabled for Bellhop scaling."
+                            }
+                        },
+                        "startTimeTag": {
+                            "type": "string",
+                            "metadata": {
+                                "description": "Tag which will be used to identify the day of the week & time which Bellhop should scale DOWN the resource."
+                            }
+                        },
+                        "endTimeTag": {
+                            "type": "string",
+                            "metadata": {
+                                "description": "Tag which will be used to identify the day of the week & time which Bellhop should scale UP the resource."
                             }
                         },
                         "setStateTag": {
@@ -349,7 +394,7 @@
                                         }
                                     ],
                                     "use32BitWorkerProcess": false,
-                                    "linuxFxVersion": "DOCKER|azurebellhop/engine:v0.4"
+                                    "linuxFxVersion": "DOCKER|azurebellhop/engine:v0.5"
                                 }
                             }
                         },
@@ -442,7 +487,7 @@
                         {
                             "type": "Microsoft.AppConfiguration/configurationStores/keyValues",
                             "apiVersion": "2020-07-01-preview",
-                            "name": "[concat(variables('appConfigName'), '/storageAccount')]",
+                            "name": "[concat(variables('appConfigName'), '/CORE:storageAccount')]",
                             "dependsOn": [
                                 "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))]"
                             ],
@@ -454,7 +499,7 @@
                         {
                             "type": "Microsoft.AppConfiguration/configurationStores/keyValues",
                             "apiVersion": "2020-07-01-preview",
-                            "name": "[concat(variables('appConfigName'), '/storageQueue')]",
+                            "name": "[concat(variables('appConfigName'), '/CORE:storageQueue')]",
                             "dependsOn": [
                                 "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))]"
                             ],
@@ -466,7 +511,7 @@
                         {
                             "type": "Microsoft.AppConfiguration/configurationStores/keyValues",
                             "apiVersion": "2020-07-01-preview",
-                            "name": "[concat(variables('appConfigName'), '/debugMode')]",
+                            "name": "[concat(variables('appConfigName'), '/GLOBAL:debugMode')]",
                             "dependsOn": [
                                 "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))]"
                             ],
@@ -478,7 +523,7 @@
                         {
                             "type": "Microsoft.AppConfiguration/configurationStores/keyValues",
                             "apiVersion": "2020-07-01-preview",
-                            "name": "[concat(variables('appConfigName'), '/tagPrefix')]",
+                            "name": "[concat(variables('appConfigName'), '/CONFIG:tagPrefix')]",
                             "dependsOn": [
                                 "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))]"
                             ],
@@ -490,7 +535,43 @@
                         {
                             "type": "Microsoft.AppConfiguration/configurationStores/keyValues",
                             "apiVersion": "2020-07-01-preview",
-                            "name": "[concat(variables('appConfigName'), '/setStateTag')]",
+                            "name": "[concat(variables('appConfigName'), '/CONFIG:enableTag')]",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))]"
+                            ],
+                            "properties": {
+                                "value": "[parameters('enableTag')]",
+                                "contentType": "string"
+                            }
+                        },
+                        {
+                            "type": "Microsoft.AppConfiguration/configurationStores/keyValues",
+                            "apiVersion": "2020-07-01-preview",
+                            "name": "[concat(variables('appConfigName'), '/CONFIG:startTimeTag')]",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))]"
+                            ],
+                            "properties": {
+                                "value": "[parameters('startTimeTag')]",
+                                "contentType": "string"
+                            }
+                        },
+                        {
+                            "type": "Microsoft.AppConfiguration/configurationStores/keyValues",
+                            "apiVersion": "2020-07-01-preview",
+                            "name": "[concat(variables('appConfigName'), '/CONFIG:endTimeTag')]",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))]"
+                            ],
+                            "properties": {
+                                "value": "[parameters('endTimeTag')]",
+                                "contentType": "string"
+                            }
+                        },
+                        {
+                            "type": "Microsoft.AppConfiguration/configurationStores/keyValues",
+                            "apiVersion": "2020-07-01-preview",
+                            "name": "[concat(variables('appConfigName'), '/CONFIG:setStateTag')]",
                             "dependsOn": [
                                 "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))]"
                             ],
@@ -502,7 +583,7 @@
                         {
                             "type": "Microsoft.AppConfiguration/configurationStores/keyValues",
                             "apiVersion": "2020-07-01-preview",
-                            "name": "[concat(variables('appConfigName'), '/saveStateTag')]",
+                            "name": "[concat(variables('appConfigName'), '/CONFIG:saveStateTag')]",
                             "dependsOn": [
                                 "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))]"
                             ],

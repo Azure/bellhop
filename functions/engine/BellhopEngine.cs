@@ -149,12 +149,9 @@ namespace Bellhop.Function
         public string ResizeAction { get; }
         public JObject GraphData { get; }
         public List<KeyValuePair<object, string>> _errors = new List<KeyValuePair<object, string>>();
-        private ILogger _log;
 
-        public ResizeObject(JObject data, ILogger log)
+        public ResizeObject(JObject data)
         {
-            _log = log;
-
             GraphData = data;
 
             Name = GraphData["name"].ToString();
@@ -473,7 +470,7 @@ namespace Bellhop.Function
 
             foreach (JObject resource in resources)
             {
-                ResizeObject obj = new ResizeObject(resource, log);
+                ResizeObject obj = new ResizeObject(resource);
 
                 resizeList.Add(obj);
 
