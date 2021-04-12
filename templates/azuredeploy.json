@@ -44,13 +44,13 @@
                 "description": "Tag which will be used to identify the day of the week & time which Bellhop should scale UP the resource."
             }
         },
-        "setStateTag": {
+        "setStatePrefix": {
             "type": "string",
             "metadata": {
                 "description": "Prefix which will be prepended to resource parameter tags which Bellhop uses to identify the target state of the target resource when scaled down."
             }
         },
-        "saveStateTag": {
+        "saveStatePrefix": {
             "type": "string",
             "metadata": {
                 "description": "Prefix which will be prepended to resource parameter tags which Bellhop uses to remember the original state of the target resource when scaled down."
@@ -141,11 +141,11 @@
                     "endTimeTag": {
                         "value": "[parameters('endTimeTag')]"
                     },
-                    "setStateTag": {
-                        "value": "[parameters('setStateTag')]"
+                    "setStatePrefix": {
+                        "value": "[parameters('setStatePrefix')]"
                     },
-                    "saveStateTag": {
-                        "value": "[parameters('saveStateTag')]"
+                    "saveStatePrefix": {
+                        "value": "[parameters('saveStatePrefix')]"
                     }
                 },
                 "template": {
@@ -188,13 +188,13 @@
                                 "description": "Tag which will be used to identify the day of the week & time which Bellhop should scale UP the resource."
                             }
                         },
-                        "setStateTag": {
+                        "setStatePrefix": {
                             "type": "string",
                             "metadata": {
                                 "description": "Prefix which will be prepended to resource parameter tags which Bellhop uses to identify the target state of the target resource when scaled down."
                             }
                         },
-                        "saveStateTag": {
+                        "saveStatePrefix": {
                             "type": "string",
                             "metadata": {
                                 "description": "Prefix which will be prepended to resource parameter tags which Bellhop uses to remember the original state of the target resource when scaled down."
@@ -571,24 +571,24 @@
                         {
                             "type": "Microsoft.AppConfiguration/configurationStores/keyValues",
                             "apiVersion": "2020-07-01-preview",
-                            "name": "[concat(variables('appConfigName'), '/CONFIG:setStateTag')]",
+                            "name": "[concat(variables('appConfigName'), '/CONFIG:setStatePrefix')]",
                             "dependsOn": [
                                 "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))]"
                             ],
                             "properties": {
-                                "value": "[parameters('setStateTag')]",
+                                "value": "[parameters('setStatePrefix')]",
                                 "contentType": "string"
                             }
                         },
                         {
                             "type": "Microsoft.AppConfiguration/configurationStores/keyValues",
                             "apiVersion": "2020-07-01-preview",
-                            "name": "[concat(variables('appConfigName'), '/CONFIG:saveStateTag')]",
+                            "name": "[concat(variables('appConfigName'), '/CONFIG:saveStatePrefix')]",
                             "dependsOn": [
                                 "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))]"
                             ],
                             "properties": {
-                                "value": "[parameters('saveStateTag')]",
+                                "value": "[parameters('saveStatePrefix')]",
                                 "contentType": "string"
                             }
                         },

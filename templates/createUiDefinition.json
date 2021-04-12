@@ -205,8 +205,8 @@
             "enableTag": "[steps('advancedConfig').enableTag]",
             "startTimeTag": "[steps('advancedConfig').startTimeTag]",
             "endTimeTag": "[steps('advancedConfig').endTimeTag]",
-            "setStateTag": "[steps('advancedConfig').setStatePrefix]",
-            "saveStateTag": "[steps('advancedConfig').saveStatePrefix]"
+            "setStatePrefix": "[steps('advancedConfig').setStatePrefix]",
+            "saveStatePrefix": "[steps('advancedConfig').saveStatePrefix]"
         }
     }
 }
