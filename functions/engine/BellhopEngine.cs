@@ -28,10 +28,12 @@ namespace Bellhop.Function
     public class Settings
     {
         private static bool _debug = false;
-        private static bool _isValid = false;
-        public static List<string> Errors { get; } = new List<string>();
+        private static bool _valid = false;
+        private static List<string> _errors = new List<string>();
 
-        public static Dictionary<string, string> ConfigData { get; } = new Dictionary<string, string>()
+        private static Dictionary<string, string> _tagMap = new Dictionary<string, string>();
+
+        private static Dictionary<string, string> _configData = new Dictionary<string, string>()
         {
             { "storageAccount", null },
             { "storageQueue", null },
@@ -43,7 +45,10 @@ namespace Bellhop.Function
             { "saveStatePrefix", null }
         };
 
-        private static Dictionary<string, string> _tagMap = new Dictionary<string, string>();
+        public static List<string> Errors
+        {
+            get => _errors;
+        }
 
         public static bool Debug
         {
@@ -51,9 +56,14 @@ namespace Bellhop.Function
             set => _debug = value;
         }
 
-        public static bool IsValid
+        public static bool Valid
         {
-            get => _isValid;
+            get => _valid;
+        }
+
+        public static Dictionary<string, string> ConfigData
+        {
+            get => _configData;
         }
 
         public static Dictionary<string, string> TagMap
@@ -76,93 +86,104 @@ namespace Bellhop.Function
 
         public Settings()
         {
-            ValidateConfig();
+            Validate();
         }
 
         public static void SetConfig(string key, string value)
         {
-            if (ConfigData.ContainsKey(key))
+            if (_configData.ContainsKey(key))
             {
-                ConfigData[key] = value;
-                ValidateConfig();
+                _configData[key] = value;
+                Validate();
             }
         }
 
         public static string GetConfig(string key)
         {
-            string result = null;
-
-            if (ConfigData.ContainsKey(key))
-            {
-                result = ConfigData[key];
-            }
-
-            return result;
+            return _configData.ContainsKey(key) ? _configData[key] : null;
         }
 
         public static string GetTag(string key)
         {
-            string result = null;
-
             if (_tagMap.Count == 0)
             {
                 GenerateTagMap();
             }
 
-            if (_tagMap.ContainsKey(key))
-            {
-                result = _tagMap[key];
-            }
-
-            return result;
+            return _tagMap.ContainsKey(key) ?_tagMap[key] : null;
         }
 
         private static void GenerateTagMap()
         {
             _tagMap.Clear();
-            _tagMap.Add("enable", (ConfigData["tagPrefix"] + ConfigData["enableTag"]));
-            _tagMap.Add("start", (ConfigData["tagPrefix"] + ConfigData["startTimeTag"]));
-            _tagMap.Add("end", (ConfigData["tagPrefix"] + ConfigData["endTimeTag"]));
-            _tagMap.Add("set", (ConfigData["tagPrefix"] + ConfigData["setStatePrefix"]));
-            _tagMap.Add("save", (ConfigData["tagPrefix"] + ConfigData["saveStatePrefix"]));
+            _tagMap.Add("enable", (_configData["tagPrefix"] + _configData["enableTag"]));
+            _tagMap.Add("start", (_configData["tagPrefix"] + _configData["startTimeTag"]));
+            _tagMap.Add("end", (_configData["tagPrefix"] + _configData["endTimeTag"]));
+            _tagMap.Add("set", (_configData["tagPrefix"] + _configData["setStatePrefix"]));
+            _tagMap.Add("save", (_configData["tagPrefix"] + _configData["saveStatePrefix"]));
         }
 
-        public static void ValidateConfig()
+        public static void Validate()
         {
-            Errors.Clear();
+            _errors.Clear();
 
-            var matches = ConfigData.Where(pair => String.IsNullOrEmpty(pair.Value))
+            var nullKeys = _configData.Where(pair => String.IsNullOrEmpty(pair.Value))
                     .Select(pair => pair.Key);
 
-            foreach (var match in matches)
+            foreach (var key in nullKeys)
             {
-                Errors.Add(match);
+                _errors.Add(key);
             }
 
-            _isValid = matches.Count() != 0 ? false : true;
+            _valid = nullKeys.Count() != 0 ? false : true;
         }
     }
 
     class ResizeObject
     {
         public string Name { get; }
+        public string ResourceGroup { get; }
+        public string Subscription { get; }
+        public string CurrentState { get; }
+        public string TargetState { get; }
+        public string ResizeAction { get; }
         public JObject GraphData { get; }
-        public List<KeyValuePair<object, string>> errors { get; }
+        public List<KeyValuePair<object, string>> _errors = new List<KeyValuePair<object, string>>();
+        private ILogger _log;
 
-        public ResizeObject(JObject data)
+        public ResizeObject(JObject data, ILogger log)
         {
+            _log = log;
+
             GraphData = data;
+
             Name = GraphData["name"].ToString();
+            ResourceGroup = GraphData["resourceGroup"].ToString();
+            Subscription = GraphData["subscriptionId"].ToString();
+
+            CurrentState = IsScaledDown() ? "down" : "up";
+
+            try
+            {
+                TargetState = TimeToScale() ? "down" : "up";
+            }
+            catch (Exception ex)
+            {
+                _errors.Add(new KeyValuePair<object, string>(ex.GetType(), ex.Message));
+                TargetState = null;
+            }
+
+            ResizeAction = (!String.IsNullOrEmpty(TargetState) && (CurrentState != TargetState)) ? TargetState : null;
         }
 
-        public bool IsValid
+        public bool Valid
         {
-            get => (errors.Count > 0) ? false : true;
+            get => (_errors.Count > 0) ? false : true;
         }
 
-        public string CurrentState
+        public List<KeyValuePair<object, string>> Errors
         {
-            get => IsScaledDown() ? "down" : "up";
+            get => _errors;
         }
 
         public string DebugString
@@ -181,12 +202,12 @@ namespace Bellhop.Function
             List<string> debugMessage = new List<string>();
             string scaleMessage;
 
-            debugMessage.Add("=========================");
+            debugMessage.Add("-------------------------");
             debugMessage.Add("Resource: " + GraphData["name"].ToString());
             debugMessage.Add("Scale Down: " + times["StartTime"]);
             debugMessage.Add("Scale Up: " + times["EndTime"]);
 
-            if (ResizeAction != null)
+            if (!String.IsNullOrEmpty(ResizeAction))
             {
                 scaleMessage = "(Scale Scheduled)";
             }
@@ -195,52 +216,18 @@ namespace Bellhop.Function
                 scaleMessage = "(Already Scaled)";
             }
 
-            debugMessage.Add($"Currently within 'scale {TargetState}' period {scaleMessage}");
-            debugMessage.Add("=========================");
+            if(!String.IsNullOrEmpty(TargetState))
+            {
+                debugMessage.Add($"Currently within 'scale {TargetState}' period {scaleMessage}");
+            }
+            else
+            {
+                debugMessage.Add("ERROR: Cannot determine scale state due to malformed/missing scale tags!");
+            }
+
+            debugMessage.Add("-------------------------");
 
             return debugMessage;
-        }
-
-        public string TargetState
-        {
-            get
-            {
-                try
-                {
-                    if(TimeToScale())
-                    {
-                        return "down";
-                    }
-
-                    return "up";
-                }
-                catch (Exception ex)
-                {
-                    errors.Add(new KeyValuePair<object, string>(ex.GetType(), ex.Message));
-                    return null;
-                }
-            }
-        }
-
-        public string ResizeAction
-        {
-            get
-            {
-                try
-                {
-                    if(CurrentState != TargetState)
-                    {
-                        return TargetState;
-                    }
-
-                    return null;
-                }
-                catch (Exception ex)
-                {
-                    errors.Add(new KeyValuePair<object, string>(ex.GetType(), ex.Message));
-                    return null;
-                }
-            }
         }
 
         private bool IsScaledDown()
@@ -344,15 +331,23 @@ namespace Bellhop.Function
             var fromDate = DateTime.Parse(fromTime.ToString()).AddDays(fromUpdate);
             var toDate = DateTime.Parse(toTime.ToString()).AddDays(toUpdate);
 
-            if(((now > fromDate) && (now > toDate)) || ((now < fromDate) && (now < toDate)))
+            if(fromDate.DayOfWeek == toDate.DayOfWeek)
             {
-                if(toDate > fromDate)
+                if(((now > fromDate) && (now > toDate)) || ((now < fromDate) && (now < toDate)))
+                {
+                    if(toDate > fromDate)
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
+                }
+
+                if ((now > toDate) && (now < fromDate))
                 {
                     return false;
-                }
-                else
-                {
-                    return true;
                 }
             }
 
@@ -387,7 +382,6 @@ namespace Bellhop.Function
         {
             log.LogInformation("Bellhop engine starting up...");
             log.LogInformation("Current UTC Time: " + DateTime.UtcNow.ToString("dddd hh:mm:ss tt"));
-
             log.LogInformation("Fetching app configuration settings...");
 
             await _refresher.RefreshAsync();
@@ -400,6 +394,8 @@ namespace Bellhop.Function
                 Settings.Debug = Boolean.Parse(debugAppSetting);
             }
             catch {
+                var ex = new ArgumentException("Cannot parse invalid Debug App Config flag", "GLOBAL:debugMode");
+                log.LogError(0, ex, "Cannot parse invalid Debug App Config flag, defaulting to False");
                 Settings.Debug = false;
             }
 
@@ -424,17 +420,15 @@ namespace Bellhop.Function
                 log.LogInformation(tagMapJson);
             }
 
-            if(!Settings.IsValid)
+            if(!Settings.Valid)
             {
                 var errorString = string.Join(",", Settings.Errors.ToArray());
                 var ex = new ValidationException("Missing App Configuration Settings");
                 log.LogError(0, ex, $"Missing App Configuration Settings: [{errorString}]");
+                throw ex;
             }
 
             string strQuery = $"Resources | where tags['{Settings.GetTag("enable")}'] =~ 'True'";
-
-            var resizeUpList = new List<JObject>();
-            var resizeDownList = new List<JObject>();
 
             QueueClient messageQueue = getQueueClient(Settings.GetConfig("storageAccount"), Settings.GetConfig("storageQueue"));
 
@@ -460,7 +454,8 @@ namespace Bellhop.Function
                 log.LogInformation(subscriptionJson);
             }
 
-            QueryRequest request = new QueryRequest {
+            QueryRequest request = new QueryRequest
+            {
                 Subscriptions = subscriptionIds,
                 Query = strQuery,
                 Options = new QueryRequestOptions(resultFormat: ResultFormat.ObjectArray)
@@ -472,12 +467,13 @@ namespace Bellhop.Function
             JArray resources = JArray.Parse(response.Data.ToString());
 
             log.LogInformation("Examining resources...");
+            if (Settings.Debug) log.LogInformation("=========================");
 
             List<ResizeObject> resizeList = new List<ResizeObject>();
 
             foreach (JObject resource in resources)
             {
-                ResizeObject obj = new ResizeObject(resource);
+                ResizeObject obj = new ResizeObject(resource, log);
 
                 resizeList.Add(obj);
 
@@ -490,6 +486,7 @@ namespace Bellhop.Function
                 }
             }
 
+            if (Settings.Debug) log.LogInformation("=========================");
             log.LogInformation("Processing scale items...");
             if (Settings.Debug) log.LogInformation("=========================");
 
@@ -514,8 +511,29 @@ namespace Bellhop.Function
             };
 
             if (Settings.Debug) log.LogInformation("=========================");
-            log.LogInformation("Done processing scale items!");
 
+            var errorItems = resizeList.Where(x => !x.Valid);
+
+            log.LogInformation("Compiling errors...");
+            log.LogInformation("=========================");
+
+            foreach (var item in errorItems)
+            {
+                log.LogInformation("-------------------------");
+                log.LogInformation("Name: " + item.Name);
+                log.LogInformation("Resource Group: " + item.ResourceGroup);
+                log.LogInformation("Subscription: " + item.Subscription);
+                log.LogInformation("Errors:");
+
+                foreach (var err in item.Errors)
+                {
+                    log.LogInformation(err.ToString());
+                }
+
+                log.LogInformation("-------------------------");
+            };
+
+            log.LogInformation("=========================");
             log.LogInformation("Bellhop engine execution complete!");
         }
 
