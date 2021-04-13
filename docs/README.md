@@ -40,7 +40,7 @@ The list of scalers currently supported by Bellhop:
 
 ![Bellhop Deployment](./images/deployment_basics.png)
 
-3. You are provided the option to override the default tag values that Bellhop uses to custom values of your choice. Additionally you can define a tag 'prefix' which will prepend all other tags. Click 'Review + Create' to proceed.
+3. You can optionally override the default tag values that Bellhop uses to any custom values of your choice. Additionally, you can define a tag 'prefix' which will prepend all other tags. Click 'Review + Create' to proceed.
 
 ![Bellhop Deployment](./images/deployment_advanced.png)
 
@@ -82,6 +82,7 @@ Can I have Bellhop resize Daily/Weekly/Monthly?
 - Example usage:
     - `resize-StartTime = Daily 8PM`
     - `resize-EndTime = Daily 6AM`
+    - The net effect of example tag combination above, is that the target resource would be scaled down every evening at 8PM, and then scaled back up every morning at 6AM (UTC)
 - Additional values such as `Weekly` or `Monthly` may be added in the future
     - If you have a specific use case or requirement for these additional keywords, please share with us on our [GitHub Discussions](https://github.com/Azure/bellhop/discussions) page
 
