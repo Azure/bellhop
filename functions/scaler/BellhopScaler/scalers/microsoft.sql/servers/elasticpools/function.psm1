@@ -120,7 +120,7 @@ function Update-Resource {
 
             Write-Host "Folding in base data..."
             $config += $baseData
-            $tags += Set-SaveTags $saveData
+            $tags += Set-SaveTags $saveData $tagData.map
         }
     }
 
@@ -140,11 +140,12 @@ function Update-Resource {
 
 function Set-SaveTags {
     param (
-        $inTags
+        $inTags,
+        $tagMap
     )
 
     $outTags = @{ }
-    $inTags.keys | ForEach-Object { $outTags += @{("saveState-" + $_) = $inTags[$_] } }
+    $inTags.keys | ForEach-Object { $outTags += @{($tagMap.save + $_) = $inTags[$_] } }
     
     return $outTags
 }

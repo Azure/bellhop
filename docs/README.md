@@ -32,13 +32,17 @@ The list of scalers currently supported by Bellhop:
 
 ## Deploying Bellhop
 ### Steps to deploy Bellhop infrastructure:
-1. Deploy directly to Azure using the button below
+1. Deploy directly to Azure using the button below.
 
 [![Deploy To Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fbellhop%2Fmain%2Ftemplates%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fbellhop%2Fmain%2Ftemplates%2FcreateUiDefinition.json)
 
-2. Provide the required values in the deployment template, then click 'Review + Create'
+2. Provide the required values in the deployment template, then click 'Next' to proceed to the Advanced settings, or click 'Review + Create' to accept the default Bellhop values.
 
-![Bellhop Deployment](./images/deployment.png)
+![Bellhop Deployment](./images/deployment_basics.png)
+
+3. You can optionally override the default tag values that Bellhop uses to any custom values of your choice. Additionally, you can define a tag 'prefix' which will prepend all other tags. Click 'Review + Create' to proceed.
+
+![Bellhop Deployment](./images/deployment_advanced.png)
 
 ## Running Bellhop
 Bellhop is currently configured to run in the context of a single subscription, and relies on the Graph API and certian Tags on resources to handle service tier scaling for you! The Engine will query Graph API every 5 min (by default) and perform a get on resources tagged with `resize-Enable = True`. If resize has been enabled, and start/end times have been configured, the Engine will determine which direction the resource would like to scale and send a message to the storage queue.
@@ -49,15 +53,38 @@ All you need to do to run Bellhop is deploy the solution and ensure you have the
 ## Required Tags for All Services
 Bellhop operates based on resource tags. Some of the required tags will be common between Azure services, and some tags will be specific to the resource you would like Bellhop to scale. Resource specific tags will be discussed in detail in the [Scaler Modules](/scaler/modules/README.md) section.
 
-Bellhop Common Tags:
+**Bellhop Common Tags:**
 ```
 resize-Enable = <bool> (True/False)
 resize-StartTime = <DateTime> (Friday 7PM)
 resize-EndTime = <DateTime> (Monday 7:30AM)
 ```
 
-_**NOTE: StartTime and EndTime are currently in UTC**_
+### StartTime & EndTime Tags
+What does 'StartTime' & 'EndTime' represent?
+- The `StartTime` tag represents when Bellhop will scale _**DOWN**_ the target resource (saves the current state)
+- The `EndTime` tag represents when Bellhop will scale _**UP**_ the target resource (reverts to saved state)
 
+Can you provide some examples of how to format the expected timestamp?
+- The expected format is `<DayOfWeek> <TimeOfDay>`
+    - `<TimeOfDay>` is the time, based on the 12HR clock, which can be simply the hour, or hour + minutes
+    - Hour Only: `resize-StartTime = Monday 7PM`
+    - Hour + Minutes: `resize-StartTime = Friday 9:30AM`
+
+Are the timestamps in a specific timezone, or can I select a timezone?
+- All timestamps are in UTC format
+- There are many complexities involved in supporting individual timezones, however this functionailty may come in the future
+    - Please feel free to discuss your specific requirements around this on our [GitHub Discussions](https://github.com/Azure/bellhop/discussions) page
+
+Can I have Bellhop resize Daily/Weekly/Monthly?
+- Currently, we do support using the word `Daily` in place of the `<DayOfWeek>` which will trigger the resize action on a daily basis
+- When using the `Daily` value, you must use `Daily` in both tags ( you cannot mix `Daily` and `<DayOfWeek>`)
+- Example usage:
+    - `resize-StartTime = Daily 8PM`
+    - `resize-EndTime = Daily 6AM`
+    - The net effect of example tag combination above, is that the target resource would be scaled down every evening at 8PM, and then scaled back up every morning at 6AM (UTC)
+- Additional values such as `Weekly` or `Monthly` may be added in the future
+    - If you have a specific use case or requirement for these additional keywords, please share with us on our [GitHub Discussions](https://github.com/Azure/bellhop/discussions) page
 
 ## Bellhop Infrastructure Overview
 ### What gets deployed with Bellhop?
