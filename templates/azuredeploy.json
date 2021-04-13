@@ -22,6 +22,7 @@
         },
         "tagPrefix": {
             "type": "string",
+            "defaultValue": "",
             "metadata": {
                 "description": "Prefix which will Bellhop will expect to be prepended to all tags."
             }
@@ -166,6 +167,7 @@
                         },
                         "tagPrefix": {
                             "type": "string",
+                            "defaultValue": "",
                             "metadata": {
                                 "description": "Prefix which will Bellhop will expect to be prepended to all tags."
                             }
