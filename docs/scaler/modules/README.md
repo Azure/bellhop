@@ -16,31 +16,49 @@ When creating the `App Service Plan` scaler module (discussed in detail below), 
 ## Creating a New Scaler Module
 This solution was designed to be extensible from the beginning, with the idea being that to scale a new resource you only need to write a new module. The core Engine and Scaler Function code should not have to change.  There are a few steps to follow to ensure success:
 
-1) Create new folder in the `/functions/scaler/BellhopScaler/scalers` folder that follows the pattern based on [Azure Resource Type](https://docs.microsoft.com/en-us/azure/governance/resource-graph/reference/supported-tables-resources)
-    - **The format of these folders is important because the main Scaler-Trigger function uses the resource type returned from the Graph API query to determine the path to the correct Powershell Module to import**
+1) Create new folder in the `./functions/scaler/BellhopScaler/scalers` folder that follows the pattern based on [Azure Resource Type](https://docs.microsoft.com/en-us/azure/governance/resource-graph/reference/supported-tables-resources)
+    - **The format of these folders is important because the main Scaler Function uses the resource type returned from the Graph API query to determine the path to the correct Scaler Module to import**
     - **SEE EXAMPLE ABOVE**
 
 2) Create new .psm1 PowerShell Module
     - Named: `function.psm1`
-    - This module will contain all of the logic to scale the new resource type, including the Azure PowerShell call to resize the rarget resource
-    - Developed to accept the message format sent to the `autoscale` storage queue
-        - Scale Direction + Azure Resource Graph Query results
+    - This module will contain all of the logic necessary to scale the new resource type, including:
+        - Azure PowerShell call to resize the rarget resource
+        - Necessary mapping of Azure Graph API Data to PowerShell scale command 
+    - Developed to accept the following message format from the Bellhop storage queue:
+        - Debug Flag
+        - Scale Direction
+        - Azure Resource Graph Query results
+        - TagMap
+    **Example**:
+    ```
+    {
+        "debug": false,
+        "direction": "down",
+        "graphResults": {
+            <..Graph API Results..>
+        },
+        "tagMap": {
+            <..Map of Custom Tags..>
+        }
+    }
+    ```
     - The scaler modules should all follow a similar format and be designed to accept the same common parameters
-        - **Sample-scaler module psm1 can be found in the [development](./development/sample-scaler/) folder in the GitHub repo**
-        - **Example scaler logic walkthrough in section below**
+        - **Example Scaler function.psm1 can be found in the GitHub repo [/dev](./dev/scaler/) folder**
+        - **Example scaler logic walkthrough in section [below](#Scaler-Module-Logic)**
 
 3) Build and Push New Container Image Versions
     - When creating a new Scaler Module you must update the Scaler Function container, at a minimum, so that it includes the new module in the image. We recommend building both a new Scaler Function and a new Engine Function to keep build versions in sync.
 
         - **Scaler Example** - To build and push a new Scaler Function Image just run the following command from the project path `./functions/scaler`:
         ```
-        docker build -t azurebellhop/scaler:vX.X
+        docker build -t azurebellhop/scaler:vX.X .
         ```
         - **Engine Example** - To build and push a new Engine Function Image just run the following command from the project path `./functions/engine`:
         ```
-        docker build -t azurebellhop/engine:vX.X
+        docker build -t azurebellhop/engine:vX.X .
         ```
-        _**Docker build commands must include valid version numbers**_
+        _**Docker build commands must include valid container image version numbers**_
 
 4) Create new `servicename.md` page to document how to use the new scaler
     - Create this file in the `./docs/scaler/modules/` folder
@@ -49,12 +67,13 @@ This solution was designed to be extensible from the beginning, with the idea be
 
 
 ## Scaler Module Logic
-When beginning to think about extending Bellhop functionality to include a new Azure service, it is important to remember the format of the data that we are expecting from the Engine function. This data will remain consistent across all resource types, and will include 3 pieces:
+When beginning to think about extending Bellhop functionality to include a new Azure resource, it is important to remember the format of the data that we are expecting from the Engine function. This data will remain consistent across all resource types, and will include 4 distinct pieces:
 - Debug setting to enable verbose logging (Configured in App Config)
 - Direction to Scale
 - Azure Graph Query result
+- Tag Map for Custom Tag Support
 
-**It is important to note that we _STRONGLY_ recommend leveraging the data returned by the Graph API query, and not using `"Get-"` commands in your scaler modules. This practice is intended to limit the number of queries to the API, thus improving reliability and performance**
+**IMPORTANT NOTE: The Bellhop team _STRONGLY_ recommends leveraging the data returned by the Graph API query, and not using any `Get-Az<RESOURCETYPE>` commands in your scaler modules. This practice is intended to limit the number of queries to prevent overloading the Azure API, thus improving reliability and performance**
 
 The Engine will always send the same formatted messages to the queue so we need to build our scaler logic around this information. The Scaler Function takes the Storage Queue message and breaks it into 3 parameters that will be passed to each Scaler Module. These parameters are:
 - $graphData - `graphResults` section from storage queue message
@@ -291,7 +310,7 @@ _Note: the config object is passed to the Set-Resource command as a hash table b
 ```
 Set-AzAppServicePlan @config -Tag $tags
 ```
-_**Sample-scaler module psm1 can be found in the [development](./development/sample-scaler/) folder in the GitHub repo**_
+_**Sample-scaler module psm1 can be found in the [dev](./dev/scaler/) folder in the GitHub repo**_
 
 
 
