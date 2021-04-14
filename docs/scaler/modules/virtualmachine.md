@@ -24,6 +24,13 @@ An example of the message sent to the queue by the engine function
 {
     "debug": false,
     "direction": "down",
+    "tagMap": {
+        "enable": "resize-Enable",
+        "start": "resize-StartTime",
+        "end": "resize-EndTime",
+        "set": "setState-",
+        "save": "saveState-"
+    },
     "graphResults": {
         "id": "/subscriptions/<SUBSCRIPTION-ID>/resourceGroups/<RESOURCE-GROUP-NAME>/providers/Microsoft.Compute/virtualMachines/vm-test",
         "name": "vm-test",

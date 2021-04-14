@@ -53,6 +53,8 @@ All you need to do to run Bellhop is deploy the solution and ensure you have the
 ## Required Tags for All Services
 Bellhop operates based on resource tags. Some of the required tags will be common between Azure services, and some tags will be specific to the resource you would like Bellhop to scale. Resource specific tags will be discussed in detail in the [Scaler Modules](/scaler/modules/README.md) section.
 
+_Note: The tags discussed below represent the **default** vales that Bellhop provides. Custom tag options are discussed [below](#custom-tag-values)_
+
 **Bellhop Common Tags:**
 ```
 resize-Enable = <bool> (True/False)
@@ -85,6 +87,23 @@ Can I have Bellhop resize Daily/Weekly/Monthly?
     - The net effect of example tag combination above, is that the target resource would be scaled down every evening at 8PM, and then scaled back up every morning at 6AM (UTC)
 - Additional values such as `Weekly` or `Monthly` may be added in the future
     - If you have a specific use case or requirement for these additional keywords, please share with us on our [GitHub Discussions](https://github.com/Azure/bellhop/discussions) page
+
+### Custom Tag Values
+As discussed in the [Deploying Bellhop](#deploying-bellhop) section above, the Bellhop team recognizes that the default tags may not be a good fit for all customers so we decided to offer the ability to customize the operational tags for Bellhop. When deploying Bellhop customers can leverage the options on the `Advanced` tab in the portal to set their own values for:
+- **Tag Prefix**
+    - _Prefix which will be appended to all tags used by Bellhop (NOTE: This prefix will be pre-pended to ALL of the below tags)_
+- **Enable Tag**
+    - _Tag which will be used to identify which resources are currently enabled for Bellhop scaling_
+- **Start Time**
+    - _Tag which will be used to identify the day of the week (or Daily) & time which Bellhop should scale **DOWN** the resource_
+- **End Time**
+    - _Tag which will be used to identify the day of the week (or Daily) & time which Bellhop should scale **UP** the resource_
+- **Target State**
+    - _Tag prefix which will be used for Bellhop to identify configuration elements of the target resource, which describe it's target state when scaled down_
+- **Saved State**
+    - _Tag prefix which will be used for Bellhop to rememebr configuration elements of the target resource, after the resource has been scaled down_
+
+These custom tag values will be used to construct the Tag Map object to pass the Scaler Function and Module. If no options are provided on the `Advanced` Tab when deploying, the default tag values will be used. 
 
 ## Bellhop Infrastructure Overview
 ### What gets deployed with Bellhop?

@@ -35,11 +35,15 @@ This solution was designed to be extensible from the beginning, with the idea be
     {
         "debug": false,
         "direction": "down",
+        "tagMap": {
+            "enable": "<ENABLE-TAG-VALUE>",
+            "start": "<START-TAG-VALUE>",
+            "end": "<END-TAG-VALUE>",
+            "set": "<SET-TAG-VALUE>",
+            "save": "<SAVE-TAG-VALUE>"
+        },
         "graphResults": {
             <..Graph API Results..>
-        },
-        "tagMap": {
-            <..Map of Custom Tags..>
         }
     }
     ```
@@ -77,7 +81,7 @@ When beginning to think about extending Bellhop functionality to include a new A
 
 The Engine will always send the same formatted messages to the queue so we need to build our scaler logic around this information. The Scaler Function takes the Storage Queue message and breaks it into 3 parameters that will be passed to each Scaler Module. These parameters are:
 - $graphData - `graphResults` section from storage queue message
-- $tagData - `graphResults.tags` section from storage queue message
+- $tagData - `graphResults.tags` + `tagMap` sections from storage queue message
 - $direction - `direction` section from storage queue message
 
 To further illustrate this point, we can use the App Service Plan Scaler Module as an example. We can look at the process of building the logical map between Azure Graph API data and the required Powershell commands to scale the desired resource. As mentioned earlier, this will be the most complicated part of building a new Scaler Module because this logic is not consistent across all Azure resources.
@@ -279,7 +283,7 @@ $saveData = @{
 We can now finalize the `$config` and `$tags` objects that we will use to pass to the PowerShell Command. For the `$config` object we just combine what we have built so far with the initial `$baseData` we gathered. We then pass the `$saveData` object to the _`Set-SaveTags`_ Function which is used to generate the `"saveState-"` tags (saved as `$tags`) to be applied to the resource during scale down:
 ```
     $config += $baseData
-    $tags += Set-SaveTags $saveData
+    $tags += Set-SaveTags $saveData $tagData.map
 ```
 
 #### Saving the Original State
@@ -289,11 +293,12 @@ In order to track the original configuration of the resource, every Scaler Modul
 ```
 function Set-SaveTags {
     param (
-        $inTags
+        $inTags,
+        $tagMap
     )
 
     $outTags = @{ }
-    $inTags.keys | ForEach-Object { $outTags += @{("saveState-" + $_) = $inTags[$_] } }
+    $inTags.keys | ForEach-Object { $outTags += @{($tagMap.save + $_) = $inTags[$_] } }
     
     return $outTags
 }

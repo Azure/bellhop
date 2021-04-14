@@ -3,11 +3,18 @@ The Scaler Function is a very lightweight Powershell function that is triggered 
 
 ## Bellhop Scaler Function Workflow
 - Message is recieved in the queue after being passed from the Engine
-- Scaler parses the Resource Type, and loads the appropriate Scaler Module (Import function.psm1)
-- Resize parameters are passed to the Scaler Module function:
-    - Resize direction (Up/Down)
-    - Azure Resource Graph results
-    - Extracted Tag data (Save/Set state)
+- Scaler parses the message for the value of `graphResults.type`, and then imports the appropriate Scaler Module (function.psm1)
+- Scaler Function triggers the appropriate Scaler Module to begin a scale operation via an event message including the following data:
+    - **Debug Flag**
+        - If value is set to `true` logging will be much more verbose for troubleshooting purposes
+        - _Can be changed after deployment via the App Configuration_
+    - **Resize direction**
+        - Valid options are _UP_ or _DOWN_
+    - **Tag Map Data**
+        - This is the map data to inform Bellhop which tags to use for scale operations
+        - _All Tag Keys are customizable now, per the "Advanced" tab when using the Deploy-to-Azure button_
+    - **Azure Resource Graph results**
+        - Results of the Azure Graph API query for the target resource
 - Entire resize operation is executed by the Scaler Module
 
 ## Scaler Module Details

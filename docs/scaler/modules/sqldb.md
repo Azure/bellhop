@@ -32,6 +32,13 @@ An example of the message sent to the queue by the engine function
 {
     "debug": false,
     "direction": "up",
+    "tagMap": {
+        "enable": "resize-Enable",
+        "start": "resize-StartTime",
+        "end": "resize-EndTime",
+        "set": "setState-",
+        "save": "saveState-"
+    },
     "graphResults": {
         "id": "/subscriptions/<SUBSCRIPTION-ID>/resourceGroups/<RESOURCE-GROUP-NAME>/providers/Microsoft.Sql/servers/elastic-test/databases/sql-db",
         "name": "sql-db",

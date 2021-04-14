@@ -135,11 +135,6 @@ function Update-Resource {
                 NumberofWorkers = $graphData.sku.capacity
             }
 
-            $config += $baseData
-            $tags += Set-SaveTags $saveData
-        }
-    }
-
 #######################################################################################################################
 ##
 ## Scaling the Resource
@@ -147,10 +142,18 @@ function Update-Resource {
 ## The PowerShell command to scale most resources is "Set-AzRESOURCENAME". This is not always the case and will need
 ## to be validated per Azure resource documentation. 
 ##
-## All scaler modules should be written to accept "@config" (hashtable) and "$tags" values. These will set the new
-## resource configuration and tag values.  
+## All scaler modules should be written to accept "@config" (hashtable) and "$tags" values. These parameters will determine 
+## the new resource configuration and tag values.
+##
+## First we complete the building of the "$config" variable by adding back in our initial "$baseData". Next we build the new
+## resource tags via the "Set-SaveTags" function (details below). 
 ##
 #######################################################################################################################
+
+            $config += $baseData
+            $tags += Set-SaveTags $saveData $tagData.map
+        }
+    }
 
     # Scale the App Service Plan
     try {
@@ -170,7 +173,21 @@ function Update-Resource {
 ##
 ## Set-SaveTags Function
 ##
-## Function takes tag inputs "$inTags" and then prepends "saveState-". It returns the value "$outTags"
+## Function takes 2 parameters:
+## - $inTags - This parameter is the $saveData
+## - $tagMap - This is passed in via the original scale message and consists of the values the customer chooses 
+##             to use for the operations tags:
+##
+##        "tagMap": {
+##            "enable": "<ENABLE-TAG-VALUE>",
+##            "start": "<START-TAG-VALUE>",
+##            "end": "<END-TAG-VALUE>",
+##            "set": "<SET-TAG-VALUE>",
+##            "save": "<SAVE-TAG-VALUE>"
+##        }
+##
+## The function then prepends the "$tagMap.save" value to capture the resource state and then returns the value "$outTags".
+##
 ## All scaler modules should use the Set-SaveTags function to parse resource Tag data when scaling down. This 
 ## is how Bellhop ensures proper scaling operations.
 ##
@@ -178,11 +195,12 @@ function Update-Resource {
 
 function Set-SaveTags {
     param (
-        $inTags
+        $inTags,
+        $tagMap
     )
 
     $outTags = @{ }
-    $inTags.keys | ForEach-Object { $outTags += @{("saveState-" + $_) = $inTags[$_] } }
+    $inTags.keys | ForEach-Object { $outTags += @{($tagMap.save + $_) = $inTags[$_] } }
     
     return $outTags
 }
