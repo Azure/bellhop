@@ -139,14 +139,14 @@ function Update-Resource {
 ##
 ## Scaling the Resource
 ##
-## The PowerShell command to scale most resources is "Set-AzRESOURCENAME". This is not always the case and will need
-## to be validated per Azure resource documentation. 
+## First we complete the building of the "$config" variable by adding back in our initial "$baseData". Next we build the new
+## resource tags via the "Set-SaveTags" function (details below).
 ##
 ## All scaler modules should be written to accept "@config" (hashtable) and "$tags" values. These parameters will determine 
-## the new resource configuration and tag values.
+## the new resource configuration and tag values. 
 ##
-## First we complete the building of the "$config" variable by adding back in our initial "$baseData". Next we build the new
-## resource tags via the "Set-SaveTags" function (details below). 
+## The PowerShell command to scale most resources is "Set-AzRESOURCENAME". This is not always the case and will need
+## to be validated per Azure resource documentation. 
 ##
 #######################################################################################################################
 
