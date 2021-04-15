@@ -182,8 +182,8 @@ function Update-Resource {
 ##            "enable": "<ENABLE-TAG-VALUE>",
 ##            "start": "<START-TAG-VALUE>",
 ##            "end": "<END-TAG-VALUE>",
-##            "set": "<SET-TAG-VALUE>",
-##            "save": "<SAVE-TAG-VALUE>"
+##            "set": "<SET-PREFIX-VALUE>",
+##            "save": "<SAVE-PREFIX-VALUE>"
 ##        }
 ##
 ## The function then prepends the "$tagMap.save" value to capture the resource state and then returns the value "$outTags".

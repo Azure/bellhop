@@ -36,11 +36,11 @@ Bellhop was designed to be extensible from the beginning, with the idea being th
         "debug": false,
         "direction": "down",
         "tagMap": {
-            "enable": "<ENABLE-TAG-FORMAT>",
-            "start": "<START-TAG-FORMAT>",
-            "end": "<END-TAG-FORMAT>",
-            "set": "<SET-PREFIX-FORMAT>",
-            "save": "<SAVE-PREFIX-FORMAT>"
+            "enable": "<ENABLE-TAG-VALUE>",
+            "start": "<START-TAG-VALUE>",
+            "end": "<END-TAG-VALUE>",
+            "set": "<SET-PREFIX-VALUE>",
+            "save": "<SAVE-PREFIX-VALUE>"
         },
         "graphResults": {
             <...Graph API Results...>

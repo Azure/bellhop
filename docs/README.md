@@ -94,9 +94,9 @@ As discussed in the [Deploying Bellhop](#deploying-bellhop) section above, the B
     - _Prefix which will be appended to all tags used by Bellhop (NOTE: This prefix will be pre-pended to ALL of the below tags)_
 - **Enable Tag**
     - _Tag which will be used to identify which resources are currently enabled for Bellhop scaling_
-- **Start Time**
+- **Start Time Tag**
     - _Tag which will be used to identify the day of the week (or Daily) & time which Bellhop should scale **DOWN** the resource_
-- **End Time**
+- **End Time Tag**
     - _Tag which will be used to identify the day of the week (or Daily) & time which Bellhop should scale **UP** the resource_
 - **Target State Prefix**
     - _Tag prefix which will be used for Bellhop to identify configuration elements of the target resource, which describe it's target state when scaled down_
@@ -131,11 +131,10 @@ The included deploy script, `deployBellhop.ps1`, will build out the following Az
 - **Application Insights**
     - Application Insights for the above App Service Plan
 - **App Configuration**
-    - Application configuration store for Bellhop global variables.
+    - App configuration store for Bellhop runtime variables
         - Allows for configuration adjustments to Bellhop without the need to redeploy
             - Custom tag prefix values
-            - Storage Account name
-            - Storage Queue name
+            - Storage account/queue settings
             - Debug flag for troubleshooting
 
 ### Security considerations
