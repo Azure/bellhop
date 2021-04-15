@@ -81,10 +81,12 @@ function Update-Resource {
 ##  
 ## SCALING UP
 ##
-## You will need to switch off of the direction sent from the Engine function.  Scaling up is the easier 
-## operation as it only requires parsing the values of the "saveState-" tags.
+## There is a Switch statement to determine the scale direction sent from the Engine function.
+## Scaling up is generally a simple operation, as it only requires parsing the values of the "saveState-"
+## tags and "splatting" them into the PowerShell scale command.
 ##
-## $config is populated with the saved tag data and base data, providing the necessary parameters to scale.
+## $config is populated with the saved tag data and base data, providing the necessary parameters to the PowerShell
+## scale command.
 ##
 ## The "saveState-" tags set the original configuration of the resource. 
 ##  
