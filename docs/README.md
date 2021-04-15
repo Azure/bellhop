@@ -130,6 +130,13 @@ The included deploy script, `deployBellhop.ps1`, will build out the following Az
     - Engine & Scaler code is deployed via Docker containers from the 'azurebellhop' DockerHub repo
 - **Application Insights**
     - Application Insights for the above App Service Plan
+- **App Configuration**
+    - Application configuration store for Bellhop global variables.
+        - Allows for configuration adjustments to Bellhop without the need to redeploy
+            - Custom tag prefix values
+            - Storage Account name
+            - Storage Queue name
+            - Debug flag for troubleshooting
 
 ### Security considerations
 For the purpose of this project we have not integrated a complete set of security features into Bellhop. This solution is currently in an alpha phase and is not hardened from a security aspect. To use this service in a production deployment it is recommended to review the following documentation from Azure. It walks though best practices on securing Azure Functions: 
