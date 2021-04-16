@@ -53,6 +53,8 @@ All you need to do to run Bellhop is deploy the solution and ensure you have the
 ## Required Tags for All Services
 Bellhop operates based on resource tags. Some of the required tags will be common between Azure services, and some tags will be specific to the resource you would like Bellhop to scale. Resource specific tags will be discussed in detail in the [Scaler Modules](/scaler/modules/README.md) section.
 
+_Note: The following tags represent the **default** values that Bellhop provides. Custom tag options are discussed [below](#custom-tag-values)_.
+
 **Bellhop Common Tags:**
 ```
 resize-Enable = <bool> (True/False)
@@ -86,6 +88,23 @@ Can I have Bellhop resize Daily/Weekly/Monthly?
 - Additional values such as `Weekly` or `Monthly` may be added in the future
     - If you have a specific use case or requirement for these additional keywords, please share with us on our [GitHub Discussions](https://github.com/Azure/bellhop/discussions) page
 
+### Custom Tag Values
+As discussed in the [Deploying Bellhop](#deploying-bellhop) section above, the Bellhop team recognizes that the default tags may not be a good fit for all customer evironments, so users have the ability to customize the operational tags used within Bellhop. When deploying Bellhop, customers can modify the fields located on the `Advanced` tab in the portal to set their own values for:
+- **Tag Prefix**
+    - _Prefix which will be appended to all tags used by Bellhop (NOTE: This prefix will be pre-pended to ALL of the below tags)_
+- **Enable Tag**
+    - _Tag which will be used to identify which resources are currently enabled for Bellhop scaling_
+- **Start Time Tag**
+    - _Tag which will be used to identify the day of the week (or Daily) & time which Bellhop should scale **DOWN** the resource_
+- **End Time Tag**
+    - _Tag which will be used to identify the day of the week (or Daily) & time which Bellhop should scale **UP** the resource_
+- **Target State Prefix**
+    - _Tag prefix which will be used for Bellhop to identify configuration elements of the target resource, which describe it's target state when scaled down_
+- **Saved State Prefix**
+    - _Tag prefix which will be used for Bellhop to rememebr configuration elements of the target resource, after the resource has been scaled down_
+
+These custom tag values will be used to construct the Tag Map object to pass the Scaler function and module. If no fields are modified on the `Advanced` tab when deploying, the default tag values will be used. 
+
 ## Bellhop Infrastructure Overview
 ### What gets deployed with Bellhop?
 
@@ -111,6 +130,12 @@ The included deploy script, `deployBellhop.ps1`, will build out the following Az
     - Engine & Scaler code is deployed via Docker containers from the 'azurebellhop' DockerHub repo
 - **Application Insights**
     - Application Insights for the above App Service Plan
+- **App Configuration**
+    - App configuration store for Bellhop runtime variables
+        - Allows for configuration adjustments to Bellhop without the need to redeploy
+            - Custom tag prefix values
+            - Storage account/queue settings
+            - Debug flag for troubleshooting
 
 ### Security considerations
 For the purpose of this project we have not integrated a complete set of security features into Bellhop. This solution is currently in an alpha phase and is not hardened from a security aspect. To use this service in a production deployment it is recommended to review the following documentation from Azure. It walks though best practices on securing Azure Functions: 

@@ -19,11 +19,20 @@ If the Engine finds resources that have the tag set to `True`, it then evaluates
 {
     "debug": false, // Value from debugEnabled flag in App Configuration
     "direction": "down", // Determined by evaluating startTime and endTime tags
+    "tagMap": {
+        "enable": "<ENABLE-TAG-VALUE>",
+        "start": "<START-TAG-VALUE>",
+        "end": "<END-TAG-VALUE>",
+        "set": "<SET-PREFIX-VALUE>",
+        "save": "<SAVE-PREFIX-VALUE>"
+    },
     "graphResults": {
         // Resource Graph results for target resource
     }
 }
 ```
+
+NOTE: Optional Custom Tag Values are set during deployment, default values are provided.
 
 ## Adjusting the Bellhop Engine Interval
 

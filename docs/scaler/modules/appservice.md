@@ -34,9 +34,16 @@ An example of the message sent to the queue by the engine function
 {
     "debug": false,
     "direction": "down",
+    "tagMap": {
+        "enable": "resize-Enable",
+        "start": "resize-StartTime",
+        "end": "resize-EndTime",
+        "set": "setState-",
+        "save": "saveState-"
+    },
     "graphResults": {
-        "id": "/subscriptions/<SUBSCRIPTION-ID>/resourceGroups/<RESOURCE-GROUP-NAME>/providers/Microsoft.Web/serverFarms/autoscale-test-app",
-        "name": "autoscale-test-app",
+        "id": "/subscriptions/<SUBSCRIPTION-ID>/resourceGroups/<RESOURCE-GROUP-NAME>/providers/Microsoft.Web/serverFarms/bellhop-test-app",
+        "name": "bellhop-test-app",
         "type": "microsoft.web/serverfarms",
         "tenantId": "<TENANT-ID>",
         "kind": "linux",
@@ -54,7 +61,7 @@ An example of the message sent to the queue by the engine function
         "plan": null,
         "properties": {
             "provisioningState": "Succeeded",
-            "name": "autoscale-test-app",
+            "name": "bellhop-test-app",
             "resourceGroup": "<RESOURCE-GROUP-NAME>",
             "subscription": "<SUBSCRIPTION-ID>",
             "kind": "linux",
@@ -111,7 +118,7 @@ An example of the message sent to the queue by the engine function
         "identity": null,
         "zones": null,
         "extendedLocation": null,
-        "ResourceId": "/subscriptions/<SUBSCRIPTION-ID>/resourceGroups/<RESOURCE-GROUP-NAME>/providers/Microsoft.Web/serverFarms/autoscale-test-app"
+        "ResourceId": "/subscriptions/<SUBSCRIPTION-ID>/resourceGroups/<RESOURCE-GROUP-NAME>/providers/Microsoft.Web/serverFarms/bellhop-test-app"
     }
 }
 ```
