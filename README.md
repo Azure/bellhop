@@ -32,6 +32,7 @@ Bellhop is a highly extensible framework providing an easy way to scale Azure ma
 
 | File/folder          | Description                                                   |
 |----------------------|---------------------------------------------------------------|
+| `dev/`               | Development Repo containing sample Scaler module code         |
 | `docs/`              | Docsify Repo                                                  |
 | `functions/`         | Bellhop Engine & Scaler Function Code                         |
 | `templates/`         | Bellhop Infrastructure ARM Template & Portal UI Definition    |
