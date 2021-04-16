@@ -32,7 +32,7 @@ Bellhop is a highly extensible framework providing an easy way to scale Azure ma
 
 | File/folder          | Description                                                   |
 |----------------------|---------------------------------------------------------------|
-| `dev/`               | Development Repo containing sample Scaler module code         |
+| `dev/`               | Development Repo Containing Sample Scaler Module Code         |
 | `docs/`              | Docsify Repo                                                  |
 | `functions/`         | Bellhop Engine & Scaler Function Code                         |
 | `templates/`         | Bellhop Infrastructure ARM Template & Portal UI Definition    |
@@ -43,7 +43,7 @@ Bellhop is a highly extensible framework providing an easy way to scale Azure ma
 | `SECURITY.md`        | Microsoft Open Source Security Information & Details          |
 
 ## Documentation
-The Bellhop project leverages [Docsify](https://docsify.js.org/#/) and [GitHub Pages](https://docs.github.com/en/github/working-with-github-pages) to present the project documentation, which can be found here:
+The Bellhop project leverages [Docsify](https://docsify.js.org/) and [GitHub Pages](https://docs.github.com/en/github/working-with-github-pages) to present the project documentation, which can be found here:
 
 - **[Welcome to Bellhop!](https://azure.github.io/bellhop/#/)**
 
