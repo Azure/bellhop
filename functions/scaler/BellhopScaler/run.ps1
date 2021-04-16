@@ -36,6 +36,27 @@ function Initialize-TagData {
     return $tagData
 }
 
+function Assert-Error {
+    param (
+        $err
+    )
+
+    $errorDetails = @{
+        Type    = $err.Exception.GetType().fullname
+        Message = $err.Exception.Message
+    }
+
+    $resourceDetails = @{
+        Name            = $QueueItem.graphResults.name
+        ResourceGroup   = $QueueItem.graphResults.resourceGroup
+        Subscription    = $QueueItem.graphResults.subscriptionId
+        Error           = $errorDetails
+    }
+
+    Write-Host $(@{ Exception = $resourceDetails } | ConvertTo-Json -Depth 4)
+    throw $err
+}
+
 # Set preference variables
 $ErrorActionPreference = "Stop"
 
@@ -61,9 +82,11 @@ catch {
         Write-Host "========================="
     }
 
-    Write-Host "($($Error.exception.GetType().fullname)) - $($PSItem.ToString())"
+    # Write-Host "($($Error.Exception.GetType().fullname)) - $($PSItem.ToString())"
+    # Write-Host $($Error | ConvertTo-Json)
     # throw $PSItem
-    Exit
+    # Exit
+    Assert-Error $Error
 }
 
 # Set the current context to that of the target resources subscription
@@ -74,7 +97,7 @@ try {
 }
 catch {
     Write-Host "Error setting the subscription context!"
-    Write-Host "($($Error.exception.GetType().fullname)) - $($PSItem.ToString())"
+    Write-Host "($($Error.Exception.GetType().fullname)) - $($PSItem.ToString())"
     # throw $PSItem
     Exit
 }
@@ -88,7 +111,7 @@ try {
 }
 catch {
     Write-Host "Error scaling resource!"
-    Write-Host "($($Error.exception.GetType().fullname)) - $($PSItem.ToString())"
+    Write-Host "($($Error.Exception.GetType().fullname)) - $($PSItem.ToString())"
     # throw $PSItem
     Exit
 }
