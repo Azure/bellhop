@@ -10,12 +10,14 @@
         },
         "location": {
             "type": "string",
+            "defaultValue": "[deployment().location]",
             "metadata": {
                 "description": "The location of the Bellhop deployment."
             }
         },
         "engineInterval": {
             "type": "string",
+            "defaultValue": "0 */30 * * * *",
             "metadata": {
                 "description": "The interval at which the Bellhop engine should execute."
             }
@@ -29,30 +31,35 @@
         },
         "enableTag": {
             "type": "string",
+            "defaultValue": "resize-Enable",
             "metadata": {
                 "description": "Tag which will be used to identify which resources are currently enabled for Bellhop scaling."
             }
         },
         "startTimeTag": {
             "type": "string",
+            "defaultValue": "resize-StartTime",
             "metadata": {
                 "description": "Tag which will be used to identify the day of the week & time which Bellhop should scale DOWN the resource."
             }
         },
         "endTimeTag": {
             "type": "string",
+            "defaultValue": "resize-EndTime",
             "metadata": {
                 "description": "Tag which will be used to identify the day of the week & time which Bellhop should scale UP the resource."
             }
         },
         "setStatePrefix": {
             "type": "string",
+            "defaultValue": "setState-",
             "metadata": {
                 "description": "Prefix which will be prepended to resource parameter tags which Bellhop uses to identify the target state of the target resource when scaled down."
             }
         },
         "saveStatePrefix": {
             "type": "string",
+            "defaultValue": "saveState-",
             "metadata": {
                 "description": "Prefix which will be prepended to resource parameter tags which Bellhop uses to remember the original state of the target resource when scaled down."
             }
@@ -161,6 +168,7 @@
                         },
                         "engineInterval": {
                             "type": "string",
+                            "defaultValue": "0 */30 * * * *",
                             "metadata": {
                                 "description": "The interval at which the Bellhop engine should execute."
                             }
@@ -174,30 +182,35 @@
                         },
                         "enableTag": {
                             "type": "string",
+                            "defaultValue": "resize-Enable",
                             "metadata": {
                                 "description": "Tag which will be used to identify which resources are currently enabled for Bellhop scaling."
                             }
                         },
                         "startTimeTag": {
                             "type": "string",
+                            "defaultValue": "resize-StartTime",
                             "metadata": {
                                 "description": "Tag which will be used to identify the day of the week & time which Bellhop should scale DOWN the resource."
                             }
                         },
                         "endTimeTag": {
                             "type": "string",
+                            "defaultValue": "resize-EndTime",
                             "metadata": {
                                 "description": "Tag which will be used to identify the day of the week & time which Bellhop should scale UP the resource."
                             }
                         },
                         "setStatePrefix": {
                             "type": "string",
+                            "defaultValue": "setState-",
                             "metadata": {
                                 "description": "Prefix which will be prepended to resource parameter tags which Bellhop uses to identify the target state of the target resource when scaled down."
                             }
                         },
                         "saveStatePrefix": {
                             "type": "string",
+                            "defaultValue": "saveState-",
                             "metadata": {
                                 "description": "Prefix which will be prepended to resource parameter tags which Bellhop uses to remember the original state of the target resource when scaled down."
                             }

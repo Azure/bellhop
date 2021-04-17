@@ -38,31 +38,57 @@ function Initialize-TagData {
 
 function Assert-Error {
     param (
-        $err
+        $err,
+        $ctx
     )
 
     $errorDetails = @{
-        Type    = $err.Exception.GetType().fullname
-        Message = $err.Exception.Message
+        Type        = $err.Exception.GetType().fullname
+        Message     = $err.Exception.Message
+        StackTrace  = $err.Exception.StackTrace
     }
 
     $resourceDetails = @{
-        Name            = $QueueItem.graphResults.name
-        ResourceGroup   = $QueueItem.graphResults.resourceGroup
-        Subscription    = $QueueItem.graphResults.subscriptionId
-        Error           = $errorDetails
+        Name                = $QueueItem.graphResults.name
+        ResourceGroup       = $QueueItem.graphResults.resourceGroup
+        SubscriptionId      = $QueueItem.graphResults.subscriptionId
+        SubscriptionName    = $ctx.Subscription.Name
+        Error               = $errorDetails
     }
 
-    Write-Host $(@{ Exception = $resourceDetails } | ConvertTo-Json -Depth 4)
+    $errorMessage = $(@{ Exception = $resourceDetails } | ConvertTo-Json -Depth 4)
+    Write-Host "ERROR:" $errorMessage
     throw $err
 }
 
 # Set preference variables
 $ErrorActionPreference = "Stop"
 
+# Global context variable
+$Context = $null
+
 # Write out the queue message and insertion time to the information log
 Write-Host "PowerShell queue trigger function processed work item: $QueueItem"
 Write-Host "Queue item insertion time: $($TriggerMetadata.InsertionTime)"
+
+# Set the current context to that of the target resources subscription
+Write-Host "Setting the Subscription context: $($QueueItem.graphResults.subscriptionId)"
+
+try {
+    $Context = Set-AzContext -SubscriptionId $QueueItem.graphResults.subscriptionId
+
+    if ( $QueueItem.debug ) {
+        Write-Host "Context Detals:"
+        Write-Host "========================="
+        Write-Host "Subscription ID:" $Context.Subscription.Id
+        Write-Host "Subscription Name:" $Context.Subscription.Name
+        Write-Host "========================="
+    }
+}
+catch {
+    Write-Host "Error setting the context!"
+    Assert-Error $Error $Context
+}
 
 # Importing correct powershell module based on resource type
 Write-Host "Importing scaler for: $($QueueItem.graphResults.type)"
@@ -75,31 +101,14 @@ catch {
     Write-Host "Error loading the target scaler!"
 
     if ( $QueueItem.debug ) {
-        Write-Host "Content of Scalers Folder"
+        Write-Host "Available Scalers:"
         Write-Host "========================="
         $dirs = Get-ChildItem $PSScriptRoot -Recurse | Where-Object FullName -Like "*function.psm1" | Select-Object FullName
         foreach ($dir in $dirs) { Write-Host $dir.FullName }
         Write-Host "========================="
     }
 
-    # Write-Host "($($Error.Exception.GetType().fullname)) - $($PSItem.ToString())"
-    # Write-Host $($Error | ConvertTo-Json)
-    # throw $PSItem
-    # Exit
-    Assert-Error $Error
-}
-
-# Set the current context to that of the target resources subscription
-Write-Host "Setting the Subscription context: $($QueueItem.graphResults.subscriptionId)"
-
-try {
-    Set-AzContext -SubscriptionId $QueueItem.graphResults.subscriptionId | Out-Null
-}
-catch {
-    Write-Host "Error setting the subscription context!"
-    Write-Host "($($Error.Exception.GetType().fullname)) - $($PSItem.ToString())"
-    # throw $PSItem
-    Exit
+    Assert-Error $Error $Context
 }
 
 # Set Target and call correct powershell module based on resource type
@@ -110,10 +119,8 @@ try {
     Update-Resource $QueueItem.graphResults $tagData $QueueItem.direction
 }
 catch {
-    Write-Host "Error scaling resource!"
-    Write-Host "($($Error.Exception.GetType().fullname)) - $($PSItem.ToString())"
-    # throw $PSItem
-    Exit
+    Write-Host "Error scaling the target resource!"
+    Assert-Error $Error $Context
 }
 
 Write-Host "Scaling operation has completed successfully for resource: '$($QueueItem.graphResults.id)'."
