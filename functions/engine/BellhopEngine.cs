@@ -156,7 +156,7 @@ namespace Bellhop.Function
         public string TargetState { get; }
         public string ResizeAction { get; }
         public JObject GraphData { get; }
-        public List<Exception> _errors = new List<Exception>();
+        private List<Exception> _errors = new List<Exception>();
 
         public ResizeObject(JObject data)
         {
