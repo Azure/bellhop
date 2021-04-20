@@ -82,7 +82,7 @@ try {
     }
 }
 catch {
-    Write-Host "Error setting the context!"
+    Write-Host "ERROR: Cannot set the deployment context!"
     Assert-Error $PSItem
 }
 
@@ -94,7 +94,7 @@ try {
     Import-Module -Name $modulePath
 }
 catch {
-    Write-Host "Error loading the target scaler!"
+    Write-Host "ERROR: Cannot load the target scaler!"
 
     if ( $QueueItem.debug ) {
         Write-Host "Available Scalers:"
@@ -115,7 +115,7 @@ try {
     Update-Resource $QueueItem.graphResults $tagData $QueueItem.direction
 }
 catch {
-    Write-Host "Error scaling the target resource!"
+    Write-Host "ERROR: Cannot scale the target resource!"
     Assert-Error $PSItem
 }
 
