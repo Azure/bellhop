@@ -78,17 +78,13 @@
                 "description": "GUID for scaler contributor role on subscription."
             }
         },
-        "alertEnabled": {
+        "alertEnable": {
             "type": "bool",
             "defaultValue": false
         },
-        "alertReceivers": {
+        "alertDetails": {
             "type": "array",
             "defaultValue": [
-                {
-                    "name": "Tyler Peterson",
-                    "emailAddress": "typeter@microsoft.com"
-                }
             ]
         }
     },
@@ -171,11 +167,11 @@
                     "saveStatePrefix": {
                         "value": "[parameters('saveStatePrefix')]"
                     },
-                    "alertEnabled": {
-                        "value": "[parameters('alertEnabled')]"
+                    "alertEnable": {
+                        "value": "[parameters('alertEnable')]"
                     },
-                    "alertReceivers": {
-                        "value": "[parameters('alertReceivers')]"
+                    "alertDetails": {
+                        "value": "[parameters('alertDetails')]"
                     }
                 },
                 "template": {
@@ -296,21 +292,13 @@
                                 "description": "GUID for engine storage queue contributor role on the storage account."
                             }
                         },
-                        "alertEnabled": {
+                        "alertEnable": {
                             "type": "bool",
                             "defaultValue": false
                         },
-                        "alertReceivers": {
+                        "alertDetails": {
                             "type": "array",
                             "defaultValue": [
-                                {
-                                    "name": "Tyler Peterson",
-                                    "emailAddress": "typeter@microsoft.com"
-                                },
-                                {
-                                    "name": "Matthew Garrett",
-                                    "emailAddress": "matthew.garrett@microsoft.com"
-                                }
                             ]
                         }
                     },
@@ -663,7 +651,7 @@
                             }
                         },
                         {
-                            "condition": "[parameters('alertEnabled')]",
+                            "condition": "[parameters('alertEnable')]",
                             "type": "microsoft.insights/actionGroups",
                             "apiVersion": "2019-03-01",
                             "name": "BellhopFailure-AG",
@@ -676,10 +664,10 @@
                                 "copy": [
                                     {
                                         "name": "emailReceivers",
-                                        "count": "[length(parameters('alertReceivers'))]",
+                                        "count": "[length(parameters('alertDetails'))]",
                                         "input": {
-                                            "name": "[parameters('alertReceivers')[copyIndex('emailReceivers')].name]",
-                                            "emailAddress": "[parameters('alertReceivers')[copyIndex('emailReceivers')].emailAddress]",
+                                            "name": "[parameters('alertDetails')[copyIndex('emailReceivers')].alertName]",
+                                            "emailAddress": "[parameters('alertDetails')[copyIndex('emailReceivers')].alertEmail]",
                                             "useCommonAlertSchema": true
                                         }
                                     }
@@ -687,7 +675,7 @@
                             }
                         },
                         {
-                            "condition": "[parameters('alertEnabled')]",
+                            "condition": "[parameters('alertEnable')]",
                             "type": "microsoft.insights/scheduledqueryrules",
                             "location": "[resourceGroup().location]",
                             "apiVersion": "2018-04-16",
@@ -700,15 +688,15 @@
                                 "name": "AlertRules",
                                 "count": "[length(variables('alertRules'))]"
                             },
-                            "name": "[variables('alertRules')[copyIndex()].alertRuleName]",
+                            "name": "[variables('alertRules')[copyIndex('AlertRules')].alertRuleName]",
                             "properties": {
-                                "description": "[variables('alertRules')[copyIndex()].alertDescription]",
+                                "description": "[variables('alertRules')[copyIndex('AlertRules')].alertDescription]",
                                 "enabled": "true",
                                 "source": {
-                                    "query": "[variables('alertRules')[copyIndex()].query]",
+                                    "query": "[variables('alertRules')[copyIndex('AlertRules')].query]",
                                     "authorizedResources": [
                                     ],
-                                    "dataSourceId": "[resourceId(variables('alertRules')[copyIndex()].resourceGroup, 'microsoft.insights/components', variables('alertRules')[copyIndex()].resourceName)]",
+                                    "dataSourceId": "[resourceId(variables('alertRules')[copyIndex('AlertRules')].resourceGroup, 'microsoft.insights/components', variables('alertRules')[copyIndex('AlertRules')].resourceName)]",
                                     "queryType": "ResultCount"
                                 },
                                 "schedule": {
