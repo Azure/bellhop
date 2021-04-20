@@ -86,7 +86,7 @@ try {
 }
 catch {
     Write-Host "Error setting the context!"
-    Assert-Error $Error
+    Assert-Error $PSItem
 }
 
 # Importing correct powershell module based on resource type
@@ -107,7 +107,7 @@ catch {
         Write-Host "========================="
     }
 
-    Assert-Error $Error
+    Assert-Error $PSItem
 }
 
 # Set Target and call correct powershell module based on resource type
@@ -119,7 +119,7 @@ try {
 }
 catch {
     Write-Host "Error scaling the target resource!"
-    Assert-Error $Error
+    Assert-Error $PSItem
 }
 
 Write-Host "Scaling operation has completed successfully for resource: '$($QueueItem.graphResults.id)'."

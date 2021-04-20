@@ -59,11 +59,11 @@ An example of the message sent to the queue by the engine function
             "subscription": "<SUBSCRIPTION-ID>",
             "kind": "linux",
             "tags": {
-                "resize-Enable": "True"
+                "resize-Enable": "True",
                 "resize-StartTime": "Friday 7PM",
                 "resize-EndTime": "Monday 6AM",
                 "setState-WorkerSize": "Small",
-                "setState-Tier": "Basic",
+                "setState-Tier": "Basic"
             },
             "hostingEnvironmentProfile": null,
             "status": "Ready",
