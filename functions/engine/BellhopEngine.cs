@@ -127,7 +127,7 @@ namespace Bellhop.Function
         {
             _errors.Clear();
 
-            var nullKeys = _configData.Where(pair => String.IsNullOrEmpty(pair.Value))
+            var nullKeys = _configData.Where(pair => pair.Value == null)
                     .Select(pair => pair.Key);
 
             foreach (var key in nullKeys)
