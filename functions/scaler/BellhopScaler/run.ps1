@@ -63,9 +63,6 @@ function Assert-Error {
 # Set preference variables
 $ErrorActionPreference = "Stop"
 
-# Global context variable
-$Context = $null
-
 # Write out the queue message and insertion time to the information log
 Write-Host "PowerShell queue trigger function processed work item: $QueueItem"
 Write-Host "Queue item insertion time: $($TriggerMetadata.InsertionTime)"
