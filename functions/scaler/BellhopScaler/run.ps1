@@ -38,8 +38,7 @@ function Initialize-TagData {
 
 function Assert-Error {
     param (
-        $err,
-        $ctx
+        $err
     )
 
     $errorDetails = @{
@@ -52,12 +51,12 @@ function Assert-Error {
         Name                = $QueueItem.graphResults.name
         ResourceGroup       = $QueueItem.graphResults.resourceGroup
         SubscriptionId      = $QueueItem.graphResults.subscriptionId
-        SubscriptionName    = $ctx.Subscription.Name
+        SubscriptionName    = $QueueItem.graphResults.subscriptionName
         Error               = $errorDetails
     }
 
     $errorMessage = $(@{ Exception = $resourceDetails } | ConvertTo-Json -Depth 4)
-    Write-Host "ERROR:" $errorMessage
+    Write-Host "ERRORDATA:" $errorMessage
     throw $err
 }
 
@@ -87,7 +86,7 @@ try {
 }
 catch {
     Write-Host "Error setting the context!"
-    Assert-Error $Error $Context
+    Assert-Error $Error
 }
 
 # Importing correct powershell module based on resource type
@@ -108,7 +107,7 @@ catch {
         Write-Host "========================="
     }
 
-    Assert-Error $Error $Context
+    Assert-Error $Error
 }
 
 # Set Target and call correct powershell module based on resource type
@@ -120,7 +119,7 @@ try {
 }
 catch {
     Write-Host "Error scaling the target resource!"
-    Assert-Error $Error $Context
+    Assert-Error $Error
 }
 
 Write-Host "Scaling operation has completed successfully for resource: '$($QueueItem.graphResults.id)'."

@@ -139,16 +139,24 @@ namespace Bellhop.Function
         }
     }
 
+    class ErrorObject
+    {
+        public object Type { get; set; }
+        public string Message { get; set; }
+        public Exception Exception { get; set; }
+    }
+
     class ResizeObject
     {
         public string Name { get; }
         public string ResourceGroup { get; }
-        public string Subscription { get; }
+        public string SubscriptionId { get; }
+        public string SubscriptionName { get; }
         public string CurrentState { get; }
         public string TargetState { get; }
         public string ResizeAction { get; }
         public JObject GraphData { get; }
-        public List<KeyValuePair<object, string>> _errors = new List<KeyValuePair<object, string>>();
+        public List<Exception> _errors = new List<Exception>();
 
         public ResizeObject(JObject data)
         {
@@ -156,7 +164,8 @@ namespace Bellhop.Function
 
             Name = GraphData["name"].ToString();
             ResourceGroup = GraphData["resourceGroup"].ToString();
-            Subscription = GraphData["subscriptionId"].ToString();
+            SubscriptionId = GraphData["subscriptionId"].ToString();
+            SubscriptionName = GraphData["subscriptionName"].ToString();
 
             CurrentState = IsScaledDown() ? "down" : "up";
 
@@ -166,7 +175,7 @@ namespace Bellhop.Function
             }
             catch (Exception ex)
             {
-                _errors.Add(new KeyValuePair<object, string>(ex.GetType(), ex.Message));
+                _errors.Add(ex);
                 TargetState = null;
             }
 
@@ -178,9 +187,39 @@ namespace Bellhop.Function
             get => (_errors.Count > 0) ? false : true;
         }
 
-        public List<KeyValuePair<object, string>> Errors
+        public List<Exception> Errors
         {
             get => _errors;
+        }
+
+        public JObject ErrorObject
+        {
+            get
+            {
+                var errorList = new JArray();
+
+                foreach (var err in Errors)
+                {
+                    JObject errorDetail = JObject.FromObject(new {
+                        Type = err.GetType().ToString(),
+                        Message = err.Message,
+                        StackTrace = err.StackTrace
+                    });
+
+                    errorList.Add(errorDetail);
+                }
+
+                JObject errorObj = JObject.FromObject(new
+                {
+                    Name = Name,
+                    ResourceGroup = ResourceGroup,
+                    SubscriptionId = SubscriptionId,
+                    SubscriptionName = SubscriptionName,
+                    Errors = errorList
+                });
+
+                return errorObj;
+            }
         }
 
         public string DebugString
@@ -425,7 +464,7 @@ namespace Bellhop.Function
                 throw ex;
             }
 
-            string strQuery = $"Resources | where tags['{Settings.GetTag("enable")}'] =~ 'True'";
+            string strQuery = $"resourcecontainers | where type == 'microsoft.resources/subscriptions' | project subscriptionId, subscriptionName = name | join ( Resources | where tags['{Settings.GetTag("enable")}'] =~ 'True' ) on subscriptionId | project-away subscriptionId1";
 
             QueueClient messageQueue = getQueueClient(Settings.GetConfig("storageAccount"), Settings.GetConfig("storageQueue"));
 
@@ -519,7 +558,8 @@ namespace Bellhop.Function
                 log.LogInformation("-------------------------");
                 log.LogInformation("Name: " + item.Name);
                 log.LogInformation("Resource Group: " + item.ResourceGroup);
-                log.LogInformation("Subscription: " + item.Subscription);
+                log.LogInformation("Subscription Id: " + item.SubscriptionId);
+                log.LogInformation("Subscription Name: " + item.SubscriptionName);
                 log.LogInformation("Errors:");
 
                 foreach (var err in item.Errors)
@@ -532,6 +572,12 @@ namespace Bellhop.Function
 
             log.LogInformation("=========================");
             log.LogInformation("Bellhop engine execution complete!");
+
+            foreach (var err in errorItems)
+            {
+                Exception errEx = new NotSupportedException();
+                log.LogError(0, errEx, $"ERRORDATA: {err.ErrorObject.ToString(Formatting.None)}");
+            }
         }
 
         public static QueueClient getQueueClient(string storName, string queueName)
