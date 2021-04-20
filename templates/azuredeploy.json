@@ -78,9 +78,17 @@
                 "description": "GUID for scaler contributor role on subscription."
             }
         },
+        "alertEnabled": {
+            "type": "bool",
+            "defaultValue": false
+        },
         "alertReceivers": {
             "type": "array",
             "defaultValue": [
+                {
+                    "name": "Tyler Peterson",
+                    "emailAddress": "typeter@microsoft.com"
+                }
             ]
         }
     },
@@ -162,6 +170,9 @@
                     },
                     "saveStatePrefix": {
                         "value": "[parameters('saveStatePrefix')]"
+                    },
+                    "alertEnabled": {
+                        "value": "[parameters('alertEnabled')]"
                     },
                     "alertReceivers": {
                         "value": "[parameters('alertReceivers')]"
@@ -285,6 +296,10 @@
                                 "description": "GUID for engine storage queue contributor role on the storage account."
                             }
                         },
+                        "alertEnabled": {
+                            "type": "bool",
+                            "defaultValue": false
+                        },
                         "alertReceivers": {
                             "type": "array",
                             "defaultValue": [
@@ -310,18 +325,22 @@
                         "appConfigName": "[concat(parameters('appName'), '-appconfig')]",
                         "appConfigReaderRole": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '516239f1-63e1-4d78-a4de-a74fb236a071')]",
                         "storageQueueDataMessageSenderRole": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'c6a89b2d-59bc-44d0-9896-0f6e12d7b80a')]",
-                        "alertRules": {
-                            "type": "array",
-                            "scalerFailures": [
-                                {
-                                    "alertRuleName": "scalerFailures",
-                                    "alertDescription": "Bellhop Scaler module failure alerting",
-                                    "resourceName": "[variables('appInsightsName')]",
-                                    "resourceGroup": "[resourceGroup().id]",
-                                    "query": "[concat('union traces | where timestamp > ago(30m) | where cloud_RoleName =~ ''', parameters('prefix'), '-scaler-function''', 'and  operation_Name =~ ''BellhopScaler'' | order by timestamp desc | parse message with * \"ERROR: \" errorObject| extend errObj = todynamic(errorObject).Exception | where isnotnull(errObj) | project OperationID = operation_Id, SubscriptionID = errObj.SubscriptionId, SubscriptionName = errObj.SubscriptionName, ResourceGroup = errObj.ResourceGroup, ResourceName = errObj.Name, ErrorType = errObj.Error.Type, ErrorMessage = errObj.Error.Message, StackTrace = errObj.Error.StackTrace')]"
-                                }
-                            ]
-                        }
+                        "alertRules": [
+                            {
+                                "alertRuleName": "Scaler Failures",
+                                "alertDescription": "Bellhop Scaler module failure alerting",
+                                "resourceName": "[variables('appInsightsName')]",
+                                "resourceGroup": "[resourceGroup().name]",
+                                "query": "[concat('union traces | where timestamp > ago(30m) | where cloud_RoleName =~ ''', parameters('appName'), '-scaler-function''', 'and  operation_Name =~ ''BellhopScaler'' | order by timestamp desc | parse message with * \"ERROR: \" errorObject| extend errObj = todynamic(errorObject).Exception | where isnotnull(errObj) | project OperationID = operation_Id, SubscriptionID = errObj.SubscriptionId, SubscriptionName = errObj.SubscriptionName, ResourceGroup = errObj.ResourceGroup, ResourceName = errObj.Name, ErrorType = errObj.Error.Type, ErrorMessage = errObj.Error.Message, StackTrace = errObj.Error.StackTrace')]"
+                            },
+                            {
+                                "alertRuleName": "Engine Failures",
+                                "alertDescription": "Bellhop Engine function failure alerting",
+                                "resourceName": "[variables('appInsightsName')]",
+                                "resourceGroup": "[resourceGroup().name]",
+                                "query": "[concat('union traces | where timestamp > ago(30m) | where cloud_RoleName =~ ''', parameters('appName'), '-engine-function''', 'and operation_Name =~ ''BellhopEngine'' | order by timestamp desc | parse message with * \"ERRORDATA: \" errorData | where isnotempty(errorData) | extend errorObj = todynamic(errorData) | mv-expand error = errorObj.Errors | project Name = errorObj.Name, ResourceGroup = errorObj.ResourceGroup, Subscription = errorObj.Subscription, ErrorType = error.Type, ErrorMessage = error.Message, ErrorTrace = error.StackTrace')]"
+                            }
+                        ]
                     },
                     "resources": [
                         {
@@ -644,46 +663,52 @@
                             }
                         },
                         {
+                            "condition": "[parameters('alertEnabled')]",
                             "type": "microsoft.insights/actionGroups",
                             "apiVersion": "2019-03-01",
-                            "name": "bellhop-ag",
+                            "name": "BellhopFailure-AG",
                             "location": "Global",
                             "tags": {
                             },
                             "properties": {
-                                "groupShortName": "bh-ag",
+                                "groupShortName": "bhFailure-ag",
                                 "enabled": true,
-                                "emailReceivers": [
+                                "copy": [
                                     {
-                                        "name": "[parameters('alertReceivers')[copyIndex().name]]",
-                                        "emailAddress": "[parameters('alertReceivers')[copyIndex().emailAddress]]",
-                                        "useCommonAlertSchema": true
+                                        "name": "emailReceivers",
+                                        "count": "[length(parameters('alertReceivers'))]",
+                                        "input": {
+                                            "name": "[parameters('alertReceivers')[copyIndex('emailReceivers')].name]",
+                                            "emailAddress": "[parameters('alertReceivers')[copyIndex('emailReceivers')].emailAddress]",
+                                            "useCommonAlertSchema": true
+                                        }
                                     }
                                 ]
                             }
                         },
                         {
+                            "condition": "[parameters('alertEnabled')]",
                             "type": "microsoft.insights/scheduledqueryrules",
-                            "name": "[variables('alertRules').scalerFailures.alertRuleName]",
-                            "apiVersion": "2018-04-16",                  
-                            "location": "[resourceGroup().location]",                            
+                            "location": "[resourceGroup().location]",
+                            "apiVersion": "2018-04-16",
                             "dependsOn": [
-                                "[resourceId('microsoft.insights/actionGroups/', 'bellhop-ag')]"
+                                "[resourceId('microsoft.insights/actionGroups', 'BellhopFailure-AG')]"
                             ],
                             "tags": {
                             },
                             "copy": {
-                                "name": "alertscopy",
+                                "name": "AlertRules",
                                 "count": "[length(variables('alertRules'))]"
                             },
+                            "name": "[variables('alertRules')[copyIndex()].alertRuleName]",
                             "properties": {
-                                "description": "[variables('alertRules').scalerFailures.alertDescription]",
+                                "description": "[variables('alertRules')[copyIndex()].alertDescription]",
                                 "enabled": "true",
                                 "source": {
-                                    "query": "[variables('alertRules').scalerFailures.query]",
+                                    "query": "[variables('alertRules')[copyIndex()].query]",
                                     "authorizedResources": [
                                     ],
-                                    "dataSourceId": "[resourceId(variables('alertRules').scalerFailures.resourceGroup, 'microsoft.insights/components', variables('alertRules').scalerFailures.resourceName)]",
+                                    "dataSourceId": "[resourceId(variables('alertRules')[copyIndex()].resourceGroup, 'microsoft.insights/components', variables('alertRules')[copyIndex()].resourceName)]",
                                     "queryType": "ResultCount"
                                 },
                                 "schedule": {
@@ -694,7 +719,7 @@
                                     "severity": "1",
                                     "aznsAction": {
                                         "actionGroup": [
-                                            "[resourceId('microsoft.insights/actionGroups', 'bellhop-ag')]"
+                                            "[resourceId('microsoft.insights/actionGroups', 'BellhopFailure-AG')]"
                                         ]
                                     },
                                     "throttlingInMin": 30,
