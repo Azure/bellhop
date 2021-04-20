@@ -1,0 +1,164 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "prefix": {
+            "type": "string",
+            "defaultValue": "tjp"
+        },
+        "actionGroupName": {
+            "type": "string",
+            "defaultValue": "bellhopFailures"
+        },
+        "actionGroupShortName": {
+            "type": "string",
+            "defaultValue": "bh-failures"
+        },
+        "alertReceivers": {
+            "type": "array",
+            "defaultValue": [
+                {
+                    "name": "Tyler Peterson",
+                    "emailAddress": "typeter@microsoft.com"
+                },
+                {
+                    "name": "Matthew Garrett",
+                    "emailAddress": "matthew.garrett@microsoft.com"
+                },
+                {
+                    "name": "Nills Franssens",
+                    "emailAddress": "nills.franssens@microsoft.com"
+                }
+            ]
+        }
+    },
+    "variables": {
+        "scalerFailureAlertRule": {
+            "alertRuleName": "Scaler Failures",
+            "alertDescription": "Bellhop Scaler module failure alerting",
+            "resourceName": "[concat(parameters('prefix'), '-appinsights')]",
+            "resourceGroup": "[concat(parameters('prefix'), '-rg')]",
+            "query": "[concat('union traces | where timestamp > ago(30m) | where cloud_RoleName =~ ''', parameters('prefix'), '-scaler-function''', 'and  operation_Name =~ ''BellhopScaler'' | order by timestamp desc | parse message with * \"ERROR: \" errorObject| extend errObj = todynamic(errorObject).Exception | where isnotnull(errObj) | project OperationID = operation_Id, SubscriptionID = errObj.SubscriptionId, SubscriptionName = errObj.SubscriptionName, ResourceGroup = errObj.ResourceGroup, ResourceName = errObj.Name, ErrorType = errObj.Error.Type, ErrorMessage = errObj.Error.Message, StackTrace = errObj.Error.StackTrace')]"
+        },
+        "engineFailureAlertRule": {
+            "alertRuleName": "Engine Failures",
+            "alertDescription": "Bellhop Engine Function failure alerting",
+            "resourceName": "[concat(parameters('prefix'), '-appinsights')]",
+            "resourceGroup": "[concat(parameters('prefix'), '-rg')]",
+            "query": "[concat('union traces | where timestamp > ago(30m) | where cloud_RoleName =~ ''', parameters('prefix'), '-engine-function''', 'and operation_Name =~ ''BellhopEngine'' | order by timestamp desc | parse message with * \"ERRORDATA: \" errorData | where isnotempty(errorData) | extend errorObj = todynamic(errorData) | mv-expand error = errorObj.Errors | project Name = errorObj.Name, ResourceGroup = errorObj.ResourceGroup, Subscription = errorObj.Subscription, ErrorType = error.Type, ErrorMessage = error.Message, ErrorTrace = error.StackTrace')]"
+        }
+    },
+    "resources": [
+        {
+            "name": "[parameters('actionGroupName')]",
+            "type": "microsoft.insights/actionGroups",
+            "apiVersion": "2019-03-01",
+            "location": "Global",
+            "tags": {
+            },
+            "properties": {
+                "groupShortName": "[parameters('actionGroupShortName')]",
+                "enabled": true,
+                "copy": [
+                    {
+                        "name": "emailReceivers",
+                        "count": "[length(parameters('alertReceivers'))]",
+                        "input": {
+                            "name": "[parameters('alertReceivers')[copyIndex('emailReceivers')].name]",
+                            "emailAddress": "[parameters('alertReceivers')[copyIndex('emailReceivers')].emailAddress]",
+                            "useCommonAlertSchema": true
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('scalerFailureAlertRule').alertRuleName]",
+            "type": "microsoft.insights/scheduledqueryrules",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2018-04-16",
+            "dependsOn": [
+                "[resourceId('microsoft.insights/actionGroups', parameters('actionGroupName'))]"
+            ],
+            "tags": {
+            },
+            "properties": {
+                "description": "[variables('scalerFailureAlertRule').alertDescription]",
+                "enabled": "true",
+                "source": {
+                    "query": "[variables('scalerFailureAlertRule').query]",
+                    "authorizedResources": [
+                    ],
+                    "dataSourceId": "[resourceId(variables('scalerFailureAlertRule').resourceGroup, 'microsoft.insights/components', variables('scalerFailureAlertRule').resourceName)]",
+                    "queryType": "ResultCount"
+                },
+                "schedule": {
+                    "frequencyInMinutes": 5,
+                    "timeWindowInMinutes": 5
+                },
+                "action": {
+                    "severity": "1",
+                    "aznsAction": {
+                        "actionGroup": [
+                            "[resourceId('microsoft.insights/actionGroups', parameters('actionGroupName'))]"
+                        ]
+                    },
+                    "throttlingInMin": 30,
+                    "throttleConsecutiveWindowCount": 0,
+                    "trigger": {
+                        "thresholdOperator": "GreaterThan",
+                        "threshold": 1
+                    },
+                    "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.Microsoft.AppInsights.Nexus.DataContracts.Resources.ScheduledQueryRules.AlertingAction"
+                }
+            }
+        },
+        {
+            "name": "[variables('engineFailureAlertRule').alertRuleName]",
+            "type": "microsoft.insights/scheduledqueryrules",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2018-04-16",
+            "dependsOn": [
+                "[resourceId('microsoft.insights/actionGroups', parameters('actionGroupName'))]"
+            ],
+            "tags": {
+            },
+            "properties": {
+                "description": "[variables('engineFailureAlertRule').alertDescription]",
+                "enabled": "true",
+                "source": {
+                    "query": "[variables('engineFailureAlertRule').query]",
+                    "authorizedResources": [
+                    ],
+                    "dataSourceId": "[resourceId(variables('engineFailureAlertRule').resourceGroup, 'microsoft.insights/components', variables('engineFailureAlertRule').resourceName)]",
+                    "queryType": "ResultCount"
+                },
+                "schedule": {
+                    "frequencyInMinutes": 5,
+                    "timeWindowInMinutes": 5
+                },
+                "action": {
+                    "severity": "1",
+                    "aznsAction": {
+                        "actionGroup": [
+                            "[resourceId('microsoft.insights/actionGroups', parameters('actionGroupName'))]"
+                        ]
+                    },
+                    "throttlingInMin": 30,
+                    "throttleConsecutiveWindowCount": 0,
+                    "trigger": {
+                        "thresholdOperator": "GreaterThan",
+                        "threshold": 1
+                    },
+                    "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.Microsoft.AppInsights.Nexus.DataContracts.Resources.ScheduledQueryRules.AlertingAction"
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "actionGroupId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Insights/actionGroups', parameters('actionGroupName'))]"
+        }
+    }
+}

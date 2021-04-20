@@ -77,6 +77,11 @@
             "metadata": {
                 "description": "GUID for scaler contributor role on subscription."
             }
+        },
+        "alertReceivers": {
+            "type": "array",
+            "defaultValue": [
+            ]
         }
     },
     "variables": {
@@ -89,7 +94,8 @@
             "apiVersion": "2020-06-01",
             "name": "[concat(parameters('appName'), '-rg')]",
             "location": "[parameters('location')]",
-            "properties": {}
+            "properties": {
+            }
         },
         {
             "type": "Microsoft.Authorization/roleAssignments",
@@ -156,6 +162,9 @@
                     },
                     "saveStatePrefix": {
                         "value": "[parameters('saveStatePrefix')]"
+                    },
+                    "alertReceivers": {
+                        "value": "[parameters('alertReceivers')]"
                     }
                 },
                 "template": {
@@ -275,6 +284,19 @@
                             "metadata": {
                                 "description": "GUID for engine storage queue contributor role on the storage account."
                             }
+                        },
+                        "alertReceivers": {
+                            "type": "array",
+                            "defaultValue": [
+                                {
+                                    "name": "Tyler Peterson",
+                                    "emailAddress": "typeter@microsoft.com"
+                                },
+                                {
+                                    "name": "Matthew Garrett",
+                                    "emailAddress": "matthew.garrett@microsoft.com"
+                                }
+                            ]
                         }
                     },
                     "variables": {
@@ -287,7 +309,19 @@
                         "appInsightsName": "[concat(parameters('appName'), '-appinsights')]",
                         "appConfigName": "[concat(parameters('appName'), '-appconfig')]",
                         "appConfigReaderRole": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '516239f1-63e1-4d78-a4de-a74fb236a071')]",
-                        "storageQueueDataMessageSenderRole": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'c6a89b2d-59bc-44d0-9896-0f6e12d7b80a')]"
+                        "storageQueueDataMessageSenderRole": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'c6a89b2d-59bc-44d0-9896-0f6e12d7b80a')]",
+                        "alertRules": {
+                            "type": "array",
+                            "scalerFailures": [
+                                {
+                                    "alertRuleName": "scalerFailures",
+                                    "alertDescription": "Bellhop Scaler module failure alerting",
+                                    "resourceName": "[variables('appInsightsName')]",
+                                    "resourceGroup": "[resourceGroup().id]",
+                                    "query": "[concat('union traces | where timestamp > ago(30m) | where cloud_RoleName =~ ''', parameters('prefix'), '-scaler-function''', 'and  operation_Name =~ ''BellhopScaler'' | order by timestamp desc | parse message with * \"ERROR: \" errorObject| extend errObj = todynamic(errorObject).Exception | where isnotnull(errObj) | project OperationID = operation_Id, SubscriptionID = errObj.SubscriptionId, SubscriptionName = errObj.SubscriptionName, ResourceGroup = errObj.ResourceGroup, ResourceName = errObj.Name, ErrorType = errObj.Error.Type, ErrorMessage = errObj.Error.Message, StackTrace = errObj.Error.StackTrace')]"
+                                }
+                            ]
+                        }
                     },
                     "resources": [
                         {
@@ -610,6 +644,70 @@
                             }
                         },
                         {
+                            "type": "microsoft.insights/actionGroups",
+                            "apiVersion": "2019-03-01",
+                            "name": "bellhop-ag",
+                            "location": "Global",
+                            "tags": {
+                            },
+                            "properties": {
+                                "groupShortName": "bh-ag",
+                                "enabled": true,
+                                "emailReceivers": [
+                                    {
+                                        "name": "[parameters('alertReceivers')[copyIndex().name]]",
+                                        "emailAddress": "[parameters('alertReceivers')[copyIndex().emailAddress]]",
+                                        "useCommonAlertSchema": true
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "type": "microsoft.insights/scheduledqueryrules",
+                            "name": "[variables('alertRules').scalerFailures.alertRuleName]",
+                            "apiVersion": "2018-04-16",                  
+                            "location": "[resourceGroup().location]",                            
+                            "dependsOn": [
+                                "[resourceId('microsoft.insights/actionGroups/', 'bellhop-ag')]"
+                            ],
+                            "tags": {
+                            },
+                            "copy": {
+                                "name": "alertscopy",
+                                "count": "[length(variables('alertRules'))]"
+                            },
+                            "properties": {
+                                "description": "[variables('alertRules').scalerFailures.alertDescription]",
+                                "enabled": "true",
+                                "source": {
+                                    "query": "[variables('alertRules').scalerFailures.query]",
+                                    "authorizedResources": [
+                                    ],
+                                    "dataSourceId": "[resourceId(variables('alertRules').scalerFailures.resourceGroup, 'microsoft.insights/components', variables('alertRules').scalerFailures.resourceName)]",
+                                    "queryType": "ResultCount"
+                                },
+                                "schedule": {
+                                    "frequencyInMinutes": 5,
+                                    "timeWindowInMinutes": 5
+                                },
+                                "action": {
+                                    "severity": "1",
+                                    "aznsAction": {
+                                        "actionGroup": [
+                                            "[resourceId('microsoft.insights/actionGroups', 'bellhop-ag')]"
+                                        ]
+                                    },
+                                    "throttlingInMin": 30,
+                                    "throttleConsecutiveWindowCount": 0,
+                                    "trigger": {
+                                        "thresholdOperator": "GreaterThan",
+                                        "threshold": 1
+                                    },
+                                    "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.Microsoft.AppInsights.Nexus.DataContracts.Resources.ScheduledQueryRules.AlertingAction"
+                                }
+                            }
+                        },
+                        {
                             "type": "Microsoft.AppConfiguration/configurationStores/providers/roleAssignments",
                             "apiVersion": "2020-04-01-preview",
                             "name": "[concat(variables('appConfigName'), '/Microsoft.Authorization/', parameters('appConfigReaderGUID'))]",
@@ -654,5 +752,6 @@
             }
         }
     ],
-    "outputs": {}
+    "outputs": {
+    }
 }
