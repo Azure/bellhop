@@ -1,10 +1,35 @@
 # Input bindings are passed in via param block.
 param($QueueItem, $TriggerMetadata)
 
+function Assert-Error {
+    param (
+        $err
+    )
+
+    $errorDetails = @{
+        Type        = $err.Exception.GetType().fullname
+        Message     = $err.Exception.Message
+        StackTrace  = $err.Exception.StackTrace
+    }
+
+    $resourceDetails = @{
+        Name                = $QueueItem.graphResults.name
+        ResourceGroup       = $QueueItem.graphResults.resourceGroup
+        SubscriptionId      = $QueueItem.graphResults.subscriptionId
+        SubscriptionName    = $QueueItem.graphResults.subscriptionName
+        Error               = $errorDetails
+    }
+
+    $errorMessage = $(@{ Exception = $resourceDetails } | ConvertTo-Json -Depth 4)
+    Write-Host "ERRORDATA:" $errorMessage
+    throw $err
+}
+
 function Initialize-TagData {
     param (
         $inTags,
-        $tagMap
+        $tagMap,
+        $scaleDir
     )
 
     $tags = @{}
@@ -33,31 +58,30 @@ function Initialize-TagData {
         "saveData"  = $saveData
     }
 
+    if (($setData.count -eq 0) -and ($scaleDir -eq "down")) {
+        Write-Host "ERROR: Resource is missing set data tags"
+        throw [System.ArgumentException] "Resource is missing set data tags"
+    }
+
+    if (($saveData.count -eq 0) -and $scaleDir -eq "up") {
+        Write-Host "ERROR: Resource is missing save data tags"
+        throw [System.ArgumentException] "Resource is missing save data tags"
+    }
+
+    $setErrors =  $setData.Keys | Where-Object { $setData[$_] -in ("", $null) }
+    $saveErrors = $saveData.Keys | Where-Object { $saveData[$_] -in ("", $null) }
+
+    if ($setErrors) {
+        Write-Host "ERROR: Empty or Null set tag values - ($($setErrors -join ", "))"
+        throw [System.ArgumentOutOfRangeException] "Empty or Null set tag values - ($($setErrors -join ", "))"
+    }
+
+    if ($saveErrors) {
+        Write-Host "ERROR: Empty or Null save tag values - ($($saveErrors -join ", "))"
+        throw [System.ArgumentOutOfRangeException] "Empty or Null save tag values - ($($saveErrors -join ", "))"
+    }
+
     return $tagData
-}
-
-function Assert-Error {
-    param (
-        $err
-    )
-
-    $errorDetails = @{
-        Type        = $err.Exception.GetType().fullname
-        Message     = $err.Exception.Message
-        StackTrace  = $err.Exception.StackTrace
-    }
-
-    $resourceDetails = @{
-        Name                = $QueueItem.graphResults.name
-        ResourceGroup       = $QueueItem.graphResults.resourceGroup
-        SubscriptionId      = $QueueItem.graphResults.subscriptionId
-        SubscriptionName    = $QueueItem.graphResults.subscriptionName
-        Error               = $errorDetails
-    }
-
-    $errorMessage = $(@{ Exception = $resourceDetails } | ConvertTo-Json -Depth 4)
-    Write-Host "ERRORDATA:" $errorMessage
-    throw $err
 }
 
 # Set preference variables
@@ -111,7 +135,7 @@ catch {
 Write-Host "Beginning operation to scale: '$($QueueItem.graphResults.id)' - ($($QueueItem.direction.ToUpper()))"
 
 try {
-    $tagData = Initialize-TagData $QueueItem.graphResults.tags $QueueItem.tagMap
+    $tagData = Initialize-TagData $QueueItem.graphResults.tags $QueueItem.tagMap $QueueItem.direction
     Update-Resource $QueueItem.graphResults $tagData $QueueItem.direction
 }
 catch {

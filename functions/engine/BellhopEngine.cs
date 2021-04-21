@@ -70,10 +70,7 @@ namespace Bellhop.Function
         {
             get
             {
-                if (_tagMap.Count == 0)
-                {
-                    GenerateTagMap();
-                }
+                GenerateTagMap();
 
                 return _tagMap;
             }
@@ -105,10 +102,7 @@ namespace Bellhop.Function
 
         public static string GetTag(string key)
         {
-            if (_tagMap.Count == 0)
-            {
-                GenerateTagMap();
-            }
+            GenerateTagMap();
 
             return _tagMap.ContainsKey(key) ?_tagMap[key] : null;
         }

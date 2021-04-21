@@ -101,7 +101,8 @@
             "properties": {
                 "scope": "[subscription().id]",
                 "roleDefinitionId": "[variables('readerRole')]",
-                "principalId": "[reference('bellhopDeploy').outputs.enginePrincipalId.value]"
+                "principalId": "[reference('bellhopDeploy').outputs.enginePrincipalId.value]",
+                "principalType": "ServicePrincipal"
             }
         },
         {
@@ -114,7 +115,8 @@
             "properties": {
                 "scope": "[subscription().id]",
                 "roleDefinitionId": "[variables('contributorRole')]",
-                "principalId": "[reference('bellhopDeploy').outputs.scalerPrincipalId.value]"
+                "principalId": "[reference('bellhopDeploy').outputs.scalerPrincipalId.value]",
+                "principalType": "ServicePrincipal"
             }
         },
         {
@@ -618,7 +620,8 @@
                             "properties": {
                                 "scope": "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))]",
                                 "roleDefinitionId": "[variables('appConfigReaderRole')]",
-                                "principalId": "[reference(resourceId('Microsoft.Web/Sites', variables('engineFuncName')), '2020-09-01', 'full').identity.principalId]"
+                                "principalId": "[reference(resourceId('Microsoft.Web/Sites', variables('engineFuncName')), '2020-09-01', 'full').identity.principalId]",
+                                "principalType": "ServicePrincipal"
                             }
                         },
                         {
@@ -632,7 +635,8 @@
                             "properties": {
                                 "scope": "[resourceId('Microsoft.Storage/storageAccounts', variables('storAcctName'))]",
                                 "roleDefinitionId": "[variables('storageQueueDataMessageSenderRole')]",
-                                "principalId": "[reference(resourceId('Microsoft.Web/Sites', variables('engineFuncName')), '2020-09-01', 'full').identity.principalId]"
+                                "principalId": "[reference(resourceId('Microsoft.Web/Sites', variables('engineFuncName')), '2020-09-01', 'full').identity.principalId]",
+                                "principalType": "ServicePrincipal"
                             }
                         }
                     ],
