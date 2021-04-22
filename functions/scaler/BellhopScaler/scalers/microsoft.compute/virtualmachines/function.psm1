@@ -37,7 +37,7 @@ function Update-Resource {
             $vmData = @{
                 VM = Get-VMObject $graphData.name $graphData.location $tagData.saveData.VMSize
             }
-            
+
             $config = $baseData + $vmData
         }
 
@@ -62,12 +62,9 @@ function Update-Resource {
         Update-AzVM @config -Tag $tags
     }
     catch {
-        Write-Host "Error scaling Virtual Machine Size: $($graphData.name)"
-        Write-Host "($($Error.exception.GetType().fullname)) - $($PSItem.ToString())"
-        # throw $PSItem
-        Exit
+        throw $PSItem
     }
-    
+
     Write-Host "Scaler function has completed successfully!"
 }
 
@@ -95,7 +92,7 @@ function Set-SaveTags {
 
     $outTags = @{ }
     $inTags.keys | ForEach-Object { $outTags += @{($tagMap.save + $_) = $inTags[$_] } }
-    
+
     return $outTags
 }
 

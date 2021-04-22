@@ -59,10 +59,6 @@ function Update-Resource {
                     if ( $tagData.setData.DatabaseDtuMin ) { $config.Add("DatabaseDtuMin", $tagData.setData.DatabaseDtuMin) }
                     if ( $tagData.setData.DatabaseDtuMax ) { $config.Add("DatabaseDtuMax", $tagData.setData.DatabaseDtuMax) }
                     if ( $tagData.setData.StorageMB ) { $config.Add("StorageMB", $tagData.setData.StorageMB) }
-
-                    # $tagData.setData.DatabaseDtuMin ? $config.Add("DatabaseDtuMin", $tagData.setData.DatabaseDtuMin) : $null | Out-Null
-                    # $tagData.setData.DatabaseDtuMax ? $config.Add("DatabaseDtuMax", $tagData.setData.DatabaseDtuMax) : $null | Out-Null
-                    # $tagData.setData.StorageMB ? $config.Add("StorageMB", $tagData.setData.StorageMB) : $null | Out-Null
                 }
                 'vCore' {
                     Write-Host "SetData vCore Mode"
@@ -76,15 +72,10 @@ function Update-Resource {
                     if ( $tagData.setData.DatabaseVCoreMax ) { $config.Add("DatabaseCapacityMax", $tagData.setData.DatabaseCapacityMax) }
                     if ( $tagData.setData.StorageMB ) { $config.Add("StorageMB", $tagData.setData.StorageMB) }
                     if ( $tagData.setData.LicenseType ) { $config.Add("LicenseType", $tagData.setData.LicenseType) }
-
-                    # $tagData.setData.DatabaseVCoreMin ? $config.Add("DatabaseCapacityMin", $tagData.setData.DatabaseCapacityMin) : $null | Out-Null
-                    # $tagData.setData.DatabaseVCoreMax ? $config.Add("DatabaseCapacityMax", $tagData.setData.DatabaseCapacityMax) : $null | Out-Null
-                    # $tagData.setData.StorageMB ? $config.Add("StorageMB", $tagData.setData.StorageMB) : $null | Out-Null
-                    # $tagData.setData.LicenseType ? $config.Add("LicenseType", $tagData.setData.LicenseType) : $null | Out-Null
                 }
                 Default {
-                    Write-Host "Error - Config"
-                    Exit
+                    Write-Host "ERROR: Invalid Elastic Pool Edition - ($($tagData.setData.Edition))"
+                    throw [System.ArgumentException] "Invalid Elastic Pool Edition - ($($tagData.setData.Edition))"
                 }
             }
 
@@ -113,8 +104,8 @@ function Update-Resource {
                     }
                 }
                 Default {
-                    Write-Host "Error - SaveData"
-                    Exit
+                    Write-Host "ERROR: Unsupported Elastic Pool Edition - ($($graphData.sku.tier))"
+                    throw [System.ArgumentException] "Unsupported Elastic Pool Edition - ($($graphData.sku.tier))"
                 }
             }
 
@@ -129,10 +120,7 @@ function Update-Resource {
         Set-AzSqlElasticPool @config -Tags $tags
     }
     catch {
-        Write-Host "Error scaling SQL Elastic Pool: $($graphData.name)"
-        Write-Host "($($Error.exception.GetType().fullname)) - $($PSItem.ToString())"
-        # throw $PSItem
-        Exit
+        throw $PSItem
     }
     
     Write-Host "Scaler function has completed successfully!"

@@ -65,10 +65,7 @@ function Update-Resource {
         Set-AzSqlDatabase @config -Tags $tags
     }
     catch {
-        Write-Host "Error scaling SQL Database: $($graphResults.name)"
-        Write-Host "($($Error.exception.GetType().fullname)) - $($PSItem.ToString())"
-        # throw $PSItem
-        Exit
+        throw $PSItem
     }
     
     Write-Host "Scaler function has completed successfully!"

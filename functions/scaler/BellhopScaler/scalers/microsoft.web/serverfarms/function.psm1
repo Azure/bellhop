@@ -36,7 +36,7 @@ function Update-Resource {
         Name              = $graphData.name
     }
 
-    $config = @{ }
+    $config = @{}
     $tags = $tagData.tags
 
     switch ($direction) {
@@ -72,10 +72,7 @@ function Update-Resource {
         Set-AzAppServicePlan @config -Tag $tags
     }
     catch {
-        Write-Host "Error scaling App Service Plan: $($graphData.name)"
-        Write-Host "($($Error.exception.GetType().fullname)) - $($PSItem.ToString())"
-        # throw $PSItem
-        Exit
+        throw $PSItem
     }
     
     Write-Host "Scaler function has completed successfully!"

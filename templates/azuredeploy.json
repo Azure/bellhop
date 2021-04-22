@@ -10,12 +10,14 @@
         },
         "location": {
             "type": "string",
+            "defaultValue": "[deployment().location]",
             "metadata": {
                 "description": "The location of the Bellhop deployment."
             }
         },
         "engineInterval": {
             "type": "string",
+            "defaultValue": "0 */30 * * * *",
             "metadata": {
                 "description": "The interval at which the Bellhop engine should execute."
             }
@@ -29,30 +31,35 @@
         },
         "enableTag": {
             "type": "string",
+            "defaultValue": "resize-Enable",
             "metadata": {
                 "description": "Tag which will be used to identify which resources are currently enabled for Bellhop scaling."
             }
         },
         "startTimeTag": {
             "type": "string",
+            "defaultValue": "resize-StartTime",
             "metadata": {
                 "description": "Tag which will be used to identify the day of the week & time which Bellhop should scale DOWN the resource."
             }
         },
         "endTimeTag": {
             "type": "string",
+            "defaultValue": "resize-EndTime",
             "metadata": {
                 "description": "Tag which will be used to identify the day of the week & time which Bellhop should scale UP the resource."
             }
         },
         "setStatePrefix": {
             "type": "string",
+            "defaultValue": "setState-",
             "metadata": {
                 "description": "Prefix which will be prepended to resource parameter tags which Bellhop uses to identify the target state of the target resource when scaled down."
             }
         },
         "saveStatePrefix": {
             "type": "string",
+            "defaultValue": "saveState-",
             "metadata": {
                 "description": "Prefix which will be prepended to resource parameter tags which Bellhop uses to remember the original state of the target resource when scaled down."
             }
@@ -94,7 +101,8 @@
             "properties": {
                 "scope": "[subscription().id]",
                 "roleDefinitionId": "[variables('readerRole')]",
-                "principalId": "[reference('bellhopDeploy').outputs.enginePrincipalId.value]"
+                "principalId": "[reference('bellhopDeploy').outputs.enginePrincipalId.value]",
+                "principalType": "ServicePrincipal"
             }
         },
         {
@@ -107,7 +115,8 @@
             "properties": {
                 "scope": "[subscription().id]",
                 "roleDefinitionId": "[variables('contributorRole')]",
-                "principalId": "[reference('bellhopDeploy').outputs.scalerPrincipalId.value]"
+                "principalId": "[reference('bellhopDeploy').outputs.scalerPrincipalId.value]",
+                "principalType": "ServicePrincipal"
             }
         },
         {
@@ -161,6 +170,7 @@
                         },
                         "engineInterval": {
                             "type": "string",
+                            "defaultValue": "0 */30 * * * *",
                             "metadata": {
                                 "description": "The interval at which the Bellhop engine should execute."
                             }
@@ -174,30 +184,35 @@
                         },
                         "enableTag": {
                             "type": "string",
+                            "defaultValue": "resize-Enable",
                             "metadata": {
                                 "description": "Tag which will be used to identify which resources are currently enabled for Bellhop scaling."
                             }
                         },
                         "startTimeTag": {
                             "type": "string",
+                            "defaultValue": "resize-StartTime",
                             "metadata": {
                                 "description": "Tag which will be used to identify the day of the week & time which Bellhop should scale DOWN the resource."
                             }
                         },
                         "endTimeTag": {
                             "type": "string",
+                            "defaultValue": "resize-EndTime",
                             "metadata": {
                                 "description": "Tag which will be used to identify the day of the week & time which Bellhop should scale UP the resource."
                             }
                         },
                         "setStatePrefix": {
                             "type": "string",
+                            "defaultValue": "setState-",
                             "metadata": {
                                 "description": "Prefix which will be prepended to resource parameter tags which Bellhop uses to identify the target state of the target resource when scaled down."
                             }
                         },
                         "saveStatePrefix": {
                             "type": "string",
+                            "defaultValue": "saveState-",
                             "metadata": {
                                 "description": "Prefix which will be prepended to resource parameter tags which Bellhop uses to remember the original state of the target resource when scaled down."
                             }
@@ -396,7 +411,7 @@
                                         }
                                     ],
                                     "use32BitWorkerProcess": false,
-                                    "linuxFxVersion": "DOCKER|azurebellhop/engine:v0.5"
+                                    "linuxFxVersion": "DOCKER|azurebellhop/engine:v0.6"
                                 }
                             }
                         },
@@ -460,7 +475,7 @@
                                         }
                                     ],
                                     "use32BitWorkerProcess": false,
-                                    "linuxFxVersion": "DOCKER|azurebellhop/scaler:v0.4"
+                                    "linuxFxVersion": "DOCKER|azurebellhop/scaler:v0.5"
                                 }
                             }
                         },
@@ -605,7 +620,8 @@
                             "properties": {
                                 "scope": "[resourceId('Microsoft.AppConfiguration/configurationStores', variables('appConfigName'))]",
                                 "roleDefinitionId": "[variables('appConfigReaderRole')]",
-                                "principalId": "[reference(resourceId('Microsoft.Web/Sites', variables('engineFuncName')), '2020-09-01', 'full').identity.principalId]"
+                                "principalId": "[reference(resourceId('Microsoft.Web/Sites', variables('engineFuncName')), '2020-09-01', 'full').identity.principalId]",
+                                "principalType": "ServicePrincipal"
                             }
                         },
                         {
@@ -619,7 +635,8 @@
                             "properties": {
                                 "scope": "[resourceId('Microsoft.Storage/storageAccounts', variables('storAcctName'))]",
                                 "roleDefinitionId": "[variables('storageQueueDataMessageSenderRole')]",
-                                "principalId": "[reference(resourceId('Microsoft.Web/Sites', variables('engineFuncName')), '2020-09-01', 'full').identity.principalId]"
+                                "principalId": "[reference(resourceId('Microsoft.Web/Sites', variables('engineFuncName')), '2020-09-01', 'full').identity.principalId]",
+                                "principalType": "ServicePrincipal"
                             }
                         }
                     ],

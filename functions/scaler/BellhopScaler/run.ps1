@@ -1,10 +1,35 @@
 # Input bindings are passed in via param block.
 param($QueueItem, $TriggerMetadata)
 
+function Assert-Error {
+    param (
+        $err
+    )
+
+    $errorDetails = @{
+        Type        = $err.Exception.GetType().fullname
+        Message     = $err.Exception.Message
+        StackTrace  = $err.Exception.StackTrace
+    }
+
+    $resourceDetails = @{
+        Name                = $QueueItem.graphResults.name
+        ResourceGroup       = $QueueItem.graphResults.resourceGroup
+        SubscriptionId      = $QueueItem.graphResults.subscriptionId
+        SubscriptionName    = $QueueItem.graphResults.subscriptionName
+        Error               = $errorDetails
+    }
+
+    $errorMessage = $(@{ Exception = $resourceDetails } | ConvertTo-Json -Depth 4)
+    Write-Host "ERRORDATA:" $errorMessage
+    throw $err
+}
+
 function Initialize-TagData {
     param (
         $inTags,
-        $tagMap
+        $tagMap,
+        $scaleDir
     )
 
     $tags = @{}
@@ -33,6 +58,29 @@ function Initialize-TagData {
         "saveData"  = $saveData
     }
 
+    if (($setData.count -eq 0) -and ($scaleDir -eq "down")) {
+        Write-Host "ERROR: Resource is missing set data tags"
+        throw [System.ArgumentException] "Resource is missing set data tags"
+    }
+
+    if (($saveData.count -eq 0) -and $scaleDir -eq "up") {
+        Write-Host "ERROR: Resource is missing save data tags"
+        throw [System.ArgumentException] "Resource is missing save data tags"
+    }
+
+    $setErrors =  $setData.Keys | Where-Object { $setData[$_] -in ("", $null) }
+    $saveErrors = $saveData.Keys | Where-Object { $saveData[$_] -in ("", $null) }
+
+    if ($setErrors) {
+        Write-Host "ERROR: Empty or Null set tag values - ($($setErrors -join ", "))"
+        throw [System.ArgumentOutOfRangeException] "Empty or Null set tag values - ($($setErrors -join ", "))"
+    }
+
+    if ($saveErrors) {
+        Write-Host "ERROR: Empty or Null save tag values - ($($saveErrors -join ", "))"
+        throw [System.ArgumentOutOfRangeException] "Empty or Null save tag values - ($($saveErrors -join ", "))"
+    }
+
     return $tagData
 }
 
@@ -43,6 +91,25 @@ $ErrorActionPreference = "Stop"
 Write-Host "PowerShell queue trigger function processed work item: $QueueItem"
 Write-Host "Queue item insertion time: $($TriggerMetadata.InsertionTime)"
 
+# Set the current context to that of the target resources subscription
+Write-Host "Setting the Subscription context: $($QueueItem.graphResults.subscriptionId)"
+
+try {
+    $Context = Set-AzContext -SubscriptionId $QueueItem.graphResults.subscriptionId
+
+    if ( $QueueItem.debug ) {
+        Write-Host "Context Detals:"
+        Write-Host "========================="
+        Write-Host "Subscription ID:" $Context.Subscription.Id
+        Write-Host "Subscription Name:" $Context.Subscription.Name
+        Write-Host "========================="
+    }
+}
+catch {
+    Write-Host "ERROR: Cannot set the deployment context!"
+    Assert-Error $PSItem
+}
+
 # Importing correct powershell module based on resource type
 Write-Host "Importing scaler for: $($QueueItem.graphResults.type)"
 
@@ -51,46 +118,29 @@ try {
     Import-Module -Name $modulePath
 }
 catch {
-    Write-Host "Error loading the target scaler!"
+    Write-Host "ERROR: Cannot load the target scaler!"
 
     if ( $QueueItem.debug ) {
-        Write-Host "Content of Scalers Folder"
+        Write-Host "Available Scalers:"
         Write-Host "========================="
         $dirs = Get-ChildItem $PSScriptRoot -Recurse | Where-Object FullName -Like "*function.psm1" | Select-Object FullName
         foreach ($dir in $dirs) { Write-Host $dir.FullName }
         Write-Host "========================="
     }
 
-    Write-Host "($($Error.exception.GetType().fullname)) - $($PSItem.ToString())"
-    # throw $PSItem
-    Exit
-}
-
-# Set the current context to that of the target resources subscription
-Write-Host "Setting the Subscription context: $($QueueItem.graphResults.subscriptionId)"
-
-try {
-    Set-AzContext -SubscriptionId $QueueItem.graphResults.subscriptionId | Out-Null
-}
-catch {
-    Write-Host "Error setting the subscription context!"
-    Write-Host "($($Error.exception.GetType().fullname)) - $($PSItem.ToString())"
-    # throw $PSItem
-    Exit
+    Assert-Error $PSItem
 }
 
 # Set Target and call correct powershell module based on resource type
 Write-Host "Beginning operation to scale: '$($QueueItem.graphResults.id)' - ($($QueueItem.direction.ToUpper()))"
 
 try {
-    $tagData = Initialize-TagData $QueueItem.graphResults.tags $QueueItem.tagMap
+    $tagData = Initialize-TagData $QueueItem.graphResults.tags $QueueItem.tagMap $QueueItem.direction
     Update-Resource $QueueItem.graphResults $tagData $QueueItem.direction
 }
 catch {
-    Write-Host "Error scaling resource!"
-    Write-Host "($($Error.exception.GetType().fullname)) - $($PSItem.ToString())"
-    # throw $PSItem
-    Exit
+    Write-Host "ERROR: Cannot scale the target resource!"
+    Assert-Error $PSItem
 }
 
 Write-Host "Scaling operation has completed successfully for resource: '$($QueueItem.graphResults.id)'."

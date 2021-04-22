@@ -82,7 +82,7 @@ An example of the message sent to the queue by the engine function
             "resize-EndTime": "Monday 6AM",
             "setState-RequestedServiceObjectiveName": "S4",
             "setState-LicenseType": "LicenseIncluded",
-            "setState-MaxSizeBytes": "104857600",
+            "setState-MaxSizeBytes": "104857600"
         },
         "identity": null,
         "zones": null,
