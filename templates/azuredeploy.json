@@ -328,7 +328,7 @@
                                 "alertDescription": "Bellhop Engine function failure alerting",
                                 "resourceName": "[variables('appInsightsName')]",
                                 "resourceGroup": "[resourceGroup().name]",
-                                "query": "[concat('union traces\n| where timestamp > ago(30m)\n| where cloud_RoleName =~ ''', parameters('appName'), '-function-engine''', 'and operation_Name =~ ''BellhopEngine''\n| order by timestamp desc\n| parse message with * \"ERRORDATA: \" errorData\n| where isnotempty(errorData)\n| extend errorObj = todynamic(errorData)\n| mv-expand error = errorObj.Errors\n| project OperationID = operation_Id, SubscriptionID = errorObj.SubscriptionID, SubscriptionName = errorObj.SubscriptionName, ResourceGroup = errorObj.ResourceGroup, ResourceName = errorObj.Name, ErrorType = error.Type, ErrorMessage = error.Message, ErrorTrace = error.StackTrace')]"
+                                "query": "[concat('union traces\n| where timestamp > ago(30m)\n| where cloud_RoleName =~ ''', parameters('appName'), '-function-engine''', 'and operation_Name =~ ''BellhopEngine''\n| order by timestamp desc\n| parse message with * \"ERRORDATA: \" errorData\n| where isnotempty(errorData)\n| extend errorObj = todynamic(errorData)\n| mv-expand error = errorObj.Errors\n| project OperationID = operation_Id, SubscriptionID = errorObj.SubscriptionID, SubscriptionName = errorObj.SubscriptionName, ResourceGroup = errorObj.ResourceGroup, ResourceName = errorObj.Name, ErrorType = error.Type, ErrorMessage = error.Message, StackTrace = error.StackTrace')]"
                             }
                         ]
                     },
