@@ -311,6 +311,8 @@
                         "hostingPlanName": "[concat(parameters('appName'), '-asp')]",
                         "appInsightsName": "[concat(parameters('appName'), '-appinsights')]",
                         "appConfigName": "[concat(parameters('appName'), '-appconfig')]",
+                        "actionGroupName": "[concat(parameters('appName'), '-actionGroup')]",
+                        "actionGroupShortName": "[concat(parameters('appName'), '-ag')]",
                         "appConfigReaderRole": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '516239f1-63e1-4d78-a4de-a74fb236a071')]",
                         "storageQueueDataMessageSenderRole": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'c6a89b2d-59bc-44d0-9896-0f6e12d7b80a')]",
                         "alertRules": [
@@ -654,12 +656,12 @@
                             "condition": "[parameters('alertEnable')]",
                             "type": "microsoft.insights/actionGroups",
                             "apiVersion": "2019-03-01",
-                            "name": "BellhopFailure-AG",
+                            "name": "[variables('actionGroupName')]",
                             "location": "Global",
                             "tags": {
                             },
                             "properties": {
-                                "groupShortName": "bhFailure-ag",
+                                "groupShortName": "[variables('actionGroupShortName')]",
                                 "enabled": true,
                                 "copy": [
                                     {
@@ -680,7 +682,7 @@
                             "location": "[resourceGroup().location]",
                             "apiVersion": "2018-04-16",
                             "dependsOn": [
-                                "[resourceId('microsoft.insights/actionGroups', 'BellhopFailure-AG')]"
+                                "[resourceId('microsoft.insights/actionGroups', variables('actionGroupName'))]"
                             ],
                             "tags": {
                             },
@@ -707,7 +709,7 @@
                                     "severity": "1",
                                     "aznsAction": {
                                         "actionGroup": [
-                                            "[resourceId('microsoft.insights/actionGroups', 'BellhopFailure-AG')]"
+                                            "[resourceId('microsoft.insights/actionGroups', variables('actionGroupName'))]"
                                         ]
                                     },
                                     "throttlingInMin": 30,
