@@ -1,4 +1,4 @@
-# Bellhop Monitoring
+# Monitoring and Alerting
 ## What's included by default?
 As part of the Bellhop solution, basic monitoring of both the Engine and Scaler functions are included with the deployment by default. This basic monitoring consists of sending all configured logs and outputs from both of the functions to the included Application Insights instance. Using the Kusto Query Language (KQL), users can craft meaningful queries to gather deep insight into Bellhop performance and begin alerting on undesireable behavior.
 
@@ -52,6 +52,6 @@ In addition to the included monitoring discussed above, Bellhop offers users the
         | where isnotempty(errorData)
         | extend errorObj = todynamic(errorData)
         | mv-expand error = errorObj.Errors
-        | project OperationID = operation_Id, SubscriptionID = errorObj.SubscriptionID, SubscriptionName = errorObj.SubscriptionName, ResourceGroup = errorObj.ResourceGroup, ResourceName = errorObj.Name, ErrorType = error.Type, ErrorMessage = error.Message, ErrorTrace = error.StackTrace
+        | project OperationID = operation_Id, SubscriptionID = errorObj.SubscriptionID, SubscriptionName = errorObj.SubscriptionName, ResourceGroup = errorObj.ResourceGroup, ResourceName = errorObj.Name, ErrorType = error.Type, ErrorMessage = error.Message, StackTrace = error.StackTrace
         ```
 
