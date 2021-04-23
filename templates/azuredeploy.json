@@ -702,8 +702,8 @@
                                     "queryType": "ResultCount"
                                 },
                                 "schedule": {
-                                    "frequencyInMinutes": 5,
-                                    "timeWindowInMinutes": 5
+                                    "frequencyInMinutes": 30,
+                                    "timeWindowInMinutes": 30
                                 },
                                 "action": {
                                     "severity": "1",
@@ -712,8 +712,6 @@
                                             "[resourceId('microsoft.insights/actionGroups', variables('actionGroupName'))]"
                                         ]
                                     },
-                                    "throttlingInMin": 30,
-                                    "throttleConsecutiveWindowCount": 0,
                                     "trigger": {
                                         "thresholdOperator": "GreaterThan",
                                         "threshold": 0
