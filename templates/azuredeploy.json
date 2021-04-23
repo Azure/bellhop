@@ -713,7 +713,7 @@
                                         ]
                                     },
                                     "throttlingInMin": 30,
-                                    "throttleConsecutiveWindowCount": 1,
+                                    "throttleConsecutiveWindowCount": 0,
                                     "trigger": {
                                         "thresholdOperator": "GreaterThan",
                                         "threshold": 0

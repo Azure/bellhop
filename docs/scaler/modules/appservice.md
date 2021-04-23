@@ -10,6 +10,7 @@ This README will describe how to use Bellhop to help scale your Azure App servic
 setState-WorkerSize = <String>
 setState-Tier = <String>
 ```
+NOTE: User must provide either the `WorkerSize` or `Tier` tag, or both. 
 
 WorkerSize Options:
 - Small
