@@ -713,10 +713,10 @@
                                         ]
                                     },
                                     "throttlingInMin": 30,
-                                    "throttleConsecutiveWindowCount": 0,
+                                    "throttleConsecutiveWindowCount": 1,
                                     "trigger": {
                                         "thresholdOperator": "GreaterThan",
-                                        "threshold": 1
+                                        "threshold": 0
                                     },
                                     "odata.type": "Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.Microsoft.AppInsights.Nexus.DataContracts.Resources.ScheduledQueryRules.AlertingAction"
                                 }
