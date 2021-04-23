@@ -670,7 +670,7 @@
                                         "input": {
                                             "name": "[parameters('alertDetails')[copyIndex('emailReceivers')].alertName]",
                                             "emailAddress": "[parameters('alertDetails')[copyIndex('emailReceivers')].alertEmail]",
-                                            "useCommonAlertSchema": true
+                                            "useCommonAlertSchema": false
                                         }
                                     }
                                 ]
