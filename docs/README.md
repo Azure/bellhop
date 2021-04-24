@@ -41,7 +41,7 @@ The list of scalers currently supported by Bellhop:
 
 ![Bellhop Deployment](./images/deployment_basics.png)
 
-3. You can optionally override the default tag values that Bellhop uses to any custom values of your choice. Additionally, you can define a tag 'prefix' which will prepend all other tags. Click 'Review + Create' to proceed.
+3. You can optionally override the default tag values that Bellhop uses to any custom values of your choice. Additionally, you can define a tag 'prefix' which will prepend all other tags, as well as enable basic Azure alerts for Bellhop failures. Click 'Review + Create' to proceed.
 
 ![Bellhop Deployment](./images/deployment_advanced.png)
 

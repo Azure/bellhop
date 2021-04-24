@@ -6,7 +6,7 @@
 * [Engine Function](/engine/README.md)
 * [Scaler Function](/scaler/README.md)
 * [Scaler Modules](/scaler/modules/README.md)
-* [Monitoring and Alerting](/monitoring/README.md)
+* [Monitoring & Alerting](/monitoring/README.md)
 
 <br>
 

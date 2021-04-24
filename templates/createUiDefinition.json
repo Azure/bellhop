@@ -202,7 +202,7 @@
                     {
                         "name": "alertSection",
                         "type": "Microsoft.Common.Section",
-                        "label": "Alert Section",
+                        "label": "Alert Contacts",
                         "visible": "[steps('advancedConfig').alertEnable]",
                         "elements": [
                             {

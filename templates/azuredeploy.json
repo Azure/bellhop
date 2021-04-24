@@ -317,15 +317,15 @@
                         "storageQueueDataMessageSenderRole": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'c6a89b2d-59bc-44d0-9896-0f6e12d7b80a')]",
                         "alertRules": [
                             {
-                                "alertRuleName": "Scaler Errors",
-                                "alertDescription": "Bellhop Scaler module failure alerting",
+                                "alertRuleName": "Bellhop Scaler Errors",
+                                "alertDescription": "Bellhop Scaler function failure alerts",
                                 "resourceName": "[variables('appInsightsName')]",
                                 "resourceGroup": "[resourceGroup().name]",
                                 "query": "[concat('union traces\n| where timestamp > ago(30m)\n| where cloud_RoleName =~ ''', variables('scalerFuncName'), ''' and operation_Name =~ ''BellhopScaler''\n| order by timestamp desc\n| parse message with * \"ERRORDATA: \" errorObject\n| extend errObj = todynamic(errorObject).Exception\n| where isnotnull(errObj)\n| project OperationID = operation_Id, SubscriptionID = errObj.SubscriptionId, SubscriptionName = errObj.SubscriptionName, ResourceGroup = errObj.ResourceGroup, ResourceName = errObj.Name, ErrorType = errObj.Error.Type, ErrorMessage = errObj.Error.Message, StackTrace = errObj.Error.StackTrace')]"
                             },
                             {
-                                "alertRuleName": "Engine Errors",
-                                "alertDescription": "Bellhop Engine function failure alerting",
+                                "alertRuleName": "Bellhop Engine Errors",
+                                "alertDescription": "Bellhop Engine function failure alerts",
                                 "resourceName": "[variables('appInsightsName')]",
                                 "resourceGroup": "[resourceGroup().name]",
                                 "query": "[concat('union traces\n| where timestamp > ago(30m)\n| where cloud_RoleName =~ ''', variables('engineFuncName'), ''' and operation_Name =~ ''BellhopEngine''\n| order by timestamp desc\n| parse message with * \"ERRORDATA: \" errorData\n| where isnotempty(errorData)\n| extend errorObj = todynamic(errorData)\n| mv-expand error = errorObj.Errors\n| project OperationID = operation_Id, SubscriptionID = errorObj.SubscriptionID, SubscriptionName = errorObj.SubscriptionName, ResourceGroup = errorObj.ResourceGroup, ResourceName = errorObj.Name, ErrorType = error.Type, ErrorMessage = error.Message, StackTrace = error.StackTrace')]"
@@ -687,18 +687,18 @@
                             "tags": {
                             },
                             "copy": {
-                                "name": "AlertRules",
+                                "name": "alertRules",
                                 "count": "[length(variables('alertRules'))]"
                             },
-                            "name": "[variables('alertRules')[copyIndex('AlertRules')].alertRuleName]",
+                            "name": "[variables('alertRules')[copyIndex('alertRules')].alertRuleName]",
                             "properties": {
-                                "description": "[variables('alertRules')[copyIndex('AlertRules')].alertDescription]",
+                                "description": "[variables('alertRules')[copyIndex('alertRules')].alertDescription]",
                                 "enabled": "true",
                                 "source": {
-                                    "query": "[variables('alertRules')[copyIndex('AlertRules')].query]",
+                                    "query": "[variables('alertRules')[copyIndex('alertRules')].query]",
                                     "authorizedResources": [
                                     ],
-                                    "dataSourceId": "[resourceId(variables('alertRules')[copyIndex('AlertRules')].resourceGroup, 'microsoft.insights/components', variables('alertRules')[copyIndex('AlertRules')].resourceName)]",
+                                    "dataSourceId": "[resourceId(variables('alertRules')[copyIndex('alertRules')].resourceGroup, 'microsoft.insights/components', variables('alertRules')[copyIndex('alertRules')].resourceName)]",
                                     "queryType": "ResultCount"
                                 },
                                 "schedule": {
