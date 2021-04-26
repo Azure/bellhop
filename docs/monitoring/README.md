@@ -10,19 +10,19 @@ As part of the Bellhop solution, basic monitoring of both the Engine and Scaler 
 ## Alert Configuration and Details
 In addition to the included monitoring discussed above, Bellhop offers users the ability to automatically recieve email notifications when either the Engine or Scaler functions fail. If the user chooses to enable Email Alerting the following additional resources will be deployed with Bellhop:
 
-### (1) Action Group
+### Action Groups
 
 An [Azure Monitor Action Group](https://docs.microsoft.com/en-us/azure/azure-monitor/alerts/action-groups) is a collection of notification preferences defined by the owner of an Azure subscription. Azure Monitor and Service Health alerts use action groups to notify users that an alert has been triggered. Various alerts may use the same action group or different action groups depending on the user's requirements.
 
-Bellhop includes a default action group that is configured to use the `Email Notification` option. During deployment recipient names and email addresses will be added to the group via the options on the `Advanced` tab in the portal. 
+Bellhop includes (1) default action group that is configured to use the `Email Notification` option. During deployment recipient names and email addresses will be added to the group via the options on the `Advanced` tab in the portal. 
 - _These are the users to receive email notification if Bellhop experiences any errors during Engine or Scaler invokations_
 - _Deployer has option to add multiple users, or group DL's_
 
-### (2) Default Alert Rules
+### Alert Rules
 
 [Azure Monitor Alert Rules](https://docs.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-overview#manage-alert-rules) are separated from alerts and the actions taken when an alert fires in Azure. The alert rule captures the target resource and the criteria for alerting. The alert rule can be in an enabled or a disabled state and alerts only fire when enabled.  
 
-Bellhop includes 2 alert rules by default, one for errors thrown by the Engine Function and the other for errors thrown by the Scalers. These built-in alert rules leverage a common format and will output all of the following information and details in the event of an error:
+Bellhop includes (2) alert rules by default, one for errors thrown by the Engine Function and the other for errors thrown by the Scalers. These built-in alert rules leverage a common format and will output all of the following information and details in the event of an error:
 - OperationID: _Unique GUID for Function Operation_
 - SubscriptionID: _Subscription ID of the resource where the error occured_
 - SubscriptionName: _Subscription friendly name of the resource where the error occured_
