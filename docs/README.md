@@ -34,7 +34,7 @@ The list of scalers currently supported by Bellhop:
 ### Steps to deploy Bellhop infrastructure:
 1. Deploy directly to Azure using the button below.
 
-[![Deploy To Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fbellhop%2Fbasic-alerting%2Ftemplates%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fbellhop%2Fbasic-alerting%2Ftemplates%2FcreateUiDefinition.json)
+[![Deploy To Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fbellhop%2Fmain%2Ftemplates%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fbellhop%2Fmain%2Ftemplates%2FcreateUiDefinition.json)
 
 
 2. Provide the required values in the deployment template, then click 'Next' to proceed to the Advanced settings, or click 'Review + Create' to accept the default Bellhop values.
@@ -141,7 +141,7 @@ When initially deploying Bellhop, you can expect the following resources to be i
 #### Optional Alerting
 During the deployment process, the user also has the option to deploy additional alerting infrastructure that will be used to send notifications in the event of any Bellhop errors. The user will need to check the box to enable email alerting, and then enter the names and email addresses of the users that will need to receive the notifications:
 
-![Optional Alerting](./images/alerting.png)
+![Optional Alerting](./images/alert_detail.png)
 
 **_Please see the [Monitoring & Alerting](/monitoring/README.md) section in the documentation for more details_**
 
