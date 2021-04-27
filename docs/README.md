@@ -139,7 +139,7 @@ When initially deploying Bellhop, you can expect the following resources to be i
             - Debug flag for troubleshooting
 
 #### Optional Alerting
-During the deployment process, the user also has the option to deploy additional alerting infrastructure that will be used to send notifications in the event of any Bellhop errors. The user will need to check the box to enable email alerting, and then enter the names and email addresses of the users that will need to receive the notifications:
+During the deployment process, you also has the option to deploy additional alerting infrastructure that will be used to send notifications in the event of any Bellhop errors. The user will need to check the box to enable email alerting, and then enter the names and email addresses of the users that will need to receive the notifications:
 
 ![Optional Alerting](./images/alert_detail.png)
 

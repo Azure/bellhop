@@ -8,7 +8,7 @@ As part of the Bellhop solution, basic monitoring of both the Engine and Scaler 
 - [Getting Started with Kusto (KQL)](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/concepts/)
 
 ## Alert Configuration and Details
-In addition to the included monitoring discussed above, Bellhop offers users the ability to automatically recieve email notifications when either the Engine or Scaler functions fail. If the user chooses to enable Email Alerting the following additional resources will be deployed with Bellhop:
+In addition to the included monitoring discussed above, Bellhop offers users the ability to automatically receive email notifications when either the Engine or Scaler functions fail. If the user chooses to enable Email Alerting the following additional resources will be deployed with Bellhop:
 
 ### Action Groups
 
@@ -16,11 +16,11 @@ An [Azure Monitor Action Group](https://docs.microsoft.com/en-us/azure/azure-mon
 
 Bellhop includes (1) default action group that is configured to use the `Email Notification` option. During deployment recipient names and email addresses will be added to the group via the options on the `Advanced` tab in the portal. 
 - _These are the users to receive email notification if Bellhop experiences any errors during Engine or Scaler invokations_
-- _Deployer has option to add multiple users, or group DL's_
+- _At the time of deployment, you have the option to add multiple users, or group DL's_
 
 ### Alert Rules
 
-[Azure Monitor Alert Rules](https://docs.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-overview#manage-alert-rules) are separated from alerts and the actions taken when an alert fires in Azure. The alert rule captures the target resource and the criteria for alerting. The alert rule can be in an enabled or a disabled state and alerts only fire when enabled.  
+[Azure Monitor Alert Rules](https://docs.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-overview#manage-alert-rules) are separated from alerts and the actions taken when an alert fires in Azure. The alert rule captures the target resource and the criteria for alerting. The alert rule can enabled or disabled, and alerts will only fire if enabled.
 
 Bellhop includes (2) alert rules by default, one for errors thrown by the Engine Function and the other for errors thrown by the Scalers. These built-in alert rules leverage a common format and will output all of the following information and details in the event of an error:
 - OperationID: _Unique GUID for Function Operation_
@@ -38,7 +38,7 @@ The Engine Error alert rule is configured to alert the action group anytime the 
 ```
 union traces
 | where timestamp > ago(30m)
-| where cloud_RoleName =~ 'bellhop-function-engine' and operation_Name =~ 'BellhopEngine'
+| where cloud_RoleName =~ '<engine-function>' and operation_Name =~ 'BellhopEngine'
 | order by timestamp desc
 | parse message with * "ERRORDATA: " errorData
 | where isnotempty(errorData)
@@ -53,7 +53,7 @@ The Scaler Error alert rule is configured to alert the action group anytime the 
 ```
 union traces
 | where timestamp > ago(30m)
-| where cloud_RoleName =~ 'bellhop-function-scaler' and  operation_Name =~ 'BellhopScaler'
+| where cloud_RoleName =~ '<scaler-function>' and  operation_Name =~ 'BellhopScaler'
 | order by timestamp desc
 | parse message with * "ERRORDATA: " errorObject
 | extend errObj = todynamic(errorObject).Exception
