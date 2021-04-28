@@ -222,7 +222,7 @@
                                         {
                                             "id": "alertName",
                                             "header": "Name",
-                                            "width": "1fr",
+                                            "width": "2fr",
                                             "element": {
                                                 "type": "Microsoft.Common.TextBox",
                                                 "placeholder": "Full Name",
@@ -230,9 +230,13 @@
                                                     "required": true,
                                                     "validations": [
                                                         {
-                                                            "regex": "^[a-zA-Z ]{1,70}$",
-                                                            "message": "Only alphanumeric characters are allowed, and the value must be 1-30 characters long."
-                                                        }
+                                                            "regex": "(?=^.{1,70}$)(?!^.* -.*$)(?!^.*- .*$)(^(?![-])[^\\d\\t\\n\\v\\f\\r\\0\\cI\\+\\[\\]\\(\\).]*(?<![-])$)",
+                                                            "message": "Only alphanumeric characters and hyphens are allowed, and the value must be 1-70 characters long."
+                                                        },
+                                                        {
+															"isValid": "[less(length(filter(steps('advancedConfig').alertSection.alertDetails, (item) => equals(item.alertName, last(take(steps('advancedConfig').alertSection.alertDetails, $rowIndex)).alertName))), 2)]",
+															"message": "Cannot have duplicate entries"
+														}
                                                     ]
                                                 }
                                             }
@@ -240,7 +244,7 @@
                                         {
                                             "id": "alertEmail",
                                             "header": "Email",
-                                            "width": "2fr",
+                                            "width": "3fr",
                                             "element": {
                                                 "type": "Microsoft.Common.TextBox",
                                                 "placeholder": "Email Address",
