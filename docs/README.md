@@ -36,11 +36,12 @@ The list of scalers currently supported by Bellhop:
 
 [![Deploy To Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fbellhop%2Fmain%2Ftemplates%2Fazuredeploy.json/createUIDefinitionUri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fbellhop%2Fmain%2Ftemplates%2FcreateUiDefinition.json)
 
+
 2. Provide the required values in the deployment template, then click 'Next' to proceed to the Advanced settings, or click 'Review + Create' to accept the default Bellhop values.
 
 ![Bellhop Deployment](./images/deployment_basics.png)
 
-3. You can optionally override the default tag values that Bellhop uses to any custom values of your choice. Additionally, you can define a tag 'prefix' which will prepend all other tags. Click 'Review + Create' to proceed.
+3. You can optionally override the default tag values that Bellhop uses to any custom values of your choice. Additionally, you can define a tag 'prefix' which will prepend all other tags, as well as enable basic Azure alerts for Bellhop failures. Click 'Review + Create' to proceed.
 
 ![Bellhop Deployment](./images/deployment_advanced.png)
 
@@ -108,7 +109,7 @@ These custom tag values will be used to construct the Tag Map object to pass the
 ## Bellhop Infrastructure Overview
 ### What gets deployed with Bellhop?
 
-The included deploy script, `deployBellhop.ps1`, will build out the following Azure infrastructure:
+When initially deploying Bellhop, you can expect the following resources to be included:
 - **Resource Group** 
     - You _can_ bring an existing resource group
     - Deployment will create a new resource group if one does not already exist
@@ -136,6 +137,14 @@ The included deploy script, `deployBellhop.ps1`, will build out the following Az
             - Custom tag prefix values
             - Storage account/queue settings
             - Debug flag for troubleshooting
+
+#### Optional Alerting
+During the deployment process, you also has the option to deploy additional alerting infrastructure that will be used to send notifications in the event of any Bellhop errors. The user will need to check the box to enable email alerting, and then enter the names and email addresses of the users that will need to receive the notifications:
+
+![Optional Alerting](./images/alert_detail.png)
+
+**_Please see the [Monitoring & Alerting](/monitoring/README.md) section in the documentation for more details_**
+
 
 ### Security considerations
 For the purpose of this project we have not integrated a complete set of security features into Bellhop. This solution is currently in an alpha phase and is not hardened from a security aspect. To use this service in a production deployment it is recommended to review the following documentation from Azure. It walks though best practices on securing Azure Functions: 

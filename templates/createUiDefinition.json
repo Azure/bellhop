@@ -193,6 +193,76 @@
                             ]
                         },
                         "visible": true
+                    },
+                    {
+                        "name": "alertEnable",
+                        "type": "Microsoft.Common.CheckBox",
+                        "label": "Enable Email Alerting"
+                    },
+                    {
+                        "name": "alertSection",
+                        "type": "Microsoft.Common.Section",
+                        "label": "Alert Contacts",
+                        "visible": "[steps('advancedConfig').alertEnable]",
+                        "elements": [
+                            {
+                                "name": "alertDetails",
+                                "type": "Microsoft.Common.EditableGrid",
+                                "ariaLabel": "Enter the alert contact details.",
+                                "label": "Alert Details",
+                                "constraints": {
+                                    "width": "Full",
+                                    "rows": {
+                                        "count": {
+                                            "min": 1,
+                                            "max": 10
+                                        }
+                                    },
+                                    "columns": [
+                                        {
+                                            "id": "alertName",
+                                            "header": "Name",
+                                            "width": "2fr",
+                                            "element": {
+                                                "type": "Microsoft.Common.TextBox",
+                                                "placeholder": "Full Name",
+                                                "constraints": {
+                                                    "required": true,
+                                                    "validations": [
+                                                        {
+                                                            "regex": "(?=^.{1,70}$)(?!^.* -.*$)(?!^.*- .*$)(^(?![-])[^\\d\\t\\n\\v\\f\\r\\0\\cI\\+\\[\\]\\(\\).]*(?<![-])$)",
+                                                            "message": "Only alphanumeric characters and hyphens are allowed, and the value must be 1-70 characters long."
+                                                        },
+                                                        {
+															"isValid": "[less(length(filter(steps('advancedConfig').alertSection.alertDetails, (item) => equals(item.alertName, last(take(steps('advancedConfig').alertSection.alertDetails, $rowIndex)).alertName))), 2)]",
+															"message": "Cannot have duplicate entries"
+														}
+                                                    ]
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "id": "alertEmail",
+                                            "header": "Email",
+                                            "width": "3fr",
+                                            "element": {
+                                                "type": "Microsoft.Common.TextBox",
+                                                "placeholder": "Email Address",
+                                                "constraints": {
+                                                    "required": true,
+                                                    "validations": [
+                                                        {
+                                                            "regex": "^[-!#$%&'*+\/0-9=?A-Z^_a-z{|}~](\\.?[-!#$%&'*+\/0-9=?A-Z^_a-z{|}~])*@[a-zA-Z](-?[a-zA-Z0-9])*(\\.[a-zA-Z](-?[a-zA-Z0-9])*)+$",
+                                                            "message": "Please enter a valid e-mail address."
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
                     }
                 ]
             }
@@ -206,7 +276,9 @@
             "startTimeTag": "[steps('advancedConfig').startTimeTag]",
             "endTimeTag": "[steps('advancedConfig').endTimeTag]",
             "setStatePrefix": "[steps('advancedConfig').setStatePrefix]",
-            "saveStatePrefix": "[steps('advancedConfig').saveStatePrefix]"
+            "saveStatePrefix": "[steps('advancedConfig').saveStatePrefix]",
+            "alertEnable": "[steps('advancedConfig').alertEnable]",
+            "alertDetails": "[steps('advancedConfig').alertSection.alertDetails]"
         }
     }
 }
