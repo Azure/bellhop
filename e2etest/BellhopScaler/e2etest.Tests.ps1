@@ -16,13 +16,13 @@ BeforeAll {
   function Try-ResourceGraphQuery {
     param([Parameter(Mandatory = $true)]$query, 
       [Parameter(Mandatory = $true)]$maxRetries, 
-      [Parameter(Mandatory = $false)]$targetState=$null)
+      [Parameter(Mandatory = $false)]$targetState = $null)
     $i = 0
     $objectInGraph = $null
 
     do {
       $i += 1
-      if ($i -ne 1){
+      if ($i -ne 1) {
         Start-Sleep -s 30
       }
       Write-Host "Querying resource graph: $i out of $maxRetries"
@@ -34,6 +34,31 @@ BeforeAll {
     while ((($null -eq $objectInGraph) -or $targetMet) -and ($i -ne $maxRetries))
 
     return $objectInGraph
+  }
+
+  function Scale-Resource {
+    param([Parameter(Mandatory = $true)]$direction,
+      [Parameter(Mandatory = $true)]$resourceId)
+
+    # Getting object from graph again. Should work in 1 try after previous test succeeded:
+    $resourceGraphQuery = "resources | where id =~ '$resourceId'"
+    $objectInGraph = Try-ResourceGraphQuery -query $resourceGraphQuery -maxRetries 2
+    # Then sending message to queue to test scale down
+    $staccName = $AppName + "stgacct"
+        
+    $storageAccount = Get-AzStorageAccount -ResourceGroupName $bellhopResourceGroupName -Name $staccName
+    $ctx = $storageAccount.Context
+        
+    $queue = Get-AzStorageQueue –Name $queueName –Context $ctx
+        
+    $queueMessageRaw = @{ direction = $direction; debug = $False; graphResults = $objectInGraph }
+    $queueMessageJson = $queueMessageRaw | ConvertTo-Json
+        
+    $queueMessage = [Microsoft.Azure.Storage.Queue.CloudQueueMessage]::new($queueMessageJson)
+        
+    # Add a new message to the queue
+    Write-Host "Sending message to queue"
+    $queue.CloudQueue.AddMessageAsync($QueueMessage)
   }
 
   $TimeStamp = Get-Date -Format "yyyymmddHHmm"
@@ -82,29 +107,12 @@ Describe 'Test-Scaler' {
       # First getting resourceId based on deployment
       $resourceId = (Get-AzResourceGroupDeployment -ResourceGroupName $ScaledServiceResourceGroupName `
           -Name $ScaledServiceDeploymentName).Outputs.resourceId.Value
-      # Also, getting object from graph again. Should work in 1 try after previous test succeeded:
-      $resourceGraphQuery = "resources | where id =~ '$resourceId'"
-      $objectInGraph = Try-ResourceGraphQuery -query $resourceGraphQuery -maxRetries 2
-      # Then sending message to queue to test scale down
-      $staccName = $AppName + "stgacct"
-          
-      $storageAccount = Get-AzStorageAccount -ResourceGroupName $bellhopResourceGroupName -Name $staccName
-      $ctx = $storageAccount.Context
-          
-      $queue = Get-AzStorageQueue –Name $queueName –Context $ctx
-          
-      $queueMessageRaw = @{ direction = "down"; debug = $False; graphResults = $objectInGraph }
-      $queueMessageJson = $queueMessageRaw | ConvertTo-Json
-          
-      $queueMessage = [Microsoft.Azure.Storage.Queue.CloudQueueMessage]::new($queueMessageJson)
-          
-      # Add a new message to the queue
-      Write-Host "Sending message to queue"
-      $queue.CloudQueue.AddMessageAsync($QueueMessage)
-
+      
+      Scale-Resource -resourceId $resourceId -direction "down"
       
       $scaledDownresourceGraphQuery = "resources | where id =~ '$resourceId' | project target = $settingToProjectScaledDown"
-      $objectInGraph = Try-ResourceGraphQuery -query $scaledDownresourceGraphQuery -maxRetries 30 -targetState $targetSettingScaledDown
+      # Max retries set higher than usual to 60, since timing for scaler to connect to queue can vary
+      $objectInGraph = Try-ResourceGraphQuery -query $scaledDownresourceGraphQuery -maxRetries 60 -targetState $targetSettingScaledDown
       $objectInGraph.target | Should -be $targetSettingScaledDown
     }
     It "savestate tags should appear on ARG" {
@@ -124,22 +132,8 @@ Describe 'Test-Scaler' {
       # First getting resourceId based on deployment
       $resourceId = (Get-AzResourceGroupDeployment -ResourceGroupName $ScaledServiceResourceGroupName `
           -Name $ScaledServiceDeploymentName).Outputs.resourceId.Value
-      $resourceGraphQuery = "resources | where id =~ '$resourceId'"
-      $objectInGraph = Try-ResourceGraphQuery -query $resourceGraphQuery -maxRetries 2
-    
-      $staccName = $AppName + "stgacct"
-      $storageAccount = Get-AzStorageAccount -ResourceGroupName $bellhopResourceGroupName -Name $staccName
-      $ctx = $storageAccount.Context
-
-      $queue = Get-AzStorageQueue –Name $queueName –Context $ctx
-
-      $queueMessageRaw = @{ direction = "up"; debug = $False; graphResults = $objectInGraph }
-      $queueMessageJson = $queueMessageRaw | ConvertTo-Json
-
-      $queueMessage = [Microsoft.Azure.Storage.Queue.CloudQueueMessage]::new($queueMessageJson)
-      Write-Host "Sending message to queue"
-      $queue.CloudQueue.AddMessageAsync($QueueMessage)
-
+      
+      Scale-Resource -resourceId $resourceId -direction "up"
     
       $scaledUpresourceGraphQuery = "resources | where id =~ '$resourceId' | project target = $settingToProjectScaledUp"
     
