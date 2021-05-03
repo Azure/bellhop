@@ -17,20 +17,28 @@ BeforeAll {
     param([Parameter(Mandatory = $true)]$query, 
       [Parameter(Mandatory = $true)]$maxRetries, 
 <<<<<<< HEAD
+<<<<<<< HEAD
       [Parameter(Mandatory = $false)]$targetState = $null)
 =======
       [Parameter(Mandatory = $false)]$targetState=$null)
 >>>>>>> pester tests
+=======
+      [Parameter(Mandatory = $false)]$targetState = $null)
+>>>>>>> New function + increased timeout
     $i = 0
     $objectInGraph = $null
 
     do {
       $i += 1
 <<<<<<< HEAD
+<<<<<<< HEAD
       if ($i -ne 1) {
 =======
       if ($i -ne 1){
 >>>>>>> pester tests
+=======
+      if ($i -ne 1) {
+>>>>>>> New function + increased timeout
         Start-Sleep -s 30
       }
       Write-Host "Querying resource graph: $i out of $maxRetries"
@@ -45,6 +53,9 @@ BeforeAll {
   }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> New function + increased timeout
   function Scale-Resource {
     param([Parameter(Mandatory = $true)]$direction,
       [Parameter(Mandatory = $true)]$resourceId)
@@ -70,8 +81,11 @@ BeforeAll {
     $queue.CloudQueue.AddMessageAsync($QueueMessage)
   }
 
+<<<<<<< HEAD
 =======
 >>>>>>> pester tests
+=======
+>>>>>>> New function + increased timeout
   $TimeStamp = Get-Date -Format "yyyymmddHHmm"
   $AppName = "bhe2e$TimeStamp"
   $ScaledServiceResourceGroupName = "bhe2e-$serviceName-$TimeStamp"
@@ -119,6 +133,7 @@ Describe 'Test-Scaler' {
       $resourceId = (Get-AzResourceGroupDeployment -ResourceGroupName $ScaledServiceResourceGroupName `
           -Name $ScaledServiceDeploymentName).Outputs.resourceId.Value
 <<<<<<< HEAD
+<<<<<<< HEAD
       
       Scale-Resource -resourceId $resourceId -direction "down"
       
@@ -150,6 +165,14 @@ Describe 'Test-Scaler' {
       $scaledDownresourceGraphQuery = "resources | where id =~ '$resourceId' | project target = $settingToProjectScaledDown"
       $objectInGraph = Try-ResourceGraphQuery -query $scaledDownresourceGraphQuery -maxRetries 30 -targetState $targetSettingScaledDown
 >>>>>>> pester tests
+=======
+      
+      Scale-Resource -resourceId $resourceId -direction "down"
+      
+      $scaledDownresourceGraphQuery = "resources | where id =~ '$resourceId' | project target = $settingToProjectScaledDown"
+      # Max retries set higher than usual to 60, since timing for scaler to connect to queue can vary
+      $objectInGraph = Try-ResourceGraphQuery -query $scaledDownresourceGraphQuery -maxRetries 60 -targetState $targetSettingScaledDown
+>>>>>>> New function + increased timeout
       $objectInGraph.target | Should -be $targetSettingScaledDown
     }
     It "savestate tags should appear on ARG" {
@@ -169,6 +192,7 @@ Describe 'Test-Scaler' {
       # First getting resourceId based on deployment
       $resourceId = (Get-AzResourceGroupDeployment -ResourceGroupName $ScaledServiceResourceGroupName `
           -Name $ScaledServiceDeploymentName).Outputs.resourceId.Value
+<<<<<<< HEAD
 <<<<<<< HEAD
       
       Scale-Resource -resourceId $resourceId -direction "up"
@@ -190,6 +214,10 @@ Describe 'Test-Scaler' {
       $queue.CloudQueue.AddMessageAsync($QueueMessage)
 
 >>>>>>> pester tests
+=======
+      
+      Scale-Resource -resourceId $resourceId -direction "up"
+>>>>>>> New function + increased timeout
     
       $scaledUpresourceGraphQuery = "resources | where id =~ '$resourceId' | project target = $settingToProjectScaledUp"
     
