@@ -283,3 +283,6 @@ __MACOSX
 .DS_Store
 params.json
 deploy_*
+
+# Ignore .devcontainer
+.devcontainer
