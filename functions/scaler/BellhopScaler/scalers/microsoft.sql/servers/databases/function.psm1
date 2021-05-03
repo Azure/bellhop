@@ -51,9 +51,10 @@ function Update-Resource {
             # Data to be stored as Tags to remember the current stats of the object
             $saveData = @{
                 RequestedServiceObjectiveName = $graphData.properties.requestedServiceObjectiveName
-                LicenseType = $graphData.properties.licenseType
                 MaxSizeBytes = $graphData.properties.maxSizeBytes
             }
+
+            if ( $graphData.properties.licenseType ) { $saveData.Add("LicenseType", $graphData.properties.licenseType) }
 
             $config += $baseData
             $tags += Set-SaveTags $saveData $tagData.map
