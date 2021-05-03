@@ -18,6 +18,7 @@ BeforeAll {
       [Parameter(Mandatory = $true)]$maxRetries, 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       [Parameter(Mandatory = $false)]$targetState = $null)
 =======
       [Parameter(Mandatory = $false)]$targetState=$null)
@@ -25,11 +26,15 @@ BeforeAll {
 =======
       [Parameter(Mandatory = $false)]$targetState = $null)
 >>>>>>> New function + increased timeout
+=======
+      [Parameter(Mandatory = $false)]$targetState=$null)
+>>>>>>> pester tests
     $i = 0
     $objectInGraph = $null
 
     do {
       $i += 1
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
       if ($i -ne 1) {
@@ -39,6 +44,9 @@ BeforeAll {
 =======
       if ($i -ne 1) {
 >>>>>>> New function + increased timeout
+=======
+      if ($i -ne 1){
+>>>>>>> pester tests
         Start-Sleep -s 30
       }
       Write-Host "Querying resource graph: $i out of $maxRetries"
@@ -52,6 +60,7 @@ BeforeAll {
     return $objectInGraph
   }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -86,6 +95,8 @@ BeforeAll {
 >>>>>>> pester tests
 =======
 >>>>>>> New function + increased timeout
+=======
+>>>>>>> pester tests
   $TimeStamp = Get-Date -Format "yyyymmddHHmm"
   $AppName = "bhe2e$TimeStamp"
   $ScaledServiceResourceGroupName = "bhe2e-$serviceName-$TimeStamp"
@@ -134,6 +145,7 @@ Describe 'Test-Scaler' {
           -Name $ScaledServiceDeploymentName).Outputs.resourceId.Value
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       
       Scale-Resource -resourceId $resourceId -direction "down"
       
@@ -141,6 +153,8 @@ Describe 'Test-Scaler' {
       # Max retries set higher than usual to 60, since timing for scaler to connect to queue can vary
       $objectInGraph = Try-ResourceGraphQuery -query $scaledDownresourceGraphQuery -maxRetries 60 -targetState $targetSettingScaledDown
 =======
+=======
+>>>>>>> pester tests
       # Also, getting object from graph again. Should work in 1 try after previous test succeeded:
       $resourceGraphQuery = "resources | where id =~ '$resourceId'"
       $objectInGraph = Try-ResourceGraphQuery -query $resourceGraphQuery -maxRetries 2
@@ -164,6 +178,7 @@ Describe 'Test-Scaler' {
       
       $scaledDownresourceGraphQuery = "resources | where id =~ '$resourceId' | project target = $settingToProjectScaledDown"
       $objectInGraph = Try-ResourceGraphQuery -query $scaledDownresourceGraphQuery -maxRetries 30 -targetState $targetSettingScaledDown
+<<<<<<< HEAD
 >>>>>>> pester tests
 =======
       
@@ -173,6 +188,8 @@ Describe 'Test-Scaler' {
       # Max retries set higher than usual to 60, since timing for scaler to connect to queue can vary
       $objectInGraph = Try-ResourceGraphQuery -query $scaledDownresourceGraphQuery -maxRetries 60 -targetState $targetSettingScaledDown
 >>>>>>> New function + increased timeout
+=======
+>>>>>>> pester tests
       $objectInGraph.target | Should -be $targetSettingScaledDown
     }
     It "savestate tags should appear on ARG" {
@@ -194,9 +211,12 @@ Describe 'Test-Scaler' {
           -Name $ScaledServiceDeploymentName).Outputs.resourceId.Value
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       
       Scale-Resource -resourceId $resourceId -direction "up"
 =======
+=======
+>>>>>>> pester tests
       $resourceGraphQuery = "resources | where id =~ '$resourceId'"
       $objectInGraph = Try-ResourceGraphQuery -query $resourceGraphQuery -maxRetries 2
     
@@ -213,11 +233,14 @@ Describe 'Test-Scaler' {
       Write-Host "Sending message to queue"
       $queue.CloudQueue.AddMessageAsync($QueueMessage)
 
+<<<<<<< HEAD
 >>>>>>> pester tests
 =======
       
       Scale-Resource -resourceId $resourceId -direction "up"
 >>>>>>> New function + increased timeout
+=======
+>>>>>>> pester tests
     
       $scaledUpresourceGraphQuery = "resources | where id =~ '$resourceId' | project target = $settingToProjectScaledUp"
     
