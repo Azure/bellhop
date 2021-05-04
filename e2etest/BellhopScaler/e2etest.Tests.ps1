@@ -85,13 +85,13 @@ BeforeAll {
     $objectInGraph = Try-ResourceGraphQuery -query $resourceGraphQuery -maxRetries 2
     # Then sending message to queue to test scale down
     $staccName = $AppName + "stgacct"
-        
+    write-host "storage account name is $staccName"    
     $storageAccount = Get-AzStorageAccount -ResourceGroupName $bellhopResourceGroupName -Name $staccName
     $ctx = $storageAccount.Context
         
     $queue = Get-AzStorageQueue –Name $queueName –Context $ctx
         
-    $queueMessageRaw = @{ direction = $direction; debug = $False; graphResults = $objectInGraph }
+    $queueMessageRaw = @{ direction = $direction; debug = $true; graphResults = $objectInGraph }
     $queueMessageJson = $queueMessageRaw | ConvertTo-Json
         
     $queueMessage = [Microsoft.Azure.Storage.Queue.CloudQueueMessage]::new($queueMessageJson)
@@ -99,6 +99,8 @@ BeforeAll {
     # Add a new message to the queue
     Write-Host "Sending message to queue"
     $queue.CloudQueue.AddMessageAsync($QueueMessage)
+    write-host "queue message sent"
+    write-host $queueMessageJson
   }
 
 <<<<<<< HEAD
@@ -161,6 +163,7 @@ Describe 'Test-Scaler' {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       
       Scale-Resource -resourceId $resourceId -direction "down"
       
@@ -207,6 +210,9 @@ Describe 'Test-Scaler' {
 >>>>>>> pester tests
 =======
       
+=======
+      write-host $resourceId
+>>>>>>> testing failures
       Scale-Resource -resourceId $resourceId -direction "down"
       
       $scaledDownresourceGraphQuery = "resources | where id =~ '$resourceId' | project target = $settingToProjectScaledDown"
