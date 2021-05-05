@@ -17,6 +17,7 @@ function Assert-Error {
         ResourceGroup       = $QueueItem.graphResults.resourceGroup
         SubscriptionId      = $QueueItem.graphResults.subscriptionId
         SubscriptionName    = $QueueItem.graphResults.subscriptionName
+        ScaleDirection      = $QueueItem.direction
         Error               = $errorDetails
     }
 
