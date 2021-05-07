@@ -41,9 +41,16 @@ BeforeAll {
       [Parameter(Mandatory = $true)]$resourceId)
 
     # Getting object from graph again. Should work in 1 try after previous test succeeded:
-    $resourceGraphQuery = "resources | where id =~ '$resourceId'"
-    $objectInGraph = Try-ResourceGraphQuery -query $resourceGraphQuery -maxRetries 2
-    # Then sending message to queue to test scale down
+    $resourceGraphQuery = $null
+    if($direction -eq 'down'){
+      $resourceGraphQuery = "resources | where id =~ '$resourceId'"
+    }
+    else{
+      $resourceGraphQuery = "resources | where id =~ '$resourceId' | where tags contains 'savestate'"
+    }
+
+    $objectInGraph = Try-ResourceGraphQuery -query $resourceGraphQuery -maxRetries 5
+    # Then sending message to queue to test scale 
     $staccName = $AppName + "stgacct"
         
     $storageAccount = Get-AzStorageAccount -ResourceGroupName $bellhopResourceGroupName -Name $staccName
