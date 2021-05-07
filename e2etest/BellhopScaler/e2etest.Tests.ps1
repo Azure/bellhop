@@ -117,6 +117,9 @@ Describe 'Test-Scaler' {
   }
   Context "Testing scale down" {
     It "It should scale down successfully" {
+      # Sleep 60 seconds before sending message to queue to ensure scaler started up successfully
+      Write-host "Sleeping 60 seconds before sending message to queue to scale down"
+      start-sleep -s 60
       # First getting resourceId based on deployment
       $resourceId = (Get-AzResourceGroupDeployment -ResourceGroupName $ScaledServiceResourceGroupName `
           -Name $ScaledServiceDeploymentName).Outputs.resourceId.Value
