@@ -162,6 +162,14 @@ Describe 'Test-Scaler' {
 AfterAll {
   $scaler = Get-AzFunctionApp -Name "$appname-function-scaler" -ResourceGroupName $bellhopResourceGroupName
   $engine = Get-AzFunctionApp -Name "$appname-function-engine" -ResourceGroupName $bellhopResourceGroupName
+
+  $scalerIdentityId = $scaler.IdentityPrincipalId
+  $engineIdentityId = $engine.IdentityPrincipalId
+
+  az role assignment delete --assignee $scalerIdentityId --role "contributor"
+  az role assignment delete --assignee $engineIdentityId --role "reader"
+
+
   Write-Host "Deleting Bellhop"
   Remove-AzResourceGroup -Name $bellhopResourceGroupName -Force
   Write-Host "Deleting Service"
