@@ -3,6 +3,13 @@
 
 # Update the VARIANT arg in devcontainer.json to pick a supported PowerShell version: 7, 6
 ARG VARIANT=7
+
 FROM mcr.microsoft.com/azure-functions/powershell:3.0-powershell${VARIANT}-core-tools
-RUN pwsh -c "Install-Module Az -Force"
-RUN pwsh -c "Install-Module Pester -Force"
+
+RUN pwsh -Command Set-PSRepository -Name PSGallery -InstallationPolicy Trusted && \
+    pwsh -Command Install-Module -Name Az -Scope AllUsers -Repository PSGallery && \
+    pwsh -Command Install-Module -Name Az.ResourceGraph -Scope AllUsers -Repository PSGallery && \
+    pwsh -Command Install-Module -Name Pester -Scope AllUsers -Repository PSGallery && \
+    pwsh -Command Set-PSRepository -Name PSGallery -InstallationPolicy Untrusted
+
+CMD [ "pwsh" ]
