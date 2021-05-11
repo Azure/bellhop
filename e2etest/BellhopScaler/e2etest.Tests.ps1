@@ -160,6 +160,8 @@ Describe 'Test-Scaler' {
 }
 
 AfterAll {
+  $scaler = Get-AzFunctionApp -Name "$appname-function-scaler" -ResourceGroupName $bellhopResourceGroupName
+  $engine = Get-AzFunctionApp -Name "$appname-function-engine" -ResourceGroupName $bellhopResourceGroupName
   Write-Host "Deleting Bellhop"
   Remove-AzResourceGroup -Name $bellhopResourceGroupName -Force
   Write-Host "Deleting Service"
