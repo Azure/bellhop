@@ -1,7 +1,7 @@
 {
     "version": "2.0",
     "managedDependency": {
-      "enabled": true
+      "enabled": false
     },
     "extensions": {
         "queues": {
