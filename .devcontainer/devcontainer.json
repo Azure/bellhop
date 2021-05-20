@@ -20,7 +20,8 @@
 	"extensions": [
 		"ms-azuretools.vscode-azurefunctions",
 		"ms-vscode.powershell",
-		"tylerleonhardt.vscode-pester-test-adapter"
+		"tylerleonhardt.vscode-pester-test-adapter",
+		"ms-azuretools.vscode-docker"
 	],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
