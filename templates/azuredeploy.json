@@ -680,7 +680,8 @@
                             "location": "[resourceGroup().location]",
                             "apiVersion": "2018-04-16",
                             "dependsOn": [
-                                "[resourceId('microsoft.insights/actionGroups', variables('actionGroupName'))]"
+                                "[resourceId('microsoft.insights/actionGroups', variables('actionGroupName'))]",
+                                "[variables('appInsightsName')]"
                             ],
                             "tags": {
                             },
